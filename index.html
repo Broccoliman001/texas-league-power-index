@@ -37,6 +37,35 @@
       padding: 12px;
       margin: 20px 0;
     }
+    .positive {
+  color: #15803d;
+  font-weight: bold;
+}
+
+.negative {
+  color: #b91c1c;
+  font-weight: bold;
+}
+
+.neutral {
+  color: #6b7280;
+  font-weight: bold;
+}
+
+.trend-up {
+  color: #15803d;
+  font-weight: bold;
+}
+
+.trend-down {
+  color: #b91c1c;
+  font-weight: bold;
+}
+
+.trend-flat {
+  color: #6b7280;
+  font-weight: bold;
+}
   </style>
 </head>
 <body>
@@ -85,13 +114,13 @@
 
         row.innerHTML = `
           <td>${team.rank}</td>
-          <td>${team.trend}</td>
+          <td class="${   team.trend === "↑" ? "trend-up" :   team.trend === "↓" ? "trend-down" :   "trend-flat" }">${team.trend}</td>
           <td>${team.team}</td>
           <td>${team.record}</td>
           <td>${team.pct}</td>
           <td>${team.rs}</td>
           <td>${team.ra}</td>
-          <td>${team.diff > 0 ? "+" + team.diff : team.diff}</td>
+          <td class="${   team.diff > 0 ? "positive" :   team.diff < 0 ? "negative" :   "neutral" }">${team.diff > 0 ? "+" + team.diff : team.diff}</td>
           <td>${team.xwl}</td>
           <td>${team.last10}</td>
           <td>${team.vs500}</td>
