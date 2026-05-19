@@ -77,7 +77,7 @@ for division in data["records"]:
             for record in team_data.get("records", {}).get("splitRecords", []):
                 print(record.get("type"), record.get("wins"), record.get("losses"))
 
-        vs500_record = find_split_record(team_data, "vsWinning")
+        vs500_record = find_split_record(team_data, "winners")
 
         team = {
             "team": display_team_name,
