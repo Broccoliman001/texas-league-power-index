@@ -4,6 +4,43 @@ import requests
 
 URL = "https://statsapi.mlb.com/api/v1/standings?sportId=11&leagueId=109&season=2026&standingsTypes=regularSeason"
 
+TEAM_NAMES = {
+    "Travelers": "Arkansas Travelers",
+    "RoughRiders": "Frisco RoughRiders",
+    "Drillers": "Tulsa Drillers",
+    "RockHounds": "Midland RockHounds",
+    "Wind Surge": "Wichita Wind Surge",
+    "Hooks": "Corpus Christi Hooks",
+    "Naturals": "Northwest Arkansas Naturals",
+    "Sod Poodles": "Amarillo Sod Poodles",
+    "Cardinals": "Springfield Cardinals",
+    "Missions": "San Antonio Missions",
+}
+
+def format_record(record):
+    if not record:
+        return "0-0"
+    return f"{record.get('wins', 0)}-{record.get('losses', 0)}"
+
+def find_split_record(team_data, record_type):
+    records = team_data.get("records", {})
+    split_records = records.get("splitRecords", [])
+
+    for record in split_records:
+        if record.get("type") == record_type:
+            return record
+
+    return None
+
+def find_expected_record(team_data):
+    records = team_data.get("records", {})
+    expected_records = records.get("expectedRecords", [])
+
+    if expected_records:
+        return expected_records[0]
+
+    return None
+
 response = requests.get(URL)
 response.raise_for_status()
 data = response.json()
@@ -20,34 +57,31 @@ for division in data["records"]:
         ra = team_data.get("runsAllowed", 0)
         diff = rs - ra
 
-        last10 = team_data.get("records", {}).get("lastTen", {})
-        last10_wins = last10.get("wins", 0)
-        last10_losses = last10.get("losses", 0)
+        raw_team_name = team_data["team"]["name"]
+        display_team_name = TEAM_NAMES.get(raw_team_name, raw_team_name)
 
-        expected = team_data.get("records", {}).get("expectedRecords", {})
-        xwl = "0-0"
+        expected_record = find_expected_record(team_data)
+        xwl = format_record(expected_record)
 
-        if isinstance(expected, list) and len(expected) > 0:
-            x_wins = expected[0].get("wins", 0)
-            x_losses = expected[0].get("losses", 0)
-            xwl = f"{x_wins}-{x_losses}"
+        if expected_record:
+            x_wins = expected_record.get("wins", 0)
+            x_losses = expected_record.get("losses", 0)
             x_win_pct_num = x_wins / (x_wins + x_losses) if (x_wins + x_losses) else 0
         else:
             x_win_pct_num = wins / games if games else 0
 
-        vs_500 = team_data.get("records", {}).get("vsWinning", {})
-        vs500_wins = vs_500.get("wins", 0)
-        vs500_losses = vs_500.get("losses", 0)
+        last10_record = find_split_record(team_data, "lastTen")
+        vs500_record = find_split_record(team_data, "vsWinning")
 
         team = {
-            "team": team_data["team"]["name"],
+            "team": display_team_name,
             "record": f"{wins}-{losses}",
             "pct": team_data.get("winningPercentage", f"{wins / games:.3f}" if games else ".000"),
             "rs": rs,
             "ra": ra,
             "xwl": xwl,
-            "last10": f"{last10_wins}-{last10_losses}",
-            "vs500": f"{vs500_wins}-{vs500_losses}",
+            "last10": format_record(last10_record),
+            "vs500": format_record(vs500_record),
             "trend": "→",
             "identity": "TBD",
             "wins": wins,
