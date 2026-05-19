@@ -8,4 +8,3 @@ response = requests.get(URL)
 data = response.json()
 
 print(json.dumps(data, indent=2))
-```
