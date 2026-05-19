@@ -18,30 +18,8 @@
     "diff_per_game": 1.4102564102564104,
     "rs_per_game": 5.512820512820513,
     "ra_per_game": 4.102564102564102,
-    "power_score": 96.0,
+    "power_score": 95.8,
     "rank": 1
-  },
-  {
-    "team": "Frisco RoughRiders",
-    "record": "20-18",
-    "pct": ".526",
-    "rs": 251,
-    "ra": 216,
-    "xwl": "22-16",
-    "last10": "5-5",
-    "vs500": "0-0",
-    "trend": "\u2192",
-    "identity": "TBD",
-    "wins": 20,
-    "losses": 18,
-    "diff": 35,
-    "win_pct_num": 0.5263157894736842,
-    "x_win_pct_num": 0.5789473684210527,
-    "diff_per_game": 0.9210526315789473,
-    "rs_per_game": 6.605263157894737,
-    "ra_per_game": 5.684210526315789,
-    "power_score": 75.5,
-    "rank": 2
   },
   {
     "team": "Tulsa Drillers",
@@ -62,7 +40,29 @@
     "diff_per_game": 0.6410256410256411,
     "rs_per_game": 6.0,
     "ra_per_game": 5.358974358974359,
-    "power_score": 72.3,
+    "power_score": 70.3,
+    "rank": 2
+  },
+  {
+    "team": "Frisco RoughRiders",
+    "record": "20-19",
+    "pct": ".513",
+    "rs": 257,
+    "ra": 228,
+    "xwl": "22-17",
+    "last10": "5-5",
+    "vs500": "0-0",
+    "trend": "\u2192",
+    "identity": "TBD",
+    "wins": 20,
+    "losses": 19,
+    "diff": 29,
+    "win_pct_num": 0.5128205128205128,
+    "x_win_pct_num": 0.5641025641025641,
+    "diff_per_game": 0.7435897435897436,
+    "rs_per_game": 6.589743589743589,
+    "ra_per_game": 5.846153846153846,
+    "power_score": 68.5,
     "rank": 3
   },
   {
@@ -84,7 +84,7 @@
     "diff_per_game": 0.1282051282051282,
     "rs_per_game": 4.794871794871795,
     "ra_per_game": 4.666666666666667,
-    "power_score": 60.4,
+    "power_score": 57.0,
     "rank": 4
   },
   {
@@ -106,7 +106,7 @@
     "diff_per_game": 0.23684210526315788,
     "rs_per_game": 5.552631578947368,
     "ra_per_game": 5.315789473684211,
-    "power_score": 58.8,
+    "power_score": 55.5,
     "rank": 5
   },
   {
@@ -128,7 +128,7 @@
     "diff_per_game": -0.10256410256410256,
     "rs_per_game": 4.9743589743589745,
     "ra_per_game": 5.076923076923077,
-    "power_score": 46.5,
+    "power_score": 42.0,
     "rank": 6
   },
   {
@@ -150,7 +150,7 @@
     "diff_per_game": -0.39473684210526316,
     "rs_per_game": 5.7368421052631575,
     "ra_per_game": 6.131578947368421,
-    "power_score": 42.8,
+    "power_score": 38.5,
     "rank": 7
   },
   {
@@ -172,7 +172,7 @@
     "diff_per_game": -0.6052631578947368,
     "rs_per_game": 5.342105263157895,
     "ra_per_game": 5.947368421052632,
-    "power_score": 39.0,
+    "power_score": 34.1,
     "rank": 8
   },
   {
@@ -194,29 +194,29 @@
     "diff_per_game": -0.5897435897435898,
     "rs_per_game": 5.282051282051282,
     "ra_per_game": 5.871794871794871,
-    "power_score": 33.7,
+    "power_score": 28.5,
     "rank": 9
   },
   {
     "team": "San Antonio Missions",
-    "record": "14-25",
-    "pct": ".359",
-    "rs": 150,
-    "ra": 214,
-    "xwl": "13-26",
-    "last10": "6-4",
+    "record": "15-25",
+    "pct": ".375",
+    "rs": 162,
+    "ra": 220,
+    "xwl": "15-25",
+    "last10": "7-3",
     "vs500": "0-0",
     "trend": "\u2192",
     "identity": "TBD",
-    "wins": 14,
+    "wins": 15,
     "losses": 25,
-    "diff": -64,
-    "win_pct_num": 0.358974358974359,
-    "x_win_pct_num": 0.3333333333333333,
-    "diff_per_game": -1.641025641025641,
-    "rs_per_game": 3.8461538461538463,
-    "ra_per_game": 5.487179487179487,
-    "power_score": 3.2,
+    "diff": -58,
+    "win_pct_num": 0.375,
+    "x_win_pct_num": 0.375,
+    "diff_per_game": -1.45,
+    "rs_per_game": 4.05,
+    "ra_per_game": 5.5,
+    "power_score": 3.1,
     "rank": 10
   }
 ]
