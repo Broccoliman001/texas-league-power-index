@@ -6,66 +6,85 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      max-width: 900px;
+      max-width: 1100px;
       margin: 40px auto;
       padding: 0 20px;
       line-height: 1.5;
       background: #f7f7f7;
       color: #222;
     }
+
     h1, h2 {
       color: #1f2937;
     }
+
     table {
       width: 100%;
       border-collapse: collapse;
       background: white;
       margin-top: 20px;
+      table-layout: auto;
     }
+
     th, td {
       padding: 10px;
       border-bottom: 1px solid #ddd;
       text-align: left;
+      white-space: nowrap;
     }
+
     th {
       background: #111827;
       color: white;
     }
+
+    th:nth-child(4),
+    td:nth-child(4) {
+      min-width: 190px;
+      white-space: normal;
+    }
+
+    th:nth-child(10),
+    td:nth-child(10) {
+      min-width: 70px;
+    }
+
     .note {
       background: white;
       border-left: 4px solid #2563eb;
       padding: 12px;
       margin: 20px 0;
     }
+
     .positive {
-  color: #15803d;
-  font-weight: bold;
-}
+      color: #15803d;
+      font-weight: bold;
+    }
 
-.negative {
-  color: #b91c1c;
-  font-weight: bold;
-}
+    .negative {
+      color: #b91c1c;
+      font-weight: bold;
+    }
 
-.neutral {
-  color: #6b7280;
-  font-weight: bold;
-}
+    .neutral {
+      color: #6b7280;
+      font-weight: bold;
+    }
 
-.trend-up {
-  color: #15803d;
-  font-weight: bold;
-}
+    .trend-up {
+      color: #15803d;
+      font-weight: bold;
+    }
 
-.trend-down {
-  color: #b91c1c;
-  font-weight: bold;
-}
+    .trend-down {
+      color: #b91c1c;
+      font-weight: bold;
+    }
 
-.trend-flat {
-  color: #6b7280;
-  font-weight: bold;
-}
+    .trend-flat {
+      color: #6b7280;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -77,66 +96,74 @@
   </p>
 
   <div class="note">
-    Current headline: Arkansas remains the league’s most complete team, while Frisco
-    owns the highest offensive ceiling.
+    Current headline: The Arkansas Travelers remain the league’s most complete team,
+    while the Frisco RoughRiders own the highest offensive ceiling.
   </div>
 
   <h2>Power Rankings</h2>
 
-<table>
-  <thead>
-    <tr>
-      <th>Rank</th>
-      <th>Power</th>
-      <th>Trend</th>
-      <th>Team</th>
-      <th>Record</th>
-      <th>PCT</th>
-      <th>RS</th>
-      <th>RA</th>
-      <th>DIFF</th>
-      <th>X-W/L</th>
-      <th>L10</th>
-      <th>&gt;.500</th>
-      <th>Identity</th>
-    </tr>
-  </thead>
-  <tbody id="power-rankings-body"></tbody>
-</table>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Power</th>
+        <th>Trend</th>
+        <th>Team</th>
+        <th>Record</th>
+        <th>PCT</th>
+        <th>RS</th>
+        <th>RA</th>
+        <th>DIFF</th>
+        <th>X-W/L</th>
+        <th>L10</th>
+        <th>&gt;.500</th>
+        <th>Identity</th>
+      </tr>
+    </thead>
+    <tbody id="power-rankings-body"></tbody>
+  </table>
 
-<script>
-  fetch("data/standings.json")
-    .then(response => response.json())
-    .then(teams => {
-      const tbody = document.getElementById("power-rankings-body");
+  <script>
+    fetch("data/standings.json")
+      .then(response => response.json())
+      .then(teams => {
+        const tbody = document.getElementById("power-rankings-body");
 
-      teams.forEach(team => {
-        const row = document.createElement("tr");
+        teams.forEach(team => {
+          const row = document.createElement("tr");
 
-        row.innerHTML = `
-          <td>${team.rank}</td>
-          <td>${team.power_score}</td>
-          <td class="${   team.trend === "↑" ? "trend-up" :   team.trend === "↓" ? "trend-down" :   "trend-flat" }">${team.trend}</td>
-          <td>${team.team}</td>
-          <td>${team.record}</td>
-          <td>${team.pct}</td>
-          <td>${team.rs}</td>
-          <td>${team.ra}</td>
-          <td class="${   team.diff > 0 ? "positive" :   team.diff < 0 ? "negative" :   "neutral" }">${team.diff > 0 ? "+" + team.diff : team.diff}</td>
-          <td>${team.xwl}</td>
-          <td>${team.last10}</td>
-          <td>${team.vs500}</td>
-          <td>${team.identity}</td>
-        `;
+          row.innerHTML = `
+            <td>${team.rank}</td>
+            <td>${Number(team.power_score).toFixed(1)}</td>
+            <td class="${
+              team.trend === "↑" ? "trend-up" :
+              team.trend === "↓" ? "trend-down" :
+              "trend-flat"
+            }">${team.trend}</td>
+            <td>${team.team}</td>
+            <td>${team.record}</td>
+            <td>${team.pct}</td>
+            <td>${team.rs}</td>
+            <td>${team.ra}</td>
+            <td class="${
+              team.diff > 0 ? "positive" :
+              team.diff < 0 ? "negative" :
+              "neutral"
+            }">${team.diff > 0 ? "+" + team.diff : team.diff}</td>
+            <td>${team.xwl}</td>
+            <td>${team.last10}</td>
+            <td>${team.vs500}</td>
+            <td>${team.identity}</td>
+          `;
 
-        tbody.appendChild(row);
+          tbody.appendChild(row);
+        });
       });
-    });
-</script>
+  </script>
 
   <h2>Fraud Watch</h2>
   <p>
-    Amarillo remains the headline fraud candidate: competitive actual record,
+    The Amarillo Sod Poodles remain the headline fraud candidate: competitive actual record,
     poor run differential, and weak expected record.
   </p>
 
