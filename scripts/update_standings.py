@@ -4,6 +4,7 @@ from pathlib import Path
 import requests
 
 URL = "https://statsapi.mlb.com/api/v1/standings?sportId=11&leagueId=109&season=2026&standingsTypes=regularSeason"
+OUTPUT_PATH = Path("data/standings.json")
 
 TEAM_NAMES = {
     "Travelers": "Arkansas Travelers",
@@ -17,6 +18,19 @@ TEAM_NAMES = {
     "Cardinals": "Springfield Cardinals",
     "Missions": "San Antonio Missions",
 }
+
+previous_ranks = {}
+
+if OUTPUT_PATH.exists():
+    try:
+        with OUTPUT_PATH.open("r", encoding="utf-8") as f:
+            previous_data = json.load(f)
+
+        for team in previous_data.get("teams", []):
+            previous_ranks[team["team"]] = team["rank"]
+
+    except Exception as e:
+        print(f"Could not load previous standings: {e}")
 
 def format_record(record):
     if not record:
@@ -83,7 +97,6 @@ for division in data["records"]:
             "xwl": xwl,
             "last10": format_record(last10_record),
             "vs500": format_record(vs500_record),
-            "trend": "→",
             "identity": "TBD",
             "wins": wins,
             "losses": losses,
@@ -128,17 +141,27 @@ teams = sorted(teams, key=lambda team: team["power_score"], reverse=True)
 for index, team in enumerate(teams, start=1):
     team["rank"] = index
 
+    previous_rank = previous_ranks.get(team["team"])
+
+    if previous_rank is None:
+        team["trend"] = "→"
+    elif index < previous_rank:
+        team["trend"] = "↑"
+    elif index > previous_rank:
+        team["trend"] = "↓"
+    else:
+        team["trend"] = "→"
+
 output = {
     "last_updated": datetime.now(timezone.utc).isoformat(),
     "teams": teams
 }
 
-output_path = Path("data/standings.json")
-output_path.parent.mkdir(exist_ok=True)
+OUTPUT_PATH.parent.mkdir(exist_ok=True)
 
-with output_path.open("w", encoding="utf-8") as f:
+with OUTPUT_PATH.open("w", encoding="utf-8") as f:
     json.dump(output, f, indent=2)
 
-print(f"Wrote {output_path}")
+print(f"Wrote {OUTPUT_PATH}")
 print(f"Teams written: {len(teams)}")
 print(f"Last updated: {output['last_updated']}")
