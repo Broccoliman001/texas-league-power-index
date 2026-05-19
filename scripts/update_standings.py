@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 import requests
 
@@ -71,12 +72,6 @@ for division in data["records"]:
             x_win_pct_num = wins / games if games else 0
 
         last10_record = find_split_record(team_data, "lastTen")
-
-        if team_data["team"]["name"] == "RoughRiders":
-            print("Available split record types for RoughRiders:")
-            for record in team_data.get("records", {}).get("splitRecords", []):
-                print(record.get("type"), record.get("wins"), record.get("losses"))
-
         vs500_record = find_split_record(team_data, "winners")
 
         team = {
@@ -133,11 +128,17 @@ teams = sorted(teams, key=lambda team: team["power_score"], reverse=True)
 for index, team in enumerate(teams, start=1):
     team["rank"] = index
 
+output = {
+    "last_updated": datetime.now(timezone.utc).isoformat(),
+    "teams": teams
+}
+
 output_path = Path("data/standings.json")
 output_path.parent.mkdir(exist_ok=True)
 
 with output_path.open("w", encoding="utf-8") as f:
-    json.dump(teams, f, indent=2)
+    json.dump(output, f, indent=2)
 
 print(f"Wrote {output_path}")
 print(f"Teams written: {len(teams)}")
+print(f"Last updated: {output['last_updated']}")
