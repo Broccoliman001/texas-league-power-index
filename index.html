@@ -87,6 +87,7 @@
   <thead>
     <tr>
       <th>Rank</th>
+      <th>Power</th>
       <th>Trend</th>
       <th>Team</th>
       <th>Record</th>
@@ -114,6 +115,7 @@
 
         row.innerHTML = `
           <td>${team.rank}</td>
+          <td>${team.power_score}</td>
           <td class="${   team.trend === "↑" ? "trend-up" :   team.trend === "↓" ? "trend-down" :   "trend-flat" }">${team.trend}</td>
           <td>${team.team}</td>
           <td>${team.record}</td>
