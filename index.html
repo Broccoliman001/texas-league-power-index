@@ -91,9 +91,13 @@
   <h1>Texas League Power Index</h1>
 
   <p>
-    A fan-made analytical power ranking for the Texas League, using run differential,
-    expected record, recent form, and team identity.
-  </p>
+  A fan-made analytical power ranking for the Texas League, using run differential,
+  expected record, recent form, and team identity.
+</p>
+
+<p id="last-updated" class="updated-time">
+  Last updated: loading...
+</p>
 
   <div class="note">
     Current headline: The Arkansas Travelers remain the league’s most complete team,
@@ -127,10 +131,15 @@
     fetch("data/standings.json")
   .then(response => response.json())
   .then(data => {
-    const tbody = document.getElementById("power-rankings-body");
-    const teams = data.teams;
+  const tbody = document.getElementById("power-rankings-body");
+  const teams = data.teams;
 
-    teams.forEach(team => {
+  const updated = new Date(data.last_updated);
+
+  document.getElementById("last-updated").textContent =
+    `Last updated: ${updated.toLocaleString()}`;
+
+  teams.forEach(team => {
           const row = document.createElement("tr");
 
           row.innerHTML = `
