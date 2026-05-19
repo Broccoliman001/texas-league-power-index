@@ -71,13 +71,13 @@ for division in data["records"]:
             x_win_pct_num = wins / games if games else 0
 
         last10_record = find_split_record(team_data, "lastTen")
-        
-if team_data["team"]["name"] == "RoughRiders":
-    print("Available split record types for RoughRiders:")
-    for record in team_data.get("records", {}).get("splitRecords", []):
-         print(record.get("type"), record.get("wins"), record.get("losses"))
 
-vs500_record = find_split_record(team_data, "vsWinning")
+        if team_data["team"]["name"] == "RoughRiders":
+            print("Available split record types for RoughRiders:")
+            for record in team_data.get("records", {}).get("splitRecords", []):
+                print(record.get("type"), record.get("wins"), record.get("losses"))
+
+        vs500_record = find_split_record(team_data, "vsWinning")
 
         team = {
             "team": display_team_name,
