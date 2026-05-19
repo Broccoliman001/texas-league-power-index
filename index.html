@@ -125,11 +125,12 @@
 
   <script>
     fetch("data/standings.json")
-      .then(response => response.json())
-      .then(teams => {
-        const tbody = document.getElementById("power-rankings-body");
+  .then(response => response.json())
+  .then(data => {
+    const tbody = document.getElementById("power-rankings-body");
+    const teams = data.teams;
 
-        teams.forEach(team => {
+    teams.forEach(team => {
           const row = document.createElement("tr");
 
           row.innerHTML = `
