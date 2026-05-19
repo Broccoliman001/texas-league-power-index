@@ -1,10 +1,12 @@
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 import requests
 
 URL = "https://statsapi.mlb.com/api/v1/standings?sportId=11&leagueId=109&season=2026&standingsTypes=regularSeason"
+
 OUTPUT_PATH = Path("data/standings.json")
+HISTORY_DIR = Path("data/history")
 
 TEAM_NAMES = {
     "Travelers": "Arkansas Travelers",
@@ -18,19 +20,6 @@ TEAM_NAMES = {
     "Cardinals": "Springfield Cardinals",
     "Missions": "San Antonio Missions",
 }
-
-previous_ranks = {}
-
-if OUTPUT_PATH.exists():
-    try:
-        with OUTPUT_PATH.open("r", encoding="utf-8") as f:
-            previous_data = json.load(f)
-
-        for team in previous_data.get("teams", []):
-            previous_ranks[team["team"]] = team["rank"]
-
-    except Exception as e:
-        print(f"Could not load previous standings: {e}")
 
 def format_record(record):
     if not record:
@@ -55,6 +44,47 @@ def find_expected_record(team_data):
         return expected_records[0]
 
     return None
+
+def load_rank_snapshot(path):
+    if not path.exists():
+        return {}
+
+    try:
+        with path.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        return {
+            team["team"]: team["rank"]
+            for team in data.get("teams", [])
+            if "team" in team and "rank" in team
+        }
+
+    except Exception as e:
+        print(f"Could not load rank snapshot from {path}: {e}")
+        return {}
+
+def find_comparison_snapshot(today):
+    target_date = today - timedelta(days=7)
+
+    for offset in range(0, 8):
+        for candidate_date in [
+            target_date - timedelta(days=offset),
+            target_date + timedelta(days=offset),
+        ]:
+            candidate_path = HISTORY_DIR / f"{candidate_date.isoformat()}.json"
+            if candidate_path.exists():
+                return candidate_path
+
+    return None
+
+today = datetime.now(timezone.utc).date()
+comparison_snapshot_path = find_comparison_snapshot(today)
+previous_ranks = load_rank_snapshot(comparison_snapshot_path) if comparison_snapshot_path else {}
+
+if comparison_snapshot_path:
+    print(f"Comparing trends against {comparison_snapshot_path}")
+else:
+    print("No 7-day comparison snapshot found. Trends will default to sideways.")
 
 response = requests.get(URL)
 response.raise_for_status()
@@ -141,27 +171,36 @@ teams = sorted(teams, key=lambda team: team["power_score"], reverse=True)
 for index, team in enumerate(teams, start=1):
     team["rank"] = index
 
-    previous_rank = previous_ranks.get(team["team"])
+    comparison_rank = previous_ranks.get(team["team"])
 
-    if previous_rank is None:
+    if comparison_rank is None:
         team["trend"] = "→"
-    elif index < previous_rank:
+    elif index < comparison_rank:
         team["trend"] = "↑"
-    elif index > previous_rank:
+    elif index > comparison_rank:
         team["trend"] = "↓"
     else:
         team["trend"] = "→"
 
 output = {
     "last_updated": datetime.now(timezone.utc).isoformat(),
+    "trend_basis": "Compared against closest available ranking snapshot from 7 days ago.",
+    "comparison_snapshot": str(comparison_snapshot_path) if comparison_snapshot_path else None,
     "teams": teams
 }
 
 OUTPUT_PATH.parent.mkdir(exist_ok=True)
+HISTORY_DIR.mkdir(parents=True, exist_ok=True)
 
 with OUTPUT_PATH.open("w", encoding="utf-8") as f:
     json.dump(output, f, indent=2)
 
+history_path = HISTORY_DIR / f"{today.isoformat()}.json"
+
+with history_path.open("w", encoding="utf-8") as f:
+    json.dump(output, f, indent=2)
+
 print(f"Wrote {OUTPUT_PATH}")
+print(f"Wrote {history_path}")
 print(f"Teams written: {len(teams)}")
 print(f"Last updated: {output['last_updated']}")
