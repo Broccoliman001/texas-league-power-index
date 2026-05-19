@@ -127,28 +127,50 @@ teams = [
     },
 ]
 
-# Simple power order for now.
-# Later this will become a true formula.
-power_order = [
-    "Arkansas",
-    "Frisco",
-    "Tulsa",
-    "Midland",
-    "Wichita",
-    "Amarillo",
-    "Northwest Arkansas",
-    "Springfield",
-    "Corpus Christi",
-    "San Antonio",
-]
+for team in teams:
+    wins, losses = map(int, team["record"].split("-"))
+    x_wins, x_losses = map(int, team["xwl"].split("-"))
 
-order_lookup = {team: index + 1 for index, team in enumerate(power_order)}
+    games = wins + losses
+    team["wins"] = wins
+    team["losses"] = losses
+    team["diff"] = team["rs"] - team["ra"]
+    team["win_pct_num"] = wins / games
+    team["x_win_pct_num"] = x_wins / (x_wins + x_losses)
+    team["diff_per_game"] = team["diff"] / games
+    team["rs_per_game"] = team["rs"] / games
+    team["ra_per_game"] = team["ra"] / games
+
+def normalize(value, values, reverse=False):
+    min_value = min(values)
+    max_value = max(values)
+
+    if max_value == min_value:
+        return 50
+
+    score = 100 * (value - min_value) / (max_value - min_value)
+    return 100 - score if reverse else score
+
+diff_values = [team["diff_per_game"] for team in teams]
+x_win_values = [team["x_win_pct_num"] for team in teams]
+actual_win_values = [team["win_pct_num"] for team in teams]
+offense_values = [team["rs_per_game"] for team in teams]
+defense_values = [team["ra_per_game"] for team in teams]
 
 for team in teams:
-    team["rank"] = order_lookup[team["team"]]
-    team["diff"] = team["rs"] - team["ra"]
+    team["power_score"] = round(
+        0.40 * normalize(team["diff_per_game"], diff_values)
+        + 0.25 * normalize(team["x_win_pct_num"], x_win_values)
+        + 0.15 * normalize(team["win_pct_num"], actual_win_values)
+        + 0.10 * normalize(team["rs_per_game"], offense_values)
+        + 0.10 * normalize(team["ra_per_game"], defense_values, reverse=True),
+        1
+    )
 
-teams = sorted(teams, key=lambda team: team["rank"])
+teams = sorted(teams, key=lambda team: team["power_score"], reverse=True)
+
+for index, team in enumerate(teams, start=1):
+    team["rank"] = index
 
 output_path = Path("data/standings.json")
 output_path.parent.mkdir(exist_ok=True)
