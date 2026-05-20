@@ -118,6 +118,11 @@ for division in data["records"]:
         last10_record = find_split_record(team_data, "lastTen")
         vs500_record = find_split_record(team_data, "winners")
 
+        vs500_wins = vs500_record.get("wins", 0) if vs500_record else 0
+        vs500_losses = vs500_record.get("losses", 0) if vs500_record else 0
+        vs500_games = vs500_wins + vs500_losses
+        vs500_win_pct_num = vs500_wins / vs500_games if vs500_games else 0
+
         team = {
             "team": display_team_name,
             "record": f"{wins}-{losses}",
@@ -133,6 +138,7 @@ for division in data["records"]:
             "diff": diff,
             "win_pct_num": wins / games if games else 0,
             "x_win_pct_num": x_win_pct_num,
+            "vs500_win_pct_num": vs500_win_pct_num,
             "diff_per_game": diff / games if games else 0,
             "rs_per_game": rs / games if games else 0,
             "ra_per_game": ra / games if games else 0,
@@ -155,14 +161,16 @@ x_win_values = [team["x_win_pct_num"] for team in teams]
 actual_win_values = [team["win_pct_num"] for team in teams]
 offense_values = [team["rs_per_game"] for team in teams]
 defense_values = [team["ra_per_game"] for team in teams]
+vs500_values = [team["vs500_win_pct_num"] for team in teams]
 
 for team in teams:
     team["power_score"] = round(
-        0.40 * normalize(team["diff_per_game"], diff_values)
-        + 0.25 * normalize(team["x_win_pct_num"], x_win_values)
-        + 0.15 * normalize(team["win_pct_num"], actual_win_values)
+        0.30 * normalize(team["diff_per_game"], diff_values)
+        + 0.20 * normalize(team["x_win_pct_num"], x_win_values)
+        + 0.20 * normalize(team["win_pct_num"], actual_win_values)
         + 0.10 * normalize(team["rs_per_game"], offense_values)
-        + 0.10 * normalize(team["ra_per_game"], defense_values, reverse=True),
+        + 0.10 * normalize(team["ra_per_game"], defense_values, reverse=True)
+        + 0.10 * normalize(team["vs500_win_pct_num"], vs500_values),
         1
     )
 
