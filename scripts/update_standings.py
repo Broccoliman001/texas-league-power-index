@@ -122,6 +122,7 @@ for division in data["records"]:
         vs500_losses = vs500_record.get("losses", 0) if vs500_record else 0
         vs500_games = vs500_wins + vs500_losses
         vs500_win_pct_num = vs500_wins / vs500_games if vs500_games else 0
+        vs500_game_share = vs500_games / games if games else 0
 
         team = {
             "team": display_team_name,
@@ -139,6 +140,7 @@ for division in data["records"]:
             "win_pct_num": wins / games if games else 0,
             "x_win_pct_num": x_win_pct_num,
             "vs500_win_pct_num": vs500_win_pct_num,
+            "vs500_game_share": vs500_game_share,
             "diff_per_game": diff / games if games else 0,
             "rs_per_game": rs / games if games else 0,
             "ra_per_game": ra / games if games else 0,
@@ -162,15 +164,28 @@ actual_win_values = [team["win_pct_num"] for team in teams]
 offense_values = [team["rs_per_game"] for team in teams]
 defense_values = [team["ra_per_game"] for team in teams]
 vs500_values = [team["vs500_win_pct_num"] for team in teams]
+vs500_share_values = [team["vs500_game_share"] for team in teams]
 
 for team in teams:
-    team["power_score"] = round(
-        0.30 * normalize(team["diff_per_game"], diff_values)
-        + 0.20 * normalize(team["x_win_pct_num"], x_win_values)
-        + 0.20 * normalize(team["win_pct_num"], actual_win_values)
+    run_profile_score = (
+        0.60 * normalize(team["diff_per_game"], diff_values)
+        + 0.25 * normalize(team["x_win_pct_num"], x_win_values)
         + 0.10 * normalize(team["rs_per_game"], offense_values)
-        + 0.10 * normalize(team["ra_per_game"], defense_values, reverse=True)
-        + 0.10 * normalize(team["vs500_win_pct_num"], vs500_values),
+        + 0.05 * normalize(team["ra_per_game"], defense_values, reverse=True)
+    )
+
+    quality_record_score = (
+        0.70 * normalize(team["vs500_win_pct_num"], vs500_values)
+        + 0.30 * normalize(team["vs500_game_share"], vs500_share_values)
+    )
+
+    team["run_profile_score"] = round(run_profile_score, 1)
+    team["quality_record_score"] = round(quality_record_score, 1)
+
+    team["power_score"] = round(
+        0.50 * run_profile_score
+        + 0.25 * normalize(team["win_pct_num"], actual_win_values)
+        + 0.25 * quality_record_score,
         1
     )
 
