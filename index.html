@@ -1,78 +1,292 @@
-<div class="note">
-  <h2>How Power Score Is Calculated</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Texas League Power Index</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1100px;
+      margin: 40px auto;
+      padding: 0 20px;
+      line-height: 1.5;
+      background: #f7f7f7;
+      color: #222;
+    }
+
+    h1, h2, h3 {
+      color: #1f2937;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      margin-top: 20px;
+      table-layout: auto;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th {
+      background: #111827;
+      color: white;
+    }
+
+    th:nth-child(4),
+    td:nth-child(4) {
+      min-width: 190px;
+      white-space: normal;
+    }
+
+    th:nth-child(10),
+    td:nth-child(10) {
+      min-width: 70px;
+    }
+
+    .note {
+      background: white;
+      padding: 16px;
+      margin: 20px 0;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+
+    .positive {
+      color: #15803d;
+      font-weight: bold;
+    }
+
+    .negative {
+      color: #b91c1c;
+      font-weight: bold;
+    }
+
+    .neutral {
+      color: #6b7280;
+      font-weight: bold;
+    }
+
+    .trend-up {
+      color: #15803d;
+      font-weight: bold;
+    }
+
+    .trend-down {
+      color: #b91c1c;
+      font-weight: bold;
+    }
+
+    .trend-flat {
+      color: #6b7280;
+      font-weight: bold;
+    }
+
+    .delta-up {
+      color: #15803d;
+      font-weight: bold;
+      margin-left: 6px;
+    }
+
+    .delta-down {
+      color: #b91c1c;
+      font-weight: bold;
+      margin-left: 6px;
+    }
+
+    .delta-neutral {
+      color: #6b7280;
+      font-weight: bold;
+      margin-left: 6px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Texas League Power Index</h1>
 
   <p>
-    The Texas League Power Index is a weighted analytical rating designed to measure
-    overall team strength beyond simple win-loss record.
+    A fan-made analytical power ranking for the Texas League using run differential,
+    expected record, quality of competition, and long-term performance indicators.
   </p>
+
+  <p id="last-updated" class="updated-time">
+    Last updated: loading...
+  </p>
+
+  <h2>Power Rankings</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Power</th>
+        <th>Trend</th>
+        <th>Team</th>
+        <th>Record</th>
+        <th>PCT</th>
+        <th>RS</th>
+        <th>RA</th>
+        <th>DIFF</th>
+        <th>X-W/L</th>
+        <th>L10</th>
+        <th>&gt;.500</th>
+      </tr>
+    </thead>
+
+    <tbody id="power-rankings-body"></tbody>
+  </table>
+
+  <script>
+    fetch("data/standings.json")
+      .then(response => response.json())
+      .then(data => {
+        const tbody = document.getElementById("power-rankings-body");
+        const teams = data.teams;
+
+        const updated = new Date(data.last_updated);
+
+        document.getElementById("last-updated").textContent =
+          `Last updated: ${updated.toLocaleString()}`;
+
+        teams.forEach(team => {
+          const row = document.createElement("tr");
+
+          row.innerHTML = `
+            <td>${team.rank}</td>
+
+            <td>${Number(team.power_score).toFixed(1)}</td>
+
+            <td>
+              <span class="${
+                team.trend === "↑" ? "trend-up" :
+                team.trend === "↓" ? "trend-down" :
+                "trend-flat"
+              }">${team.trend}</span>
+
+              <span class="${team.power_delta_class || "delta-neutral"}">
+                ${team.power_delta_display || "0.0"}
+              </span>
+            </td>
+
+            <td>${team.team}</td>
+            <td>${team.record}</td>
+            <td>${team.pct}</td>
+            <td>${team.rs}</td>
+            <td>${team.ra}</td>
+
+            <td class="${
+              team.diff > 0 ? "positive" :
+              team.diff < 0 ? "negative" :
+              "neutral"
+            }">
+              ${team.diff > 0 ? "+" + team.diff : team.diff}
+            </td>
+
+            <td>${team.xwl}</td>
+            <td>${team.last10}</td>
+            <td>${team.vs500}</td>
+          `;
+
+          tbody.appendChild(row);
+        });
+      });
+  </script>
+
+  <div class="note">
+
+    <h2>How Power Score Is Calculated</h2>
+
+    <p>
+      The Texas League Power Index is a weighted analytical rating designed to measure
+      overall team strength beyond simple win-loss record.
+    </p>
+
+    <p>
+      Rather than focusing only on standings, the model emphasizes sustainable
+      performance indicators such as run differential, expected record, and
+      performance against winning teams.
+    </p>
+
+    <h3>Power Score Components</h3>
+
+    <ul>
+      <li>
+        <strong>50%</strong> Run Profile
+        <ul>
+          <li>60% Run Differential Per Game</li>
+          <li>25% Expected Winning Percentage (X-W/L)</li>
+          <li>7.5% Runs Scored Per Game</li>
+          <li>7.5% Runs Allowed Per Game</li>
+        </ul>
+      </li>
+
+      <li>
+        <strong>25%</strong> Actual Winning Percentage
+      </li>
+
+      <li>
+        <strong>25%</strong> Quality Record
+        <ul>
+          <li>70% Winning Percentage vs &gt;.500 Teams</li>
+          <li>30% Share of Games Played vs &gt;.500 Teams</li>
+        </ul>
+      </li>
+    </ul>
+
+    <p>
+      All categories are normalized against the rest of the league before the final
+      score is calculated.
+    </p>
+
+    <h3>Rating Behavior</h3>
+
+    <p>
+      Power Scores are designed to behave more like long-term team strength ratings
+      than daily standings.
+    </p>
+
+    <ul>
+      <li>Ratings are smoothed over time using previous published scores.</li>
+      <li>Final displayed scores are compressed toward league average to reduce unrealistic separation between teams.</li>
+      <li>Trend arrows and weekly movement compare against a baseline snapshot from the start of each baseball week.</li>
+    </ul>
+
+    <h3>Interpreting The Ratings</h3>
+
+    <p>
+      Small differences in Power Score are meaningful. Approximate tier ranges:
+    </p>
+
+    <ul>
+      <li><strong>65+</strong> — Elite</li>
+      <li><strong>58–64</strong> — Strong contender</li>
+      <li><strong>45–57</strong> — League average / competitive middle tier</li>
+      <li><strong>35–44</strong> — Weak</li>
+      <li><strong>Below 35</strong> — Poor</li>
+    </ul>
+
+    <p>
+      The model values how teams win — not just how often they win. Dominant run
+      differential, strong expected records, and success against quality opponents
+      are rewarded more heavily than narrow wins alone.
+    </p>
+
+  </div>
+
+  <h2>About</h2>
 
   <p>
-    Rather than focusing only on standings, the model emphasizes sustainable
-    performance indicators such as run differential, expected record, and
-    performance against winning teams.
+    This project is not affiliated with Minor League Baseball, Major League Baseball,
+    or any Texas League club. It is a personal fan analytics project.
   </p>
 
-  <h3>Power Score Components</h3>
-
-  <ul>
-    <li>
-      <strong>50%</strong> Run Profile
-      <ul>
-        <li>60% Run Differential Per Game</li>
-        <li>25% Expected Winning Percentage (X-W/L)</li>
-        <li>7.5% Runs Scored Per Game</li>
-        <li>7.5% Runs Allowed Per Game</li>
-      </ul>
-    </li>
-
-    <li>
-      <strong>25%</strong> Actual Winning Percentage
-    </li>
-
-    <li>
-      <strong>25%</strong> Quality Record
-      <ul>
-        <li>70% Winning Percentage vs &gt;.500 Teams</li>
-        <li>30% Share of Games Played vs &gt;.500 Teams</li>
-      </ul>
-    </li>
-  </ul>
-
-  <p>
-    All categories are normalized against the rest of the league before the final
-    score is calculated.
-  </p>
-
-  <h3>Rating Behavior</h3>
-
-  <p>
-    Power Scores are designed to behave more like long-term team strength ratings
-    than daily standings.
-  </p>
-
-  <ul>
-    <li>Ratings are smoothed over time using previous published scores.</li>
-    <li>Final displayed scores are compressed toward league average to reduce unrealistic separation between teams.</li>
-    <li>Trend arrows and weekly movement compare against a baseline snapshot from the start of each baseball week.</li>
-  </ul>
-
-  <h3>Interpreting The Ratings</h3>
-
-  <p>
-    Small differences in Power Score are meaningful. Approximate tier ranges:
-  </p>
-
-  <ul>
-    <li><strong>65+</strong> — Elite</li>
-    <li><strong>58–64</strong> — Strong contender</li>
-    <li><strong>45–57</strong> — League average / competitive middle tier</li>
-    <li><strong>35–44</strong> — Weak</li>
-    <li><strong>Below 35</strong> — Poor</li>
-  </ul>
-
-  <p>
-    The model values how teams win — not just how often they win. Dominant run
-    differential, strong expected records, and success against quality opponents
-    are rewarded more heavily than narrow wins alone.
-  </p>
-</div>
+</body>
+</html>
