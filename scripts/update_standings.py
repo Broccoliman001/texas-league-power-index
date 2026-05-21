@@ -226,8 +226,8 @@ for team in teams:
     run_profile_score = (
         0.60 * normalize(team["diff_per_game"], diff_values)
         + 0.25 * normalize(team["x_win_pct_num"], x_win_values)
-        + 0.10 * normalize(team["rs_per_game"], offense_values)
-        + 0.05 * normalize(team["ra_per_game"], defense_values, reverse=True)
+        + 0.075 * normalize(team["rs_per_game"], offense_values)
+        + 0.075 * normalize(team["ra_per_game"], defense_values, reverse=True)
     )
 
     quality_record_score = (
