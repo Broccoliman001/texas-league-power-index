@@ -90,16 +90,22 @@ def load_power_snapshot(path):
         return {}
 
 def find_comparison_snapshot(today):
-    target_date = today - timedelta(days=7)
+    # Monday = 0, Tuesday = 1, ..., Sunday = 6
+    monday = today - timedelta(days=today.weekday())
 
-    for offset in range(0, 8):
-        for candidate_date in [
-            target_date - timedelta(days=offset),
-            target_date + timedelta(days=offset),
-        ]:
-            candidate_path = HISTORY_DIR / f"{candidate_date.isoformat()}.json"
-            if candidate_path.exists():
-                return candidate_path
+    monday_path = HISTORY_DIR / f"{monday.isoformat()}.json"
+
+    if monday_path.exists():
+        return monday_path
+
+    # If there is no Monday snapshot, use the first available snapshot
+    # from the current week. This prevents missing trends if Monday failed.
+    for offset in range(1, 7):
+        candidate_date = monday + timedelta(days=offset)
+        candidate_path = HISTORY_DIR / f"{candidate_date.isoformat()}.json"
+
+        if candidate_path.exists():
+            return candidate_path
 
     return None
 
@@ -142,9 +148,9 @@ comparison_powers = load_power_snapshot(comparison_snapshot_path) if comparison_
 previous_powers = load_power_snapshot(OUTPUT_PATH)
 
 if comparison_snapshot_path:
-    print(f"Comparing trends and power deltas against {comparison_snapshot_path}")
+    print(f"Comparing trends and power deltas against weekly baseline {comparison_snapshot_path}")
 else:
-    print("No 7-day comparison snapshot found. Trends and power deltas will default to neutral.")
+    print("No weekly baseline snapshot found. Trends and power deltas will default to neutral.")
 
 response = requests.get(URL)
 response.raise_for_status()
@@ -281,8 +287,8 @@ for index, team in enumerate(teams, start=1):
 
 output = {
     "last_updated": datetime.now(timezone.utc).isoformat(),
-    "trend_basis": "Rank arrows compare against closest available ranking snapshot from 7 days ago.",
-    "power_delta_basis": "Power delta compares against the same closest available ranking snapshot from 7 days ago.",
+    "trend_basis": "Rank arrows compare against the weekly baseline snapshot from Monday or the first available snapshot of the current week.",
+    "power_delta_basis": "Power delta compares against the same weekly baseline snapshot used for rank arrows.",
     "comparison_snapshot": str(comparison_snapshot_path) if comparison_snapshot_path else None,
     "power_smoothing": {
         "enabled": True,
