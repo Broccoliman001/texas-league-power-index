@@ -1,7 +1,13 @@
 {
-  "last_updated": "2026-05-21T12:43:27.425910+00:00",
+  "last_updated": "2026-05-21T14:50:50.039030+00:00",
   "trend_basis": "Compared against closest available ranking snapshot from 7 days ago.",
   "comparison_snapshot": "data/history/2026-05-19.json",
+  "power_smoothing": {
+    "enabled": true,
+    "previous_weight": 0.75,
+    "raw_weight": 0.25,
+    "formula": "power_score = previous_power_score * 0.75 + raw_power_score * 0.25"
+  },
   "teams": [
     {
       "team": "Arkansas Travelers",
@@ -25,6 +31,8 @@
       "ra_per_game": 3.951219512195122,
       "run_profile_score": 96.2,
       "quality_record_score": 77.7,
+      "raw_power_score": 92.5,
+      "previous_power_score": 92.5,
       "power_score": 92.5,
       "rank": 1,
       "trend": "\u2192"
@@ -51,6 +59,8 @@
       "ra_per_game": 5.725,
       "run_profile_score": 71.2,
       "quality_record_score": 83.9,
+      "raw_power_score": 71.4,
+      "previous_power_score": 71.4,
       "power_score": 71.4,
       "rank": 2,
       "trend": "\u2191"
@@ -77,6 +87,8 @@
       "ra_per_game": 5.219512195121951,
       "run_profile_score": 71.0,
       "quality_record_score": 60.7,
+      "raw_power_score": 71.1,
+      "previous_power_score": 71.1,
       "power_score": 71.1,
       "rank": 3,
       "trend": "\u2193"
@@ -103,6 +115,8 @@
       "ra_per_game": 4.609756097560975,
       "run_profile_score": 47.9,
       "quality_record_score": 77.7,
+      "raw_power_score": 59.3,
+      "previous_power_score": 59.3,
       "power_score": 59.3,
       "rank": 4,
       "trend": "\u2192"
@@ -129,6 +143,8 @@
       "ra_per_game": 4.902439024390244,
       "run_profile_score": 47.8,
       "quality_record_score": 68.6,
+      "raw_power_score": 50.1,
+      "previous_power_score": 50.1,
       "power_score": 50.1,
       "rank": 5,
       "trend": "\u2191"
@@ -155,6 +171,8 @@
       "ra_per_game": 5.95,
       "run_profile_score": 40.9,
       "quality_record_score": 54.2,
+      "raw_power_score": 46.5,
+      "previous_power_score": 46.5,
       "power_score": 46.5,
       "rank": 6,
       "trend": "\u2191"
@@ -181,6 +199,8 @@
       "ra_per_game": 5.375,
       "run_profile_score": 48.0,
       "quality_record_score": 46.2,
+      "raw_power_score": 45.7,
+      "previous_power_score": 45.7,
       "power_score": 45.7,
       "rank": 7,
       "trend": "\u2193"
@@ -207,6 +227,8 @@
       "ra_per_game": 5.925,
       "run_profile_score": 27.1,
       "quality_record_score": 67.1,
+      "raw_power_score": 45.2,
+      "previous_power_score": 45.2,
       "power_score": 45.2,
       "rank": 8,
       "trend": "\u2192"
@@ -233,6 +255,8 @@
       "ra_per_game": 5.902439024390244,
       "run_profile_score": 23.8,
       "quality_record_score": 41.6,
+      "raw_power_score": 24.6,
+      "previous_power_score": 24.6,
       "power_score": 24.6,
       "rank": 9,
       "trend": "\u2192"
@@ -259,6 +283,8 @@
       "ra_per_game": 5.487804878048781,
       "run_profile_score": 1.2,
       "quality_record_score": 28.1,
+      "raw_power_score": 7.6,
+      "previous_power_score": 7.6,
       "power_score": 7.6,
       "rank": 10,
       "trend": "\u2192"
