@@ -50,12 +50,12 @@
     }
 
     .note {
-  background: white;
-  padding: 16px;
-  margin: 20px 0;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-}
+      background: white;
+      padding: 16px;
+      margin: 20px 0;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
 
     .positive {
       color: #15803d;
@@ -86,19 +86,37 @@
       color: #6b7280;
       font-weight: bold;
     }
+
+    .delta-up {
+      color: #15803d;
+      font-weight: bold;
+      margin-left: 6px;
+    }
+
+    .delta-down {
+      color: #b91c1c;
+      font-weight: bold;
+      margin-left: 6px;
+    }
+
+    .delta-neutral {
+      color: #6b7280;
+      font-weight: bold;
+      margin-left: 6px;
+    }
   </style>
 </head>
 <body>
   <h1>Texas League Power Index</h1>
 
   <p>
-  A fan-made analytical power ranking for the Texas League, using run differential,
-  expected record, and recent form.
-</p>
+    A fan-made analytical power ranking for the Texas League, using run differential,
+    expected record, and recent form.
+  </p>
 
-<p id="last-updated" class="updated-time">
-  Last updated: loading...
-</p>
+  <p id="last-updated" class="updated-time">
+    Last updated: loading...
+  </p>
 
   <h2>Power Rankings</h2>
 
@@ -124,27 +142,32 @@
 
   <script>
     fetch("data/standings.json")
-  .then(response => response.json())
-  .then(data => {
-  const tbody = document.getElementById("power-rankings-body");
-  const teams = data.teams;
+      .then(response => response.json())
+      .then(data => {
+        const tbody = document.getElementById("power-rankings-body");
+        const teams = data.teams;
 
-  const updated = new Date(data.last_updated);
+        const updated = new Date(data.last_updated);
 
-  document.getElementById("last-updated").textContent =
-    `Last updated: ${updated.toLocaleString()}`;
+        document.getElementById("last-updated").textContent =
+          `Last updated: ${updated.toLocaleString()}`;
 
-  teams.forEach(team => {
+        teams.forEach(team => {
           const row = document.createElement("tr");
 
           row.innerHTML = `
             <td>${team.rank}</td>
             <td>${Number(team.power_score).toFixed(1)}</td>
-            <td class="${
-              team.trend === "↑" ? "trend-up" :
-              team.trend === "↓" ? "trend-down" :
-              "trend-flat"
-            }">${team.trend}</td>
+            <td>
+              <span class="${
+                team.trend === "↑" ? "trend-up" :
+                team.trend === "↓" ? "trend-down" :
+                "trend-flat"
+              }">${team.trend}</span>
+              <span class="${team.power_delta_class || "delta-neutral"}">
+                ${team.power_delta_display || "0.0"}
+              </span>
+            </td>
             <td>${team.team}</td>
             <td>${team.record}</td>
             <td>${team.pct}</td>
@@ -165,53 +188,55 @@
       });
   </script>
 
-<div class="note">
-  <strong>How Power Score Is Calculated</strong>
-  <p>
-    The Texas League Power Index is a weighted analytical rating designed to measure
-    overall team strength beyond simple win-loss record.
-  </p>
+  <div class="note">
+    <strong>How Power Score Is Calculated</strong>
 
-  <p>
-    Power Score incorporates:
-  </p>
+    <p>
+      The Texas League Power Index is a weighted analytical rating designed to measure
+      overall team strength beyond simple win-loss record.
+    </p>
 
-  <ul>
-  <li>
-    <strong>50%</strong> Run Profile
+    <p>
+      Power Score incorporates:
+    </p>
+
     <ul>
-      <li>60% Run Differential Per Game</li>
-      <li>25% Expected Winning Percentage (X-W/L)</li>
-      <li>10% Runs Scored Per Game</li>
-      <li>5% Runs Allowed Per Game</li>
+      <li>
+        <strong>50%</strong> Run Profile
+        <ul>
+          <li>60% Run Differential Per Game</li>
+          <li>25% Expected Winning Percentage (X-W/L)</li>
+          <li>10% Runs Scored Per Game</li>
+          <li>5% Runs Allowed Per Game</li>
+        </ul>
+      </li>
+
+      <li>
+        <strong>25%</strong> Actual Winning Percentage
+      </li>
+
+      <li>
+        <strong>25%</strong> Quality Record
+        <ul>
+          <li>70% Winning Percentage vs &gt;.500 Teams</li>
+          <li>30% Share of Games Played vs &gt;.500 Teams</li>
+        </ul>
+      </li>
     </ul>
-  </li>
 
-  <li>
-    <strong>25%</strong> Actual Winning Percentage
-  </li>
+    <p>
+      Teams are normalized against the rest of the league in each category before
+      the weighted score is calculated on a 0–100 scale.
+    </p>
 
-  <li>
-    <strong>25%</strong> Quality Record
-    <ul>
-      <li>70% Winning Percentage vs &gt;.500 Teams</li>
-      <li>30% Share of Games Played vs &gt;.500 Teams</li>
-    </ul>
-  </li>
-</ul>
-
-  <p>
-    Teams are normalized against the rest of the league in each category before
-    the weighted score is calculated on a 0–100 scale.
-  </p>
-
-  <p>
-    The model intentionally values sustainable performance indicators such as run
-    differential and expected record more heavily than raw standings alone.
-  </p>
-</div>
+    <p>
+      The model intentionally values sustainable performance indicators such as run
+      differential and expected record more heavily than raw standings alone.
+    </p>
+  </div>
 
   <h2>About</h2>
+
   <p>
     This project is not affiliated with Minor League Baseball, Major League Baseball,
     or any Texas League club. It is a personal fan analytics project.
