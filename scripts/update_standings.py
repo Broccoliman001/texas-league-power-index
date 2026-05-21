@@ -14,6 +14,8 @@ POWER_SMOOTHING_RAW_WEIGHT = 0.25
 POWER_COMPRESSION_CENTER = 50
 POWER_COMPRESSION_FACTOR = 0.75
 
+POWER_DELTA_NEUTRAL_THRESHOLD = 0.3
+
 TEAM_NAMES = {
     "Travelers": "Arkansas Travelers",
     "RoughRiders": "Frisco RoughRiders",
@@ -110,6 +112,24 @@ def normalize(value, values, reverse=False):
 
     score = 100 * (value - min_value) / (max_value - min_value)
     return 100 - score if reverse else score
+
+def format_power_delta(delta):
+    if abs(delta) < POWER_DELTA_NEUTRAL_THRESHOLD:
+        return "0.0"
+
+    if delta > 0:
+        return f"+{delta:.1f}"
+
+    return f"{delta:.1f}"
+
+def get_power_delta_direction(delta):
+    if delta >= POWER_DELTA_NEUTRAL_THRESHOLD:
+        return "up"
+
+    if delta <= -POWER_DELTA_NEUTRAL_THRESHOLD:
+        return "down"
+
+    return "neutral"
 
 today = datetime.now(timezone.utc).date()
 
@@ -223,12 +243,19 @@ for team in teams:
         + ((displayed_power_score - POWER_COMPRESSION_CENTER) * POWER_COMPRESSION_FACTOR)
     )
 
+    power_delta = compressed_power_score - previous_power_score
+    power_delta_direction = get_power_delta_direction(power_delta)
+
     team["run_profile_score"] = round(run_profile_score, 1)
     team["quality_record_score"] = round(quality_record_score, 1)
     team["raw_power_score"] = round(raw_power_score, 1)
     team["previous_power_score"] = round(previous_power_score, 1)
     team["displayed_power_score"] = round(displayed_power_score, 1)
     team["power_score"] = round(compressed_power_score, 1)
+    team["power_delta"] = round(power_delta, 1)
+    team["power_delta_display"] = format_power_delta(power_delta)
+    team["power_delta_direction"] = power_delta_direction
+    team["power_delta_class"] = f"delta-{power_delta_direction}"
 
 teams = sorted(teams, key=lambda team: team["power_score"], reverse=True)
 
@@ -248,7 +275,8 @@ for index, team in enumerate(teams, start=1):
 
 output = {
     "last_updated": datetime.now(timezone.utc).isoformat(),
-    "trend_basis": "Compared against closest available ranking snapshot from 7 days ago.",
+    "trend_basis": "Rank arrows compare against closest available ranking snapshot from 7 days ago.",
+    "power_delta_basis": "Power delta compares against the previous published power_score.",
     "comparison_snapshot": str(comparison_snapshot_path) if comparison_snapshot_path else None,
     "power_smoothing": {
         "enabled": True,
@@ -261,6 +289,11 @@ output = {
         "center": POWER_COMPRESSION_CENTER,
         "factor": POWER_COMPRESSION_FACTOR,
         "formula": "power_score = 50 + ((displayed_power_score - 50) * 0.75)"
+    },
+    "power_delta": {
+        "enabled": True,
+        "neutral_threshold": POWER_DELTA_NEUTRAL_THRESHOLD,
+        "formula": "power_delta = power_score - previous_power_score"
     },
     "teams": teams
 }
