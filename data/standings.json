@@ -1,12 +1,18 @@
 {
-  "last_updated": "2026-05-21T14:50:50.039030+00:00",
+  "last_updated": "2026-05-21T15:05:28.169886+00:00",
   "trend_basis": "Compared against closest available ranking snapshot from 7 days ago.",
   "comparison_snapshot": "data/history/2026-05-19.json",
   "power_smoothing": {
     "enabled": true,
     "previous_weight": 0.75,
     "raw_weight": 0.25,
-    "formula": "power_score = previous_power_score * 0.75 + raw_power_score * 0.25"
+    "formula": "displayed_power_score = previous_power_score * 0.75 + raw_power_score * 0.25"
+  },
+  "power_compression": {
+    "enabled": true,
+    "center": 50,
+    "factor": 0.75,
+    "formula": "power_score = 50 + ((displayed_power_score - 50) * 0.75)"
   },
   "teams": [
     {
@@ -33,7 +39,8 @@
       "quality_record_score": 77.7,
       "raw_power_score": 92.5,
       "previous_power_score": 92.5,
-      "power_score": 92.5,
+      "displayed_power_score": 92.5,
+      "power_score": 81.9,
       "rank": 1,
       "trend": "\u2192"
     },
@@ -61,7 +68,8 @@
       "quality_record_score": 83.9,
       "raw_power_score": 71.4,
       "previous_power_score": 71.4,
-      "power_score": 71.4,
+      "displayed_power_score": 71.4,
+      "power_score": 66.1,
       "rank": 2,
       "trend": "\u2191"
     },
@@ -89,7 +97,8 @@
       "quality_record_score": 60.7,
       "raw_power_score": 71.1,
       "previous_power_score": 71.1,
-      "power_score": 71.1,
+      "displayed_power_score": 71.1,
+      "power_score": 65.8,
       "rank": 3,
       "trend": "\u2193"
     },
@@ -117,7 +126,8 @@
       "quality_record_score": 77.7,
       "raw_power_score": 59.3,
       "previous_power_score": 59.3,
-      "power_score": 59.3,
+      "displayed_power_score": 59.3,
+      "power_score": 57.0,
       "rank": 4,
       "trend": "\u2192"
     },
@@ -145,6 +155,7 @@
       "quality_record_score": 68.6,
       "raw_power_score": 50.1,
       "previous_power_score": 50.1,
+      "displayed_power_score": 50.1,
       "power_score": 50.1,
       "rank": 5,
       "trend": "\u2191"
@@ -173,7 +184,8 @@
       "quality_record_score": 54.2,
       "raw_power_score": 46.5,
       "previous_power_score": 46.5,
-      "power_score": 46.5,
+      "displayed_power_score": 46.5,
+      "power_score": 47.4,
       "rank": 6,
       "trend": "\u2191"
     },
@@ -201,7 +213,8 @@
       "quality_record_score": 46.2,
       "raw_power_score": 45.7,
       "previous_power_score": 45.7,
-      "power_score": 45.7,
+      "displayed_power_score": 45.7,
+      "power_score": 46.8,
       "rank": 7,
       "trend": "\u2193"
     },
@@ -229,7 +242,8 @@
       "quality_record_score": 67.1,
       "raw_power_score": 45.2,
       "previous_power_score": 45.2,
-      "power_score": 45.2,
+      "displayed_power_score": 45.2,
+      "power_score": 46.4,
       "rank": 8,
       "trend": "\u2192"
     },
@@ -257,7 +271,8 @@
       "quality_record_score": 41.6,
       "raw_power_score": 24.6,
       "previous_power_score": 24.6,
-      "power_score": 24.6,
+      "displayed_power_score": 24.6,
+      "power_score": 30.9,
       "rank": 9,
       "trend": "\u2192"
     },
@@ -285,7 +300,8 @@
       "quality_record_score": 28.1,
       "raw_power_score": 7.6,
       "previous_power_score": 7.6,
-      "power_score": 7.6,
+      "displayed_power_score": 7.6,
+      "power_score": 18.2,
       "rank": 10,
       "trend": "\u2192"
     }
