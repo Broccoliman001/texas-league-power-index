@@ -71,7 +71,7 @@ def load_rank_snapshot(path):
         print(f"Could not load rank snapshot from {path}: {e}")
         return {}
 
-def load_previous_power_snapshot(path):
+def load_power_snapshot(path):
     if not path or not path.exists():
         return {}
 
@@ -86,7 +86,7 @@ def load_previous_power_snapshot(path):
         }
 
     except Exception as e:
-        print(f"Could not load previous power snapshot from {path}: {e}")
+        print(f"Could not load power snapshot from {path}: {e}")
         return {}
 
 def find_comparison_snapshot(today):
@@ -134,13 +134,17 @@ def get_power_delta_direction(delta):
 today = datetime.now(timezone.utc).date()
 
 comparison_snapshot_path = find_comparison_snapshot(today)
+
 previous_ranks = load_rank_snapshot(comparison_snapshot_path) if comparison_snapshot_path else {}
-previous_powers = load_previous_power_snapshot(OUTPUT_PATH)
+comparison_powers = load_power_snapshot(comparison_snapshot_path) if comparison_snapshot_path else {}
+
+# This is still used for smoothing against the previous published rating.
+previous_powers = load_power_snapshot(OUTPUT_PATH)
 
 if comparison_snapshot_path:
-    print(f"Comparing trends against {comparison_snapshot_path}")
+    print(f"Comparing trends and power deltas against {comparison_snapshot_path}")
 else:
-    print("No 7-day comparison snapshot found. Trends will default to sideways.")
+    print("No 7-day comparison snapshot found. Trends and power deltas will default to neutral.")
 
 response = requests.get(URL)
 response.raise_for_status()
@@ -243,7 +247,8 @@ for team in teams:
         + ((displayed_power_score - POWER_COMPRESSION_CENTER) * POWER_COMPRESSION_FACTOR)
     )
 
-    power_delta = compressed_power_score - previous_power_score
+    comparison_power_score = comparison_powers.get(team["team"], compressed_power_score)
+    power_delta = compressed_power_score - comparison_power_score
     power_delta_direction = get_power_delta_direction(power_delta)
 
     team["run_profile_score"] = round(run_profile_score, 1)
@@ -251,6 +256,7 @@ for team in teams:
     team["raw_power_score"] = round(raw_power_score, 1)
     team["previous_power_score"] = round(previous_power_score, 1)
     team["displayed_power_score"] = round(displayed_power_score, 1)
+    team["comparison_power_score"] = round(comparison_power_score, 1)
     team["power_score"] = round(compressed_power_score, 1)
     team["power_delta"] = round(power_delta, 1)
     team["power_delta_display"] = format_power_delta(power_delta)
@@ -276,7 +282,7 @@ for index, team in enumerate(teams, start=1):
 output = {
     "last_updated": datetime.now(timezone.utc).isoformat(),
     "trend_basis": "Rank arrows compare against closest available ranking snapshot from 7 days ago.",
-    "power_delta_basis": "Power delta compares against the previous published power_score.",
+    "power_delta_basis": "Power delta compares against the same closest available ranking snapshot from 7 days ago.",
     "comparison_snapshot": str(comparison_snapshot_path) if comparison_snapshot_path else None,
     "power_smoothing": {
         "enabled": True,
@@ -293,7 +299,7 @@ output = {
     "power_delta": {
         "enabled": True,
         "neutral_threshold": POWER_DELTA_NEUTRAL_THRESHOLD,
-        "formula": "power_delta = power_score - previous_power_score"
+        "formula": "power_delta = power_score - comparison_power_score"
     },
     "teams": teams
 }
