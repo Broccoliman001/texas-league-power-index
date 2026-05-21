@@ -11,6 +11,9 @@ HISTORY_DIR = Path("data/history")
 POWER_SMOOTHING_PREVIOUS_WEIGHT = 0.75
 POWER_SMOOTHING_RAW_WEIGHT = 0.25
 
+POWER_COMPRESSION_CENTER = 50
+POWER_COMPRESSION_FACTOR = 0.75
+
 TEAM_NAMES = {
     "Travelers": "Arkansas Travelers",
     "RoughRiders": "Frisco RoughRiders",
@@ -215,11 +218,17 @@ for team in teams:
         + raw_power_score * POWER_SMOOTHING_RAW_WEIGHT
     )
 
+    compressed_power_score = (
+        POWER_COMPRESSION_CENTER
+        + ((displayed_power_score - POWER_COMPRESSION_CENTER) * POWER_COMPRESSION_FACTOR)
+    )
+
     team["run_profile_score"] = round(run_profile_score, 1)
     team["quality_record_score"] = round(quality_record_score, 1)
     team["raw_power_score"] = round(raw_power_score, 1)
     team["previous_power_score"] = round(previous_power_score, 1)
-    team["power_score"] = round(displayed_power_score, 1)
+    team["displayed_power_score"] = round(displayed_power_score, 1)
+    team["power_score"] = round(compressed_power_score, 1)
 
 teams = sorted(teams, key=lambda team: team["power_score"], reverse=True)
 
@@ -245,7 +254,13 @@ output = {
         "enabled": True,
         "previous_weight": POWER_SMOOTHING_PREVIOUS_WEIGHT,
         "raw_weight": POWER_SMOOTHING_RAW_WEIGHT,
-        "formula": "power_score = previous_power_score * 0.75 + raw_power_score * 0.25"
+        "formula": "displayed_power_score = previous_power_score * 0.75 + raw_power_score * 0.25"
+    },
+    "power_compression": {
+        "enabled": True,
+        "center": POWER_COMPRESSION_CENTER,
+        "factor": POWER_COMPRESSION_FACTOR,
+        "formula": "power_score = 50 + ((displayed_power_score - 50) * 0.75)"
     },
     "teams": teams
 }
