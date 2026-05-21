@@ -8,6 +8,9 @@ URL = "https://statsapi.mlb.com/api/v1/standings?sportId=11&leagueId=109&season=
 OUTPUT_PATH = Path("data/standings.json")
 HISTORY_DIR = Path("data/history")
 
+POWER_SMOOTHING_PREVIOUS_WEIGHT = 0.75
+POWER_SMOOTHING_RAW_WEIGHT = 0.25
+
 TEAM_NAMES = {
     "Travelers": "Arkansas Travelers",
     "RoughRiders": "Frisco RoughRiders",
@@ -46,7 +49,7 @@ def find_expected_record(team_data):
     return None
 
 def load_rank_snapshot(path):
-    if not path.exists():
+    if not path or not path.exists():
         return {}
 
     try:
@@ -63,6 +66,24 @@ def load_rank_snapshot(path):
         print(f"Could not load rank snapshot from {path}: {e}")
         return {}
 
+def load_previous_power_snapshot(path):
+    if not path or not path.exists():
+        return {}
+
+    try:
+        with path.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        return {
+            team["team"]: team["power_score"]
+            for team in data.get("teams", [])
+            if "team" in team and "power_score" in team
+        }
+
+    except Exception as e:
+        print(f"Could not load previous power snapshot from {path}: {e}")
+        return {}
+
 def find_comparison_snapshot(today):
     target_date = today - timedelta(days=7)
 
@@ -77,9 +98,21 @@ def find_comparison_snapshot(today):
 
     return None
 
+def normalize(value, values, reverse=False):
+    min_value = min(values)
+    max_value = max(values)
+
+    if max_value == min_value:
+        return 50
+
+    score = 100 * (value - min_value) / (max_value - min_value)
+    return 100 - score if reverse else score
+
 today = datetime.now(timezone.utc).date()
+
 comparison_snapshot_path = find_comparison_snapshot(today)
 previous_ranks = load_rank_snapshot(comparison_snapshot_path) if comparison_snapshot_path else {}
+previous_powers = load_previous_power_snapshot(OUTPUT_PATH)
 
 if comparison_snapshot_path:
     print(f"Comparing trends against {comparison_snapshot_path}")
@@ -148,16 +181,6 @@ for division in data["records"]:
 
         teams.append(team)
 
-def normalize(value, values, reverse=False):
-    min_value = min(values)
-    max_value = max(values)
-
-    if max_value == min_value:
-        return 50
-
-    score = 100 * (value - min_value) / (max_value - min_value)
-    return 100 - score if reverse else score
-
 diff_values = [team["diff_per_game"] for team in teams]
 x_win_values = [team["x_win_pct_num"] for team in teams]
 actual_win_values = [team["win_pct_num"] for team in teams]
@@ -179,15 +202,24 @@ for team in teams:
         + 0.30 * normalize(team["vs500_game_share"], vs500_share_values)
     )
 
-    team["run_profile_score"] = round(run_profile_score, 1)
-    team["quality_record_score"] = round(quality_record_score, 1)
-
-    team["power_score"] = round(
+    raw_power_score = (
         0.50 * run_profile_score
         + 0.25 * normalize(team["win_pct_num"], actual_win_values)
-        + 0.25 * quality_record_score,
-        1
+        + 0.25 * quality_record_score
     )
+
+    previous_power_score = previous_powers.get(team["team"], raw_power_score)
+
+    displayed_power_score = (
+        previous_power_score * POWER_SMOOTHING_PREVIOUS_WEIGHT
+        + raw_power_score * POWER_SMOOTHING_RAW_WEIGHT
+    )
+
+    team["run_profile_score"] = round(run_profile_score, 1)
+    team["quality_record_score"] = round(quality_record_score, 1)
+    team["raw_power_score"] = round(raw_power_score, 1)
+    team["previous_power_score"] = round(previous_power_score, 1)
+    team["power_score"] = round(displayed_power_score, 1)
 
 teams = sorted(teams, key=lambda team: team["power_score"], reverse=True)
 
@@ -209,6 +241,12 @@ output = {
     "last_updated": datetime.now(timezone.utc).isoformat(),
     "trend_basis": "Compared against closest available ranking snapshot from 7 days ago.",
     "comparison_snapshot": str(comparison_snapshot_path) if comparison_snapshot_path else None,
+    "power_smoothing": {
+        "enabled": True,
+        "previous_weight": POWER_SMOOTHING_PREVIOUS_WEIGHT,
+        "raw_weight": POWER_SMOOTHING_RAW_WEIGHT,
+        "formula": "power_score = previous_power_score * 0.75 + raw_power_score * 0.25"
+    },
     "teams": teams
 }
 
