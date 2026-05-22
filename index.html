@@ -7,7 +7,7 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      max-width: 1100px;
+      max-width: 1300px;
       margin: 40px auto;
       padding: 0 20px;
       line-height: 1.5;
@@ -17,6 +17,22 @@
 
     h1, h2, h3 {
       color: #1f2937;
+    }
+
+    .dashboard-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .main-content {
+      min-width: 0;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 20px;
     }
 
     table {
@@ -48,6 +64,64 @@
     th:nth-child(10),
     td:nth-child(10) {
       min-width: 70px;
+    }
+
+    .previous-games-card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 20px;
+    }
+
+    .previous-games-card h2 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 1.1rem;
+    }
+
+    .previous-games-card p {
+      margin-top: 0;
+      color: #6b7280;
+      font-size: 0.9rem;
+    }
+
+    .previous-game {
+      padding: 10px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .previous-game:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .previous-game-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      font-size: 0.9rem;
+    }
+
+    .previous-game-row.winner {
+      font-weight: bold;
+      color: #111827;
+    }
+
+    .previous-game-row.loser {
+      color: #6b7280;
+    }
+
+    .previous-game-score {
+      font-weight: bold;
+      text-align: right;
+    }
+
+    .previous-game-status {
+      margin-top: 4px;
+      font-size: 0.75rem;
+      color: #6b7280;
     }
 
     .note {
@@ -105,6 +179,16 @@
       font-weight: bold;
       margin-left: 6px;
     }
+
+    @media (max-width: 1000px) {
+      .dashboard-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+      }
+    }
   </style>
 </head>
 
@@ -121,84 +205,44 @@
     Last updated: loading...
   </p>
 
-  <h2>Power Rankings</h2>
+  <div class="dashboard-layout">
 
-  <table>
-    <thead>
-      <tr>
-        <th>Rank</th>
-        <th>Power</th>
-        <th>Trend</th>
-        <th>Team</th>
-        <th>Record</th>
-        <th>PCT</th>
-        <th>RS</th>
-        <th>RA</th>
-        <th>DIFF</th>
-        <th>X-W/L</th>
-        <th>L10</th>
-        <th>&gt;.500</th>
-      </tr>
-    </thead>
+    <main class="main-content">
 
-    <tbody id="power-rankings-body"></tbody>
-  </table>
+      <h2>Power Rankings</h2>
 
-  <script>
-    fetch("data/standings.json")
-      .then(response => response.json())
-      .then(data => {
-        const tbody = document.getElementById("power-rankings-body");
-        const teams = data.teams;
+      <table>
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Power</th>
+            <th>Trend</th>
+            <th>Team</th>
+            <th>Record</th>
+            <th>PCT</th>
+            <th>RS</th>
+            <th>RA</th>
+            <th>DIFF</th>
+            <th>X-W/L</th>
+            <th>L10</th>
+            <th>&gt;.500</th>
+          </tr>
+        </thead>
 
-        const updated = new Date(data.last_updated);
+        <tbody id="power-rankings-body"></tbody>
+      </table>
 
-        document.getElementById("last-updated").textContent =
-          `Last updated: ${updated.toLocaleString()}`;
+    </main>
 
-        teams.forEach(team => {
-          const row = document.createElement("tr");
+    <aside class="sidebar">
+      <div class="previous-games-card">
+        <h2>Previous Games</h2>
+        <p>Most recent completed Texas League games.</p>
+        <div id="previous-games-body"></div>
+      </div>
+    </aside>
 
-          row.innerHTML = `
-            <td>${team.rank}</td>
-
-            <td>${Number(team.power_score).toFixed(1)}</td>
-
-            <td>
-              <span class="${
-                team.trend === "↑" ? "trend-up" :
-                team.trend === "↓" ? "trend-down" :
-                "trend-flat"
-              }">${team.trend}</span>
-
-              <span class="${team.power_delta_class || "delta-neutral"}">
-                ${team.power_delta_display || "0.0"}
-              </span>
-            </td>
-
-            <td>${team.team}</td>
-            <td>${team.record}</td>
-            <td>${team.pct}</td>
-            <td>${team.rs}</td>
-            <td>${team.ra}</td>
-
-            <td class="${
-              team.diff > 0 ? "positive" :
-              team.diff < 0 ? "negative" :
-              "neutral"
-            }">
-              ${team.diff > 0 ? "+" + team.diff : team.diff}
-            </td>
-
-            <td>${team.xwl}</td>
-            <td>${team.last10}</td>
-            <td>${team.vs500}</td>
-          `;
-
-          tbody.appendChild(row);
-        });
-      });
-  </script>
+  </div>
 
   <div class="note">
 
@@ -287,6 +331,93 @@
     This project is not affiliated with Minor League Baseball, Major League Baseball,
     or any Texas League club. It is a personal fan analytics project.
   </p>
+
+  <script>
+    fetch("data/standings.json")
+      .then(response => response.json())
+      .then(data => {
+        const tbody = document.getElementById("power-rankings-body");
+        const previousGamesBody = document.getElementById("previous-games-body");
+        const teams = data.teams;
+        const previousGames = data.previous_games || [];
+
+        const updated = new Date(data.last_updated);
+
+        document.getElementById("last-updated").textContent =
+          `Last updated: ${updated.toLocaleString()}`;
+
+        teams.forEach(team => {
+          const row = document.createElement("tr");
+
+          row.innerHTML = `
+            <td>${team.rank}</td>
+
+            <td>${Number(team.power_score).toFixed(1)}</td>
+
+            <td>
+              <span class="${
+                team.trend === "↑" ? "trend-up" :
+                team.trend === "↓" ? "trend-down" :
+                "trend-flat"
+              }">${team.trend}</span>
+
+              <span class="${team.power_delta_class || "delta-neutral"}">
+                ${team.power_delta_display || "0.0"}
+              </span>
+            </td>
+
+            <td>${team.team}</td>
+            <td>${team.record}</td>
+            <td>${team.pct}</td>
+            <td>${team.rs}</td>
+            <td>${team.ra}</td>
+
+            <td class="${
+              team.diff > 0 ? "positive" :
+              team.diff < 0 ? "negative" :
+              "neutral"
+            }">
+              ${team.diff > 0 ? "+" + team.diff : team.diff}
+            </td>
+
+            <td>${team.xwl}</td>
+            <td>${team.last10}</td>
+            <td>${team.vs500}</td>
+          `;
+
+          tbody.appendChild(row);
+        });
+
+        if (!previousGames.length) {
+          previousGamesBody.innerHTML = `
+            <p>No previous games available.</p>
+          `;
+        } else {
+          previousGamesBody.innerHTML = previousGames.map(game => {
+            const awayWon = game.away_score > game.home_score;
+            const homeWon = game.home_score > game.away_score;
+
+            return `
+              <div class="previous-game">
+                <div class="previous-game-row ${awayWon ? "winner" : "loser"}">
+                  <span>${game.away_team}</span>
+                  <span class="previous-game-score">${game.away_score}</span>
+                </div>
+
+                <div class="previous-game-row ${homeWon ? "winner" : "loser"}">
+                  <span>${game.home_team}</span>
+                  <span class="previous-game-score">${game.home_score}</span>
+                </div>
+
+                <div class="previous-game-status">
+                  ${game.status} · ${game.game_date}
+                </div>
+              </div>
+            `;
+          }).join("");
+        }
+      });
+  </script>
 
 </body>
 </html>
