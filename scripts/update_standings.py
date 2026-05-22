@@ -4,7 +4,7 @@ from pathlib import Path
 import requests
 
 URL = "https://statsapi.mlb.com/api/v1/standings?sportId=11&leagueId=109&season=2026&standingsTypes=regularSeason"
-SCHEDULE_URL = "https://statsapi.mlb.com/api/v1/schedule?sportId=11&leagueId=109&date={date}&hydrate=linescore"
+SCHEDULE_URL = "https://statsapi.mlb.com/api/v1/schedule?sportId=11&startDate={date}&endDate={date}&hydrate=team,linescore"
 
 OUTPUT_PATH = Path("data/standings.json")
 HISTORY_DIR = Path("data/history")
