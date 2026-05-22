@@ -7,16 +7,41 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      max-width: 1300px;
-      margin: 40px auto;
-      padding: 0 20px;
-      line-height: 1.5;
-      background: #f7f7f7;
+      background: #f3f4f6;
       color: #222;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .page-shell {
+      max-width: 1320px;
+      margin: 40px auto;
+      padding: 0 24px;
     }
 
     h1, h2, h3 {
-      color: #1f2937;
+      color: #111827;
+    }
+
+    .site-header {
+      margin-bottom: 28px;
+    }
+
+    .site-header h1 {
+      margin-bottom: 10px;
+      font-size: 2.4rem;
+    }
+
+    .site-subtitle {
+      max-width: 900px;
+      color: #4b5563;
+      font-size: 1.05rem;
+    }
+
+    .updated-time {
+      color: #6b7280;
+      font-size: 0.95rem;
+      margin-top: 12px;
     }
 
     .dashboard-layout {
@@ -35,29 +60,62 @@
       top: 20px;
     }
 
+    .card {
+      background: white;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    .section-header h2 {
+      margin: 0;
+    }
+
+    .section-header p {
+      margin: 0;
+      color: #6b7280;
+      font-size: 0.9rem;
+    }
+
+    .table-scroll {
+      overflow-x: auto;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      background: white;
-      margin-top: 20px;
       table-layout: auto;
     }
 
     th, td {
-      padding: 10px;
-      border-bottom: 1px solid #ddd;
+      padding: 12px 10px;
+      border-bottom: 1px solid #e5e7eb;
       text-align: left;
       white-space: nowrap;
     }
 
     th {
-      background: #111827;
+      background: #0f172a;
       color: white;
+      font-size: 0.92rem;
+    }
+
+    tr:hover {
+      background: #f9fafb;
     }
 
     th:nth-child(4),
     td:nth-child(4) {
-      min-width: 190px;
+      min-width: 210px;
       white-space: normal;
     }
 
@@ -66,18 +124,10 @@
       min-width: 70px;
     }
 
-    .previous-games-card {
-      background: white;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 16px;
-      margin-top: 20px;
-    }
-
     .previous-games-card h2 {
       margin-top: 0;
       margin-bottom: 8px;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
     }
 
     .previous-games-card p {
@@ -87,7 +137,7 @@
     }
 
     .previous-game {
-      padding: 10px 0;
+      padding: 12px 0;
       border-bottom: 1px solid #e5e7eb;
     }
 
@@ -101,7 +151,7 @@
       grid-template-columns: 1fr auto;
       gap: 12px;
       align-items: center;
-      font-size: 0.9rem;
+      font-size: 0.92rem;
     }
 
     .previous-game-row.winner {
@@ -124,12 +174,15 @@
       color: #6b7280;
     }
 
-    .note {
-      background: white;
-      padding: 16px;
-      margin: 20px 0;
-      border: 1px solid #ddd;
-      border-radius: 8px;
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .info-grid h2 {
+      margin-top: 0;
     }
 
     .positive {
@@ -180,6 +233,12 @@
       margin-left: 6px;
     }
 
+    .site-footer {
+      margin-top: 28px;
+      color: #4b5563;
+      padding-bottom: 30px;
+    }
+
     @media (max-width: 1000px) {
       .dashboard-layout {
         grid-template-columns: 1fr;
@@ -188,156 +247,200 @@
       .sidebar {
         position: static;
       }
+
+      .site-header h1 {
+        font-size: 2rem;
+      }
     }
   </style>
 </head>
 
 <body>
 
-  <h1>Texas League Power Index</h1>
+  <div class="page-shell">
 
-  <p>
-    A fan-made analytical power ranking for the Texas League using run differential,
-    expected record, quality of competition, and long-term performance indicators.
-  </p>
+    <header class="site-header">
 
-  <p id="last-updated" class="updated-time">
-    Last updated: loading...
-  </p>
+      <h1>Texas League Power Index</h1>
 
-  <div class="dashboard-layout">
+      <p class="site-subtitle">
+        A fan-made analytical power ranking for the Texas League using run differential,
+        expected record, quality of competition, and long-term performance indicators.
+      </p>
 
-    <main class="main-content">
+      <p id="last-updated" class="updated-time">
+        Last updated: loading...
+      </p>
 
-      <h2>Power Rankings</h2>
+    </header>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Rank</th>
-            <th>Power</th>
-            <th>Trend</th>
-            <th>Team</th>
-            <th>Record</th>
-            <th>PCT</th>
-            <th>RS</th>
-            <th>RA</th>
-            <th>DIFF</th>
-            <th>X-W/L</th>
-            <th>L10</th>
-            <th>&gt;.500</th>
-          </tr>
-        </thead>
+    <section class="dashboard-layout">
 
-        <tbody id="power-rankings-body"></tbody>
-      </table>
+      <main class="main-content">
 
-    </main>
+        <div class="card">
 
-    <aside class="sidebar">
-      <div class="previous-games-card">
-        <h2>Previous Games</h2>
-        <p>Most recent completed Texas League games.</p>
-        <div id="previous-games-body"></div>
-      </div>
-    </aside>
+          <div class="section-header">
+            <h2>Power Rankings</h2>
+            <p>Current Texas League strength ratings.</p>
+          </div>
+
+          <div class="table-scroll">
+
+            <table>
+
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Power</th>
+                  <th>Trend</th>
+                  <th>Team</th>
+                  <th>Record</th>
+                  <th>PCT</th>
+                  <th>RS</th>
+                  <th>RA</th>
+                  <th>DIFF</th>
+                  <th>X-W/L</th>
+                  <th>L10</th>
+                  <th>&gt;.500</th>
+                </tr>
+              </thead>
+
+              <tbody id="power-rankings-body"></tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </main>
+
+      <aside class="sidebar">
+
+        <section class="card previous-games-card">
+
+          <h2>Previous Games</h2>
+
+          <p>
+            Most recent completed Texas League games.
+          </p>
+
+          <div id="previous-games-body"></div>
+
+        </section>
+
+      </aside>
+
+    </section>
+
+    <section class="info-grid">
+
+      <article class="card">
+
+        <h2>How Power Score Is Calculated</h2>
+
+        <p>
+          The Texas League Power Index is a weighted analytical rating designed to measure
+          overall team strength beyond simple win-loss record.
+        </p>
+
+        <p>
+          Rather than focusing only on standings, the model emphasizes sustainable
+          performance indicators such as run differential, expected record, and
+          performance against winning teams.
+        </p>
+
+        <h3>Power Score Components</h3>
+
+        <ul>
+          <li>
+            <strong>50%</strong> Run Profile
+            <ul>
+              <li>60% Run Differential Per Game</li>
+              <li>25% Expected Winning Percentage (X-W/L)</li>
+              <li>7.5% Runs Scored Per Game</li>
+              <li>7.5% Runs Allowed Per Game</li>
+            </ul>
+          </li>
+
+          <li>
+            <strong>25%</strong> Actual Winning Percentage
+          </li>
+
+          <li>
+            <strong>25%</strong> Quality Record
+            <ul>
+              <li>70% Winning Percentage vs &gt;.500 Teams</li>
+              <li>30% Share of Games Played vs &gt;.500 Teams</li>
+            </ul>
+          </li>
+        </ul>
+
+      </article>
+
+      <article class="card">
+
+        <h2>Rating Behavior</h2>
+
+        <p>
+          Power Scores are designed to behave more like long-term team strength ratings
+          than daily standings.
+        </p>
+
+        <ul>
+          <li>Ratings are smoothed over time using previous published scores.</li>
+          <li>Final displayed scores are compressed toward league average.</li>
+          <li>Trend arrows compare against weekly baseline snapshots.</li>
+        </ul>
+
+      </article>
+
+      <article class="card">
+
+        <h2>Interpreting The Ratings</h2>
+
+        <p>
+          Small differences in Power Score are meaningful. Approximate tier ranges:
+        </p>
+
+        <ul>
+          <li><strong>65+</strong> — Elite</li>
+          <li><strong>58–64</strong> — Strong contender</li>
+          <li><strong>45–57</strong> — Competitive middle tier</li>
+          <li><strong>35–44</strong> — Weak</li>
+          <li><strong>Below 35</strong> — Poor</li>
+        </ul>
+
+        <p>
+          The model values how teams win — not just how often they win.
+        </p>
+
+      </article>
+
+    </section>
+
+    <footer class="site-footer">
+
+      <h2>About</h2>
+
+      <p>
+        This project is not affiliated with Minor League Baseball, Major League Baseball,
+        or any Texas League club. It is a personal fan analytics project.
+      </p>
+
+    </footer>
 
   </div>
-
-  <div class="note">
-
-    <h2>How Power Score Is Calculated</h2>
-
-    <p>
-      The Texas League Power Index is a weighted analytical rating designed to measure
-      overall team strength beyond simple win-loss record.
-    </p>
-
-    <p>
-      Rather than focusing only on standings, the model emphasizes sustainable
-      performance indicators such as run differential, expected record, and
-      performance against winning teams.
-    </p>
-
-    <h3>Power Score Components</h3>
-
-    <ul>
-      <li>
-        <strong>50%</strong> Run Profile
-        <ul>
-          <li>60% Run Differential Per Game</li>
-          <li>25% Expected Winning Percentage (X-W/L)</li>
-          <li>7.5% Runs Scored Per Game</li>
-          <li>7.5% Runs Allowed Per Game</li>
-        </ul>
-      </li>
-
-      <li>
-        <strong>25%</strong> Actual Winning Percentage
-      </li>
-
-      <li>
-        <strong>25%</strong> Quality Record
-        <ul>
-          <li>70% Winning Percentage vs &gt;.500 Teams</li>
-          <li>30% Share of Games Played vs &gt;.500 Teams</li>
-        </ul>
-      </li>
-    </ul>
-
-    <p>
-      All categories are normalized against the rest of the league before the final
-      score is calculated.
-    </p>
-
-    <h3>Rating Behavior</h3>
-
-    <p>
-      Power Scores are designed to behave more like long-term team strength ratings
-      than daily standings.
-    </p>
-
-    <ul>
-      <li>Ratings are smoothed over time using previous published scores.</li>
-      <li>Final displayed scores are compressed toward league average to reduce unrealistic separation between teams.</li>
-      <li>Trend arrows and weekly movement compare against a baseline snapshot from the start of each baseball week.</li>
-    </ul>
-
-    <h3>Interpreting The Ratings</h3>
-
-    <p>
-      Small differences in Power Score are meaningful. Approximate tier ranges:
-    </p>
-
-    <ul>
-      <li><strong>65+</strong> — Elite</li>
-      <li><strong>58–64</strong> — Strong contender</li>
-      <li><strong>45–57</strong> — League average / competitive middle tier</li>
-      <li><strong>35–44</strong> — Weak</li>
-      <li><strong>Below 35</strong> — Poor</li>
-    </ul>
-
-    <p>
-      The model values how teams win — not just how often they win. Dominant run
-      differential, strong expected records, and success against quality opponents
-      are rewarded more heavily than narrow wins alone.
-    </p>
-
-  </div>
-
-  <h2>About</h2>
-
-  <p>
-    This project is not affiliated with Minor League Baseball, Major League Baseball,
-    or any Texas League club. It is a personal fan analytics project.
-  </p>
 
   <script>
     fetch("data/standings.json")
       .then(response => response.json())
       .then(data => {
+
         const tbody = document.getElementById("power-rankings-body");
         const previousGamesBody = document.getElementById("previous-games-body");
+
         const teams = data.teams;
         const previousGames = data.previous_games || [];
 
@@ -347,6 +450,7 @@
           `Last updated: ${updated.toLocaleString()}`;
 
         teams.forEach(team => {
+
           const row = document.createElement("tr");
 
           row.innerHTML = `
@@ -386,19 +490,25 @@
           `;
 
           tbody.appendChild(row);
+
         });
 
         if (!previousGames.length) {
+
           previousGamesBody.innerHTML = `
             <p>No previous games available.</p>
           `;
+
         } else {
+
           previousGamesBody.innerHTML = previousGames.map(game => {
+
             const awayWon = game.away_score > game.home_score;
             const homeWon = game.home_score > game.away_score;
 
             return `
               <div class="previous-game">
+
                 <div class="previous-game-row ${awayWon ? "winner" : "loser"}">
                   <span>${game.away_team}</span>
                   <span class="previous-game-score">${game.away_score}</span>
@@ -412,10 +522,14 @@
                 <div class="previous-game-status">
                   ${game.status} · ${game.game_date}
                 </div>
+
               </div>
             `;
+
           }).join("");
+
         }
+
       });
   </script>
 
