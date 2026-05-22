@@ -30,6 +30,19 @@ TEAM_NAMES = {
     "Missions": "San Antonio Missions",
 }
 
+TEXAS_LEAGUE_TEAMS = {
+    "Arkansas Travelers",
+    "Frisco RoughRiders",
+    "Tulsa Drillers",
+    "Midland RockHounds",
+    "Wichita Wind Surge",
+    "Corpus Christi Hooks",
+    "Northwest Arkansas Naturals",
+    "Amarillo Sod Poodles",
+    "Springfield Cardinals",
+    "San Antonio Missions",
+}
+
 def normalize_team_name(name):
     return TEAM_NAMES.get(name, name)
 
@@ -162,23 +175,28 @@ def get_previous_games(max_games=5, max_days_back=10):
                 if game_pk in seen_game_pks:
                     continue
 
-                status = game.get("status", {}).get("detailedState", "")
+                status = game.get("status", {})
+                abstract_state = status.get("abstractGameState", "")
+                detailed_state = status.get("detailedState", "")
 
-                if status not in ["Final", "Game Over", "Completed Early"]:
+                if abstract_state != "Final":
                     continue
 
                 away = game.get("teams", {}).get("away", {})
                 home = game.get("teams", {}).get("home", {})
 
-                away_team = away.get("team", {}).get("name", "Away")
-                home_team = home.get("team", {}).get("name", "Home")
+                away_team = normalize_team_name(away.get("team", {}).get("name", "Away"))
+                home_team = normalize_team_name(home.get("team", {}).get("name", "Home"))
+
+                if away_team not in TEXAS_LEAGUE_TEAMS and home_team not in TEXAS_LEAGUE_TEAMS:
+                    continue
 
                 previous_games.append({
                     "game_date": game_date.isoformat(),
-                    "status": status,
-                    "away_team": normalize_team_name(away_team),
+                    "status": detailed_state,
+                    "away_team": away_team,
                     "away_score": away.get("score", 0),
-                    "home_team": normalize_team_name(home_team),
+                    "home_team": home_team,
                     "home_score": home.get("score", 0),
                 })
 
