@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-05-22T15:08:49.503234+00:00",
+  "last_updated": "2026-05-22T17:39:46.532030+00:00",
   "previous_games": [
     {
       "game_date": "2026-05-21",
@@ -256,8 +256,8 @@
       "run_profile_score": 38.8,
       "quality_record_score": 59.7,
       "raw_power_score": 41.8,
-      "previous_power_score": 46.6,
-      "displayed_power_score": 45.4,
+      "previous_power_score": 46.5,
+      "displayed_power_score": 45.3,
       "comparison_power_score": 42.0,
       "power_score": 46.5,
       "power_delta": 4.5,
