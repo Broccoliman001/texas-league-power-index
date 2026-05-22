@@ -7,7 +7,8 @@ URL = "https://statsapi.mlb.com/api/v1/standings?sportId=11&leagueId=109&season=
 
 SCHEDULE_URL = (
     "https://statsapi.mlb.com/api/v1/schedule"
-    "?sportId=11"
+    "?sportId=12"
+    "&leagueId=109"
     "&startDate={date}"
     "&endDate={date}"
     "&hydrate=team,linescore"
