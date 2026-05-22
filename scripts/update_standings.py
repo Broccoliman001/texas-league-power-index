@@ -4,6 +4,7 @@ from pathlib import Path
 import requests
 
 URL = "https://statsapi.mlb.com/api/v1/standings?sportId=11&leagueId=109&season=2026&standingsTypes=regularSeason"
+SCHEDULE_URL = "https://statsapi.mlb.com/api/v1/schedule?sportId=11&leagueId=109&date={date}&hydrate=linescore"
 
 OUTPUT_PATH = Path("data/standings.json")
 HISTORY_DIR = Path("data/history")
@@ -28,6 +29,9 @@ TEAM_NAMES = {
     "Cardinals": "Springfield Cardinals",
     "Missions": "San Antonio Missions",
 }
+
+def normalize_team_name(name):
+    return TEAM_NAMES.get(name, name)
 
 def format_record(record):
     if not record:
@@ -90,16 +94,12 @@ def load_power_snapshot(path):
         return {}
 
 def find_comparison_snapshot(today):
-    # Monday = 0, Tuesday = 1, ..., Sunday = 6
     monday = today - timedelta(days=today.weekday())
-
     monday_path = HISTORY_DIR / f"{monday.isoformat()}.json"
 
     if monday_path.exists():
         return monday_path
 
-    # If there is no Monday snapshot, use the first available snapshot
-    # from the current week. This prevents missing trends if Monday failed.
     for offset in range(1, 7):
         candidate_date = monday + timedelta(days=offset)
         candidate_path = HISTORY_DIR / f"{candidate_date.isoformat()}.json"
@@ -137,6 +137,58 @@ def get_power_delta_direction(delta):
 
     return "neutral"
 
+def get_previous_games(max_games=5, max_days_back=10):
+    previous_games = []
+    seen_game_pks = set()
+
+    start_date = datetime.now(timezone.utc).date() - timedelta(days=1)
+
+    for offset in range(max_days_back):
+        game_date = start_date - timedelta(days=offset)
+        url = SCHEDULE_URL.format(date=game_date.isoformat())
+
+        try:
+            response = requests.get(url, timeout=20)
+            response.raise_for_status()
+            data = response.json()
+        except Exception as e:
+            print(f"Could not fetch schedule for {game_date}: {e}")
+            continue
+
+        for date_block in data.get("dates", []):
+            for game in date_block.get("games", []):
+                game_pk = game.get("gamePk")
+
+                if game_pk in seen_game_pks:
+                    continue
+
+                status = game.get("status", {}).get("detailedState", "")
+
+                if status not in ["Final", "Game Over", "Completed Early"]:
+                    continue
+
+                away = game.get("teams", {}).get("away", {})
+                home = game.get("teams", {}).get("home", {})
+
+                away_team = away.get("team", {}).get("name", "Away")
+                home_team = home.get("team", {}).get("name", "Home")
+
+                previous_games.append({
+                    "game_date": game_date.isoformat(),
+                    "status": status,
+                    "away_team": normalize_team_name(away_team),
+                    "away_score": away.get("score", 0),
+                    "home_team": normalize_team_name(home_team),
+                    "home_score": home.get("score", 0),
+                })
+
+                seen_game_pks.add(game_pk)
+
+                if len(previous_games) >= max_games:
+                    return previous_games
+
+    return previous_games
+
 today = datetime.now(timezone.utc).date()
 
 comparison_snapshot_path = find_comparison_snapshot(today)
@@ -144,7 +196,6 @@ comparison_snapshot_path = find_comparison_snapshot(today)
 previous_ranks = load_rank_snapshot(comparison_snapshot_path) if comparison_snapshot_path else {}
 comparison_powers = load_power_snapshot(comparison_snapshot_path) if comparison_snapshot_path else {}
 
-# This is still used for smoothing against the previous published rating.
 previous_powers = load_power_snapshot(OUTPUT_PATH)
 
 if comparison_snapshot_path:
@@ -152,9 +203,11 @@ if comparison_snapshot_path:
 else:
     print("No weekly baseline snapshot found. Trends and power deltas will default to neutral.")
 
-response = requests.get(URL)
+response = requests.get(URL, timeout=20)
 response.raise_for_status()
 data = response.json()
+
+previous_games = get_previous_games()
 
 teams = []
 
@@ -169,7 +222,7 @@ for division in data["records"]:
         diff = rs - ra
 
         raw_team_name = team_data["team"]["name"]
-        display_team_name = TEAM_NAMES.get(raw_team_name, raw_team_name)
+        display_team_name = normalize_team_name(raw_team_name)
 
         expected_record = find_expected_record(team_data)
         xwl = format_record(expected_record)
@@ -287,6 +340,7 @@ for index, team in enumerate(teams, start=1):
 
 output = {
     "last_updated": datetime.now(timezone.utc).isoformat(),
+    "previous_games": previous_games,
     "trend_basis": "Rank arrows compare against the weekly baseline snapshot from Monday or the first available snapshot of the current week.",
     "power_delta_basis": "Power delta compares against the same weekly baseline snapshot used for rank arrows.",
     "comparison_snapshot": str(comparison_snapshot_path) if comparison_snapshot_path else None,
@@ -324,4 +378,5 @@ with history_path.open("w", encoding="utf-8") as f:
 print(f"Wrote {OUTPUT_PATH}")
 print(f"Wrote {history_path}")
 print(f"Teams written: {len(teams)}")
+print(f"Previous games written: {len(previous_games)}")
 print(f"Last updated: {output['last_updated']}")
