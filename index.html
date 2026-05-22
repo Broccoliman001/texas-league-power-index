@@ -7,8 +7,8 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f3f4f6;
-      color: #222;
+      background: #020617;
+      color: #e5e7eb;
       margin: 0;
       line-height: 1.5;
     }
@@ -20,7 +20,7 @@
     }
 
     h1, h2, h3 {
-      color: #111827;
+      color: #f8fafc;
     }
 
     .site-header {
@@ -34,12 +34,12 @@
 
     .site-subtitle {
       max-width: 900px;
-      color: #4b5563;
+      color: #94a3b8;
       font-size: 1.05rem;
     }
 
     .updated-time {
-      color: #6b7280;
+      color: #94a3b8;
       font-size: 0.95rem;
       margin-top: 12px;
     }
@@ -61,11 +61,11 @@
     }
 
     .card {
-      background: white;
-      border: 1px solid #d1d5db;
+      background: #111827;
+      border: 1px solid #1e293b;
       border-radius: 12px;
       padding: 20px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.35);
     }
 
     .section-header {
@@ -82,7 +82,7 @@
 
     .section-header p {
       margin: 0;
-      color: #6b7280;
+      color: #94a3b8;
       font-size: 0.9rem;
     }
 
@@ -94,23 +94,24 @@
       width: 100%;
       border-collapse: collapse;
       table-layout: auto;
+      background: #111827;
     }
 
     th, td {
       padding: 12px 10px;
-      border-bottom: 1px solid #e5e7eb;
+      border-bottom: 1px solid #1e293b;
       text-align: left;
       white-space: nowrap;
     }
 
     th {
-      background: #0f172a;
-      color: white;
+      background: #020617;
+      color: #f8fafc;
       font-size: 0.92rem;
     }
 
     tr:hover {
-      background: #f9fafb;
+      background: #172036;
     }
 
     th:nth-child(4),
@@ -132,13 +133,13 @@
 
     .previous-games-card p {
       margin-top: 0;
-      color: #6b7280;
+      color: #94a3b8;
       font-size: 0.9rem;
     }
 
     .previous-game {
       padding: 12px 0;
-      border-bottom: 1px solid #e5e7eb;
+      border-bottom: 1px solid #1e293b;
     }
 
     .previous-game:last-child {
@@ -156,11 +157,11 @@
 
     .previous-game-row.winner {
       font-weight: bold;
-      color: #111827;
+      color: #f8fafc;
     }
 
     .previous-game-row.loser {
-      color: #6b7280;
+      color: #94a3b8;
     }
 
     .previous-game-score {
@@ -171,7 +172,7 @@
     .previous-game-status {
       margin-top: 4px;
       font-size: 0.75rem;
-      color: #6b7280;
+      color: #94a3b8;
     }
 
     .info-grid {
@@ -185,57 +186,36 @@
       margin-top: 0;
     }
 
-    .positive {
-      color: #15803d;
-      font-weight: bold;
-    }
-
-    .negative {
-      color: #b91c1c;
-      font-weight: bold;
-    }
-
-    .neutral {
-      color: #6b7280;
-      font-weight: bold;
-    }
-
-    .trend-up {
-      color: #15803d;
-      font-weight: bold;
-    }
-
-    .trend-down {
-      color: #b91c1c;
-      font-weight: bold;
-    }
-
-    .trend-flat {
-      color: #6b7280;
-      font-weight: bold;
-    }
-
+    .positive,
+    .trend-up,
     .delta-up {
-      color: #15803d;
+      color: #22c55e;
       font-weight: bold;
-      margin-left: 6px;
     }
 
+    .negative,
+    .trend-down,
     .delta-down {
-      color: #b91c1c;
+      color: #f87171;
       font-weight: bold;
-      margin-left: 6px;
     }
 
+    .neutral,
+    .trend-flat,
     .delta-neutral {
-      color: #6b7280;
+      color: #94a3b8;
       font-weight: bold;
+    }
+
+    .delta-up,
+    .delta-down,
+    .delta-neutral {
       margin-left: 6px;
     }
 
     .site-footer {
       margin-top: 28px;
-      color: #4b5563;
+      color: #94a3b8;
       padding-bottom: 30px;
     }
 
