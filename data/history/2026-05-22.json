@@ -1,6 +1,47 @@
 {
-  "last_updated": "2026-05-22T15:02:36.905179+00:00",
-  "previous_games": [],
+  "last_updated": "2026-05-22T15:08:49.503234+00:00",
+  "previous_games": [
+    {
+      "game_date": "2026-05-21",
+      "status": "Final",
+      "away_team": "Midland RockHounds",
+      "away_score": 13,
+      "home_team": "Corpus Christi Hooks",
+      "home_score": 1
+    },
+    {
+      "game_date": "2026-05-21",
+      "status": "Final",
+      "away_team": "San Antonio Missions",
+      "away_score": 5,
+      "home_team": "Frisco RoughRiders",
+      "home_score": 1
+    },
+    {
+      "game_date": "2026-05-21",
+      "status": "Final",
+      "away_team": "Springfield Cardinals",
+      "away_score": 5,
+      "home_team": "Arkansas Travelers",
+      "home_score": 3
+    },
+    {
+      "game_date": "2026-05-21",
+      "status": "Final",
+      "away_team": "Tulsa Drillers",
+      "away_score": 6,
+      "home_team": "Wichita Wind Surge",
+      "home_score": 4
+    },
+    {
+      "game_date": "2026-05-21",
+      "status": "Final",
+      "away_team": "Northwest Arkansas Naturals",
+      "away_score": 6,
+      "home_team": "Amarillo Sod Poodles",
+      "home_score": 4
+    }
+  ],
   "trend_basis": "Rank arrows compare against the weekly baseline snapshot from Monday or the first available snapshot of the current week.",
   "power_delta_basis": "Power delta compares against the same weekly baseline snapshot used for rank arrows.",
   "comparison_snapshot": "data/history/2026-05-19.json",
@@ -147,8 +188,8 @@
       "run_profile_score": 57.5,
       "quality_record_score": 77.5,
       "raw_power_score": 65.6,
-      "previous_power_score": 56.5,
-      "displayed_power_score": 58.8,
+      "previous_power_score": 56.6,
+      "displayed_power_score": 58.9,
       "comparison_power_score": 57.0,
       "power_score": 56.6,
       "power_delta": -0.4,
@@ -215,12 +256,12 @@
       "run_profile_score": 38.8,
       "quality_record_score": 59.7,
       "raw_power_score": 41.8,
-      "previous_power_score": 46.7,
-      "displayed_power_score": 45.5,
+      "previous_power_score": 46.6,
+      "displayed_power_score": 45.4,
       "comparison_power_score": 42.0,
-      "power_score": 46.6,
-      "power_delta": 4.6,
-      "power_delta_display": "+4.6",
+      "power_score": 46.5,
+      "power_delta": 4.5,
+      "power_delta_display": "+4.5",
       "power_delta_direction": "up",
       "power_delta_class": "delta-up",
       "rank": 6,
