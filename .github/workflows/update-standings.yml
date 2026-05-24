@@ -3,7 +3,7 @@ name: Update standings data
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 10 * * *"
+  - cron: "0 10,16,22,4 * * *"
 
 permissions:
   contents: write
