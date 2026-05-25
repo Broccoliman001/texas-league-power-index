@@ -317,19 +317,6 @@ for division in data["records"]:
 
         xwl = format_record(expected_record)
 
-        if expected_record:
-            x_wins = expected_record.get("wins", 0)
-            x_losses = expected_record.get("losses", 0)
-
-            x_win_pct_num = (
-                x_wins / (x_wins + x_losses)
-                if (x_wins + x_losses)
-                else 0
-            )
-
-        else:
-            x_win_pct_num = wins / games if games else 0
-
         last10_record = find_split_record(team_data, "lastTen")
 
         vs500_record = find_split_record(team_data, "winners")
@@ -373,35 +360,23 @@ for division in data["records"]:
             "losses": losses,
             "diff": diff,
             "win_pct_num": wins / games if games else 0,
-            "x_win_pct_num": x_win_pct_num,
             "vs500_win_pct_num": vs500_win_pct_num,
             "vs500_game_share": vs500_game_share,
             "diff_per_game": diff / games if games else 0,
-            "rs_per_game": rs / games if games else 0,
-            "ra_per_game": ra / games if games else 0,
         }
 
         teams.append(team)
 
 diff_values = [team["diff_per_game"] for team in teams]
-x_win_values = [team["x_win_pct_num"] for team in teams]
 actual_win_values = [team["win_pct_num"] for team in teams]
-offense_values = [team["rs_per_game"] for team in teams]
-defense_values = [team["ra_per_game"] for team in teams]
 vs500_values = [team["vs500_win_pct_num"] for team in teams]
 vs500_share_values = [team["vs500_game_share"] for team in teams]
 
 for team in teams:
 
-    run_profile_score = (
-        0.60 * normalize(team["diff_per_game"], diff_values)
-        + 0.25 * normalize(team["x_win_pct_num"], x_win_values)
-        + 0.075 * normalize(team["rs_per_game"], offense_values)
-        + 0.075 * normalize(
-            team["ra_per_game"],
-            defense_values,
-            reverse=True
-        )
+    run_profile_score = normalize(
+        team["diff_per_game"],
+        diff_values
     )
 
     quality_record_score = (
@@ -524,6 +499,21 @@ output = {
         str(comparison_snapshot_path)
         if comparison_snapshot_path else None
     ),
+
+    "power_formula": {
+        "formula": (
+            "power_score = 50% Run Profile "
+            "+ 25% Actual Winning Percentage "
+            "+ 25% Quality Record"
+        ),
+        "run_profile": (
+            "Run Profile = normalized run differential per game"
+        ),
+        "quality_record": (
+            "Quality Record = 70% winning percentage vs >.500 teams "
+            "+ 30% share of games played vs >.500 teams"
+        )
+    },
 
     "power_smoothing": {
         "enabled": True,
