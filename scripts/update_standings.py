@@ -14,8 +14,19 @@ SCHEDULE_URL = (
     "&hydrate=team,linescore"
 )
 
+SCHEDULE_RANGE_URL = (
+    "https://statsapi.mlb.com/api/v1/schedule"
+    "?sportId=12"
+    "&leagueId=109"
+    "&startDate={start_date}"
+    "&endDate={end_date}"
+    "&hydrate=team,linescore"
+)
+
 OUTPUT_PATH = Path("data/standings.json")
 HISTORY_DIR = Path("data/history")
+
+SEASON_START_DATE = "2026-04-03"
 
 POWER_SMOOTHING_PREVIOUS_WEIGHT = 0.75
 POWER_SMOOTHING_RAW_WEIGHT = 0.25
@@ -48,6 +59,10 @@ def format_record(record):
         return "0-0"
 
     return f"{record.get('wins', 0)}-{record.get('losses', 0)}"
+
+
+def format_pct(value):
+    return f"{value:.3f}".replace("0.", ".")
 
 
 def find_split_record(team_data, record_type):
@@ -149,16 +164,6 @@ def format_power_delta(delta):
     return f"{delta:.1f}"
 
 
-def get_power_delta_direction(delta):
-    if delta >= POWER_DELTA_NEUTRAL_THRESHOLD:
-        return "up"
-
-    if delta <= -POWER_DELTA_NEUTRAL_THRESHOLD:
-        return "down"
-
-    return "neutral"
-
-
 def get_previous_games(texas_league_team_ids, max_games=5, max_days_back=10):
     previous_games = []
     seen_game_pks = set()
@@ -251,6 +256,116 @@ def get_previous_games(texas_league_team_ids, max_games=5, max_days_back=10):
     return previous_games
 
 
+def get_completed_games_for_owp(texas_league_team_ids, start_date, end_date):
+    completed_games = []
+    seen_game_pks = set()
+
+    url = SCHEDULE_RANGE_URL.format(
+        start_date=start_date,
+        end_date=end_date
+    )
+
+    print("\nFetching completed schedule for OWP:")
+    print(url)
+
+    try:
+        response = requests.get(url, timeout=30)
+        response.raise_for_status()
+        data = response.json()
+
+    except Exception as e:
+        print(f"Could not fetch schedule range for OWP: {e}")
+        return completed_games
+
+    for date_block in data.get("dates", []):
+        game_date = date_block.get("date")
+
+        for game in date_block.get("games", []):
+            game_pk = game.get("gamePk")
+
+            if game_pk in seen_game_pks:
+                continue
+
+            status = game.get("status", {})
+            abstract_state = status.get("abstractGameState", "")
+
+            if abstract_state != "Final":
+                continue
+
+            away = game.get("teams", {}).get("away", {})
+            home = game.get("teams", {}).get("home", {})
+
+            away_team_data = away.get("team", {})
+            home_team_data = home.get("team", {})
+
+            away_team_id = away_team_data.get("id")
+            home_team_id = home_team_data.get("id")
+
+            if (
+                away_team_id not in texas_league_team_ids
+                or home_team_id not in texas_league_team_ids
+            ):
+                continue
+
+            completed_games.append({
+                "game_pk": game_pk,
+                "game_date": game_date,
+                "away_team_id": away_team_id,
+                "home_team_id": home_team_id,
+            })
+
+            seen_game_pks.add(game_pk)
+
+    print(f"Completed games used for OWP: {len(completed_games)}")
+
+    return completed_games
+
+
+def calculate_opponent_win_percentages(
+    completed_games,
+    team_win_pct_by_id
+):
+    opponent_win_pcts = {
+        team_id: []
+        for team_id in team_win_pct_by_id
+    }
+
+    for game in completed_games:
+        away_team_id = game["away_team_id"]
+        home_team_id = game["home_team_id"]
+
+        away_win_pct = team_win_pct_by_id.get(away_team_id)
+        home_win_pct = team_win_pct_by_id.get(home_team_id)
+
+        if away_win_pct is None or home_win_pct is None:
+            continue
+
+        opponent_win_pcts[away_team_id].append(home_win_pct)
+        opponent_win_pcts[home_team_id].append(away_win_pct)
+
+    average_opponent_win_pct = {}
+
+    for team_id, opponent_values in opponent_win_pcts.items():
+        if opponent_values:
+            average_opponent_win_pct[team_id] = (
+                sum(opponent_values) / len(opponent_values)
+            )
+        else:
+            average_opponent_win_pct[team_id] = 0.500
+
+    return average_opponent_win_pct
+
+
+def get_power_delta_direction(delta):
+    if delta >= POWER_DELTA_NEUTRAL_THRESHOLD:
+        return "up"
+
+    if delta <= -POWER_DELTA_NEUTRAL_THRESHOLD:
+        return "down"
+
+    return "neutral"
+
+
 today = datetime.now(timezone.utc).date()
 
 comparison_snapshot_path = find_comparison_snapshot(today)
@@ -284,13 +399,32 @@ response.raise_for_status()
 data = response.json()
 
 texas_league_team_ids = set()
+team_win_pct_by_id = {}
 
 for division in data["records"]:
     for team_data in division["teamRecords"]:
-        texas_league_team_ids.add(team_data["team"]["id"])
+        team_id = team_data["team"]["id"]
+
+        wins = team_data["wins"]
+        losses = team_data["losses"]
+        games = wins + losses
+
+        texas_league_team_ids.add(team_id)
+        team_win_pct_by_id[team_id] = wins / games if games else 0.500
 
 print("\nTexas League team IDs:")
 print(sorted(texas_league_team_ids))
+
+completed_games = get_completed_games_for_owp(
+    texas_league_team_ids,
+    SEASON_START_DATE,
+    today.isoformat()
+)
+
+average_opponent_win_pct_by_id = calculate_opponent_win_percentages(
+    completed_games,
+    team_win_pct_by_id
+)
 
 previous_games = get_previous_games(texas_league_team_ids)
 
@@ -298,6 +432,8 @@ teams = []
 
 for division in data["records"]:
     for team_data in division["teamRecords"]:
+
+        team_id = team_data["team"]["id"]
 
         wins = team_data["wins"]
         losses = team_data["losses"]
@@ -321,26 +457,9 @@ for division in data["records"]:
 
         vs500_record = find_split_record(team_data, "winners")
 
-        vs500_wins = (
-            vs500_record.get("wins", 0)
-            if vs500_record else 0
-        )
-
-        vs500_losses = (
-            vs500_record.get("losses", 0)
-            if vs500_record else 0
-        )
-
-        vs500_games = vs500_wins + vs500_losses
-
-        vs500_win_pct_num = (
-            vs500_wins / vs500_games
-            if vs500_games else 0
-        )
-
-        vs500_game_share = (
-            vs500_games / games
-            if games else 0
+        opponent_win_pct_num = average_opponent_win_pct_by_id.get(
+            team_id,
+            0.500
         )
 
         team = {
@@ -354,14 +473,21 @@ for division in data["records"]:
             "ra": ra,
             "xwl": xwl,
             "last10": format_record(last10_record),
+
+            # Kept for display/backward compatibility.
+            # This no longer affects Power Score.
             "vs500": format_record(vs500_record),
+
+            "opponent_win_pct": format_pct(opponent_win_pct_num),
+            "owp": format_pct(opponent_win_pct_num),
+
             "identity": "TBD",
             "wins": wins,
             "losses": losses,
             "diff": diff,
             "win_pct_num": wins / games if games else 0,
-            "vs500_win_pct_num": vs500_win_pct_num,
-            "vs500_game_share": vs500_game_share,
+            "opponent_win_pct_num": opponent_win_pct_num,
+            "owp_num": opponent_win_pct_num,
             "diff_per_game": diff / games if games else 0,
         }
 
@@ -369,34 +495,32 @@ for division in data["records"]:
 
 diff_values = [team["diff_per_game"] for team in teams]
 actual_win_values = [team["win_pct_num"] for team in teams]
-vs500_values = [team["vs500_win_pct_num"] for team in teams]
-vs500_share_values = [team["vs500_game_share"] for team in teams]
+opponent_win_pct_values = [
+    team["opponent_win_pct_num"]
+    for team in teams
+]
 
 for team in teams:
 
-    run_profile_score = normalize(
+    diff_score = normalize(
         team["diff_per_game"],
         diff_values
     )
 
-    quality_record_score = (
-        0.70 * normalize(
-            team["vs500_win_pct_num"],
-            vs500_values
-        )
-        + 0.30 * normalize(
-            team["vs500_game_share"],
-            vs500_share_values
-        )
+    actual_win_score = normalize(
+        team["win_pct_num"],
+        actual_win_values
+    )
+
+    opponent_strength_score = normalize(
+        team["opponent_win_pct_num"],
+        opponent_win_pct_values
     )
 
     raw_power_score = (
-        0.50 * run_profile_score
-        + 0.25 * normalize(
-            team["win_pct_num"],
-            actual_win_values
-        )
-        + 0.25 * quality_record_score
+        0.50 * diff_score
+        + 0.25 * actual_win_score
+        + 0.25 * opponent_strength_score
     )
 
     previous_power_score = previous_powers.get(
@@ -436,8 +560,18 @@ for team in teams:
         power_delta
     )
 
-    team["run_profile_score"] = round(run_profile_score, 1)
-    team["quality_record_score"] = round(quality_record_score, 1)
+    team["diff_score"] = round(diff_score, 1)
+
+    # Kept as an alias in case your front end still references run_profile_score.
+    team["run_profile_score"] = round(diff_score, 1)
+
+    team["actual_win_score"] = round(actual_win_score, 1)
+    team["opponent_strength_score"] = round(opponent_strength_score, 1)
+    team["owp_score"] = round(opponent_strength_score, 1)
+
+    # Kept as an alias in case your front end still references quality_record_score.
+    team["quality_record_score"] = round(opponent_strength_score, 1)
+
     team["raw_power_score"] = round(raw_power_score, 1)
     team["previous_power_score"] = round(previous_power_score, 1)
     team["displayed_power_score"] = round(displayed_power_score, 1)
@@ -502,16 +636,22 @@ output = {
 
     "power_formula": {
         "formula": (
-            "power_score = 50% Run Profile "
+            "power_score = 50% Run Differential Per Game "
             "+ 25% Actual Winning Percentage "
-            "+ 25% Quality Record"
+            "+ 25% Average Opponent Winning Percentage"
         ),
-        "run_profile": (
-            "Run Profile = normalized run differential per game"
+        "diff": (
+            "Run Differential Per Game = "
+            "normalized run differential per game"
         ),
-        "quality_record": (
-            "Quality Record = 70% winning percentage vs >.500 teams "
-            "+ 30% share of games played vs >.500 teams"
+        "actual_winning_percentage": (
+            "Actual Winning Percentage = "
+            "normalized current winning percentage"
+        ),
+        "opponent_strength": (
+            "Average Opponent Winning Percentage = "
+            "game-weighted average of each opponent's current "
+            "winning percentage"
         )
     },
 
@@ -544,6 +684,16 @@ output = {
         )
     },
 
+    "owp": {
+        "enabled": True,
+        "season_start_date": SEASON_START_DATE,
+        "formula": (
+            "OWP = average current winning percentage of all "
+            "opponents played, weighted by games played"
+        ),
+        "completed_games_used": len(completed_games)
+    },
+
     "teams": teams
 }
 
@@ -565,5 +715,7 @@ print(f"Wrote {history_path}")
 print(f"Teams written: {len(teams)}")
 
 print(f"Previous games written: {len(previous_games)}")
+
+print(f"Completed games used for OWP: {len(completed_games)}")
 
 print(f"Last updated: {output['last_updated']}")
