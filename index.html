@@ -245,7 +245,7 @@
 
       <p class="site-subtitle">
         A fan-made analytical power ranking for the Texas League using run differential,
-        expected record, quality of competition, and long-term performance indicators.
+        winning percentage, opponent strength, and long-term performance indicators.
       </p>
 
       <p id="last-updated" class="updated-time">
@@ -282,7 +282,7 @@
                   <th>DIFF</th>
                   <th>X-W/L</th>
                   <th>L10</th>
-                  <th>&gt;.500</th>
+                  <th>OWP</th>
                 </tr>
               </thead>
 
@@ -327,8 +327,8 @@
 
         <p>
           Rather than focusing only on standings, the model emphasizes sustainable
-          performance indicators such as run differential, expected record, and
-          performance against winning teams.
+          performance indicators such as run differential, actual winning percentage,
+          and opponent strength.
         </p>
 
         <h3>Power Score Components</h3>
@@ -343,13 +343,15 @@
           </li>
 
           <li>
-            <strong>25%</strong> Quality Record
-            <ul>
-              <li>70% Winning Percentage vs &gt;.500 Teams</li>
-              <li>30% Share of Games Played vs &gt;.500 Teams</li>
-            </ul>
+            <strong>25%</strong> Average Opponent Winning Percentage
           </li>
         </ul>
+
+        <p>
+          <strong>OWP</strong> stands for Average Opponent Winning Percentage. It measures
+          schedule strength by averaging the current winning percentage of all opponents
+          a team has played, weighted by games played.
+        </p>
 
       </article>
 
@@ -460,7 +462,7 @@
 
             <td>${team.xwl}</td>
             <td>${team.last10}</td>
-            <td>${team.vs500}</td>
+            <td>${team.owp || team.opponent_win_pct || ".000"}</td>
           `;
 
           tbody.appendChild(row);
