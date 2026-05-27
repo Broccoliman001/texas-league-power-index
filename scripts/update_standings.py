@@ -34,8 +34,6 @@ POWER_SMOOTHING_RAW_WEIGHT = 0.25
 POWER_COMPRESSION_CENTER = 50
 POWER_COMPRESSION_FACTOR = 0.75
 
-POWER_DELTA_NEUTRAL_THRESHOLD = 0.3
-
 TEAM_NAMES = {
     "Travelers": "Arkansas Travelers",
     "RoughRiders": "Frisco RoughRiders",
@@ -155,13 +153,12 @@ def normalize(value, values, reverse=False):
 
 
 def format_power_delta(delta):
-    if abs(delta) < POWER_DELTA_NEUTRAL_THRESHOLD:
-        return "0.0"
+    rounded_delta = round(delta, 1)
 
-    if delta > 0:
-        return f"+{delta:.1f}"
+    if rounded_delta > 0:
+        return f"+{rounded_delta:.1f}"
 
-    return f"{delta:.1f}"
+    return f"{rounded_delta:.1f}"
 
 
 def get_previous_games(texas_league_team_ids, max_games=5, max_days_back=10):
@@ -357,10 +354,12 @@ def calculate_opponent_win_percentages(
 
 
 def get_power_delta_direction(delta):
-    if delta >= POWER_DELTA_NEUTRAL_THRESHOLD:
+    rounded_delta = round(delta, 1)
+
+    if rounded_delta > 0:
         return "up"
 
-    if delta <= -POWER_DELTA_NEUTRAL_THRESHOLD:
+    if rounded_delta < 0:
         return "down"
 
     return "neutral"
@@ -677,7 +676,7 @@ output = {
 
     "power_delta": {
         "enabled": True,
-        "neutral_threshold": POWER_DELTA_NEUTRAL_THRESHOLD,
+        "neutral_threshold": 0,
         "formula": (
             "power_delta = "
             "power_score - comparison_power_score"
