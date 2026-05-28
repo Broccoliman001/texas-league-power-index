@@ -34,6 +34,9 @@ POWER_SMOOTHING_RAW_WEIGHT = 0.25
 POWER_COMPRESSION_CENTER = 50
 POWER_COMPRESSION_FACTOR = 0.75
 
+OWP_LOWER_BOUND = 0.450
+OWP_UPPER_BOUND = 0.550
+
 TEAM_NAMES = {
     "Travelers": "Arkansas Travelers",
     "RoughRiders": "Frisco RoughRiders",
@@ -148,6 +151,17 @@ def normalize(value, values, reverse=False):
         return 50
 
     score = 100 * (value - min_value) / (max_value - min_value)
+
+    return 100 - score if reverse else score
+
+
+def normalize_bounded(value, lower_bound, upper_bound, reverse=False):
+    if upper_bound == lower_bound:
+        return 50
+
+    score = 100 * (value - lower_bound) / (upper_bound - lower_bound)
+
+    score = max(0, min(100, score))
 
     return 100 - score if reverse else score
 
@@ -494,10 +508,6 @@ for division in data["records"]:
 
 diff_values = [team["diff_per_game"] for team in teams]
 actual_win_values = [team["win_pct_num"] for team in teams]
-opponent_win_pct_values = [
-    team["opponent_win_pct_num"]
-    for team in teams
-]
 
 for team in teams:
 
@@ -511,9 +521,10 @@ for team in teams:
         actual_win_values
     )
 
-    opponent_strength_score = normalize(
+    opponent_strength_score = normalize_bounded(
         team["opponent_win_pct_num"],
-        opponent_win_pct_values
+        OWP_LOWER_BOUND,
+        OWP_UPPER_BOUND
     )
 
     raw_power_score = (
@@ -649,8 +660,7 @@ output = {
         ),
         "opponent_strength": (
             "Average Opponent Winning Percentage = "
-            "game-weighted average of each opponent's current "
-            "winning percentage"
+            "bounded-normalized against .450 to .550"
         )
     },
 
@@ -686,9 +696,13 @@ output = {
     "owp": {
         "enabled": True,
         "season_start_date": SEASON_START_DATE,
+        "lower_bound": OWP_LOWER_BOUND,
+        "upper_bound": OWP_UPPER_BOUND,
         "formula": (
             "OWP = average current winning percentage of all "
-            "opponents played, weighted by games played"
+            "opponents played, weighted by games played. "
+            "OWP score is bounded-normalized so .450 = 0, "
+            ".500 = 50, and .550 = 100."
         ),
         "completed_games_used": len(completed_games)
     },
