@@ -470,21 +470,17 @@ for division in data["records"]:
         ra = team_data.get("runsAllowed", 0)
         diff = rs - ra
 
-        display_wins = display_team_data["wins"]
-        display_losses = display_team_data["losses"]
-        display_games = display_wins + display_losses
-
-        display_rs = display_team_data.get("runsScored", 0)
-        display_ra = display_team_data.get("runsAllowed", 0)
-        display_diff = display_rs - display_ra
-
         raw_team_name = team_data["team"]["name"]
 
         display_team_name = normalize_team_name(raw_team_name)
 
-        display_expected_record = find_expected_record(display_team_data)
-        display_last10_record = find_split_record(display_team_data, "lastTen")
-        display_vs500_record = find_split_record(display_team_data, "winners")
+        expected_record = find_expected_record(team_data)
+        last10_record = find_split_record(team_data, "lastTen")
+        vs500_record = find_split_record(team_data, "winners")
+
+        display_wins = display_team_data["wins"]
+        display_losses = display_team_data["losses"]
+        display_games = display_wins + display_losses
 
         opponent_win_pct_num = average_opponent_win_pct_by_id.get(
             team_id,
@@ -494,29 +490,31 @@ for division in data["records"]:
         team = {
             "team": display_team_name,
 
-            # Display fields use second-half standings.
+            # Standings/race fields use second-half standings.
             "record": f"{display_wins}-{display_losses}",
             "pct": display_team_data.get(
                 "winningPercentage",
                 f"{display_wins / display_games:.3f}" if display_games else ".000"
             ),
-            "rs": display_rs,
-            "ra": display_ra,
-            "xwl": format_record(display_expected_record),
-            "last10": format_record(display_last10_record),
+            "wins": display_wins,
+            "losses": display_losses,
+
+            # Supporting table stats use full-season standings.
+            "rs": rs,
+            "ra": ra,
+            "diff": diff,
+            "xwl": format_record(expected_record),
+            "last10": format_record(last10_record),
 
             # Kept for display/backward compatibility.
             # This no longer affects Power Score.
-            "vs500": format_record(display_vs500_record),
+            "vs500": format_record(vs500_record),
 
             # Power fields use full-season standings.
             "opponent_win_pct": format_pct(opponent_win_pct_num),
             "owp": format_pct(opponent_win_pct_num),
 
             "identity": "TBD",
-            "wins": display_wins,
-            "losses": display_losses,
-            "diff": display_diff,
 
             "power_wins": wins,
             "power_losses": losses,
@@ -696,9 +694,10 @@ output = {
     "display_standings": {
         "standings_type": "secondHalf",
         "description": (
-            "Displayed record, winning percentage, runs scored, "
-            "runs allowed, run differential, last 10, and vs .500 "
-            "come from second-half standings."
+            "Displayed record and winning percentage come from "
+            "second-half standings. Supporting statistics such as "
+            "runs scored, runs allowed, run differential, expected "
+            "record, last 10, OWP, and Power Score use full-season data."
         )
     },
 
