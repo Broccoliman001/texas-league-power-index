@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -84,6 +85,12 @@
       margin: 0;
       color: #94a3b8;
       font-size: 0.9rem;
+    }
+
+    .table-note {
+      color: #94a3b8;
+      font-size: 0.9rem;
+      margin: -4px 0 14px;
     }
 
     .table-scroll {
@@ -244,8 +251,9 @@
       <h1>Texas League Power Index</h1>
 
       <p class="site-subtitle">
-        A fan-made analytical power ranking for the Texas League using run differential,
+        A fan-made analytical power ranking for the Texas League using full-season run differential,
         winning percentage, opponent strength, and long-term performance indicators.
+        Displayed standings stats reflect the second-half playoff race.
       </p>
 
       <p id="last-updated" class="updated-time">
@@ -261,9 +269,14 @@
         <div class="card">
 
           <div class="section-header">
-            <h2>Power Rankings</h2>
-            <p>Current Texas League strength ratings.</p>
+            <h2>Power Rankings & Second Half Standings</h2>
+            <p>Power ratings use full-season data. Standings stats use second-half results.</p>
           </div>
+
+          <p class="table-note">
+            Record, PCT, RS, RA, DIFF, X-W/L, and L10 are second-half stats.
+            Power Score and OWP are based on full-season performance.
+          </p>
 
           <div class="table-scroll">
 
@@ -275,13 +288,13 @@
                   <th>Power</th>
                   <th>Trend</th>
                   <th>Team</th>
-                  <th>Record</th>
-                  <th>PCT</th>
-                  <th>RS</th>
-                  <th>RA</th>
-                  <th>DIFF</th>
-                  <th>X-W/L</th>
-                  <th>L10</th>
+                  <th>2H Record</th>
+                  <th>2H PCT</th>
+                  <th>2H RS</th>
+                  <th>2H RA</th>
+                  <th>2H DIFF</th>
+                  <th>2H X-W/L</th>
+                  <th>2H L10</th>
                   <th>OWP</th>
                 </tr>
               </thead>
@@ -326,24 +339,23 @@
         </p>
 
         <p>
-          Rather than focusing only on standings, the model emphasizes sustainable
-          performance indicators such as run differential, actual winning percentage,
-          and opponent strength.
+          Power Score is based on full-season performance, while the displayed standings
+          columns show each team's second-half playoff race statistics.
         </p>
 
         <h3>Power Score Components</h3>
 
         <ul>
           <li>
-            <strong>50%</strong> Run Differential Per Game
+            <strong>50%</strong> Full-Season Run Differential Per Game
           </li>
 
           <li>
-            <strong>25%</strong> Actual Winning Percentage
+            <strong>25%</strong> Full-Season Actual Winning Percentage
           </li>
 
           <li>
-            <strong>25%</strong> Average Opponent Winning Percentage
+            <strong>25%</strong> Full-Season Average Opponent Winning Percentage
           </li>
         </ul>
 
@@ -368,6 +380,7 @@
           <li>Ratings are smoothed over time using previous published scores.</li>
           <li>Final displayed scores are compressed toward league average.</li>
           <li>Trend arrows compare against weekly baseline snapshots.</li>
+          <li>Second-half standings can move quickly, but Power Score remains grounded in the full-season body of work.</li>
         </ul>
 
       </article>
@@ -489,3 +502,4 @@
 
 </body>
 </html>
+```
