@@ -3,9 +3,7 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 import requests
 
-POWER_URL = "https://statsapi.mlb.com/api/v1/standings?sportId=11&leagueId=109&season=2026&standingsTypes=regularSeason"
-
-DISPLAY_STANDINGS_URL = "https://statsapi.mlb.com/api/v1/standings?sportId=11&leagueId=109&season=2026&standingsTypes=secondHalf"
+URL = "https://statsapi.mlb.com/api/v1/standings?sportId=11&leagueId=109&season=2026&standingsTypes=regularSeason"
 
 SCHEDULE_URL = (
     "https://statsapi.mlb.com/api/v1/schedule"
@@ -407,21 +405,10 @@ else:
         "Trends and power deltas will default to neutral."
     )
 
-power_response = requests.get(POWER_URL, timeout=20)
-power_response.raise_for_status()
-power_data = power_response.json()
+response = requests.get(URL, timeout=20)
+response.raise_for_status()
 
-display_response = requests.get(DISPLAY_STANDINGS_URL, timeout=20)
-display_response.raise_for_status()
-display_data = display_response.json()
-
-display_team_data_by_id = {}
-
-for division in display_data["records"]:
-    for team_data in division["teamRecords"]:
-        display_team_data_by_id[team_data["team"]["id"]] = team_data
-
-data = power_data
+data = response.json()
 
 texas_league_team_ids = set()
 team_win_pct_by_id = {}
@@ -460,14 +447,14 @@ for division in data["records"]:
 
         team_id = team_data["team"]["id"]
 
-        display_team_data = display_team_data_by_id.get(team_id, team_data)
-
         wins = team_data["wins"]
         losses = team_data["losses"]
+
         games = wins + losses
 
         rs = team_data.get("runsScored", 0)
         ra = team_data.get("runsAllowed", 0)
+
         diff = rs - ra
 
         raw_team_name = team_data["team"]["name"]
@@ -475,12 +462,12 @@ for division in data["records"]:
         display_team_name = normalize_team_name(raw_team_name)
 
         expected_record = find_expected_record(team_data)
-        last10_record = find_split_record(team_data, "lastTen")
-        vs500_record = find_split_record(team_data, "winners")
 
-        display_wins = display_team_data["wins"]
-        display_losses = display_team_data["losses"]
-        display_games = display_wins + display_losses
+        xwl = format_record(expected_record)
+
+        last10_record = find_split_record(team_data, "lastTen")
+
+        vs500_record = find_split_record(team_data, "winners")
 
         opponent_win_pct_num = average_opponent_win_pct_by_id.get(
             team_id,
@@ -489,39 +476,25 @@ for division in data["records"]:
 
         team = {
             "team": display_team_name,
-
-            # Standings/race fields use second-half standings.
-            "record": f"{display_wins}-{display_losses}",
-            "pct": display_team_data.get(
+            "record": f"{wins}-{losses}",
+            "pct": team_data.get(
                 "winningPercentage",
-                f"{display_wins / display_games:.3f}" if display_games else ".000"
+                f"{wins / games:.3f}" if games else ".000"
             ),
-            "wins": display_wins,
-            "losses": display_losses,
-
-            # Supporting table stats use full-season standings.
             "rs": rs,
             "ra": ra,
-            "diff": diff,
-            "xwl": format_record(expected_record),
+            "xwl": xwl,
             "last10": format_record(last10_record),
 
-            # Kept for display/backward compatibility.
-            # This no longer affects Power Score.
             "vs500": format_record(vs500_record),
 
-            # Power fields use full-season standings.
             "opponent_win_pct": format_pct(opponent_win_pct_num),
             "owp": format_pct(opponent_win_pct_num),
 
             "identity": "TBD",
-
-            "power_wins": wins,
-            "power_losses": losses,
-            "power_rs": rs,
-            "power_ra": ra,
-            "power_diff": diff,
-
+            "wins": wins,
+            "losses": losses,
+            "diff": diff,
             "win_pct_num": wins / games if games else 0,
             "opponent_win_pct_num": opponent_win_pct_num,
             "owp_num": opponent_win_pct_num,
@@ -596,14 +569,12 @@ for team in teams:
 
     team["diff_score"] = round(diff_score, 1)
 
-    # Kept as an alias in case your front end still references run_profile_score.
     team["run_profile_score"] = round(diff_score, 1)
 
     team["actual_win_score"] = round(actual_win_score, 1)
     team["opponent_strength_score"] = round(opponent_strength_score, 1)
     team["owp_score"] = round(opponent_strength_score, 1)
 
-    # Kept as an alias in case your front end still references quality_record_score.
     team["quality_record_score"] = round(opponent_strength_score, 1)
 
     team["raw_power_score"] = round(raw_power_score, 1)
@@ -652,8 +623,7 @@ output = {
     "last_updated": datetime.now(timezone.utc).isoformat(),
     "previous_games": previous_games,
 
-    "standings_data_source": "secondHalf",
-    "power_data_source": "regularSeason",
+    "data_source": "regularSeason",
 
     "trend_basis": (
         "Rank arrows compare against the weekly baseline "
@@ -679,25 +649,15 @@ output = {
         ),
         "diff": (
             "Run Differential Per Game = "
-            "normalized full-season run differential per game"
+            "normalized run differential per game"
         ),
         "actual_winning_percentage": (
             "Actual Winning Percentage = "
-            "normalized full-season winning percentage"
+            "normalized current winning percentage"
         ),
         "opponent_strength": (
             "Average Opponent Winning Percentage = "
             "bounded-normalized against .450 to .550"
-        )
-    },
-
-    "display_standings": {
-        "standings_type": "secondHalf",
-        "description": (
-            "Displayed record and winning percentage come from "
-            "second-half standings. Supporting statistics such as "
-            "runs scored, runs allowed, run differential, expected "
-            "record, last 10, OWP, and Power Score use full-season data."
         )
     },
 
@@ -736,8 +696,8 @@ output = {
         "lower_bound": OWP_LOWER_BOUND,
         "upper_bound": OWP_UPPER_BOUND,
         "formula": (
-            "OWP = average current full-season winning percentage "
-            "of all opponents played, weighted by games played. "
+            "OWP = average current winning percentage of all "
+            "opponents played, weighted by games played. "
             "OWP score is bounded-normalized so .450 = 0, "
             ".500 = 50, and .550 = 100."
         ),
