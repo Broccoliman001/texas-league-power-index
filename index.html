@@ -10,7 +10,7 @@
 
   <meta
     name="description"
-    content="An independent analytics dashboard ranking all 10 Double-A Texas League teams and tracking the league\'s split-season playoff races."
+    content="An independent analytics dashboard ranking all 10 Double-A Texas League teams across overall, half-season, and recent-form views while tracking the league's split-season playoff races."
   >
 
   <title>Texas League Power Index</title>
@@ -210,6 +210,61 @@
       margin: 0;
       color: var(--text-muted);
       font-size: 0.9rem;
+    }
+
+    .view-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 4px 0 12px;
+    }
+
+    .view-tab {
+      appearance: none;
+      padding: 8px 13px;
+
+      color: var(--text-secondary);
+      background: var(--page-background);
+      border: 1px solid var(--border-color);
+      border-radius: 999px;
+
+      font: inherit;
+      font-size: 0.86rem;
+      font-weight: bold;
+
+      cursor: pointer;
+      transition:
+        background 120ms ease,
+        border-color 120ms ease,
+        color 120ms ease;
+    }
+
+    .view-tab:hover {
+      background: var(--card-background-hover);
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+
+    .view-tab[aria-selected="true"] {
+      color: var(--accent);
+      background: var(--accent-soft);
+      border-color: rgba(56, 189, 248, 0.55);
+    }
+
+    .view-tab:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .view-context {
+      margin: 0 0 12px;
+      padding: 10px 12px;
+
+      color: var(--text-muted);
+      background: var(--page-background);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+
+      font-size: 0.86rem;
     }
 
     .table-note {
@@ -889,9 +944,10 @@
       <p class="site-subtitle">
         An independently developed analytics dashboard ranking all 10 teams in
         the Double-A Texas League, a professional Minor League Baseball circuit.
-        The index combines full-season run differential, winning percentage,
-        and opponent strength to measure team quality beyond win-loss record alone,
-        while a separate playoff view tracks the league\'s split-season races.
+        The index combines run differential, winning percentage, and opponent
+        strength to compare team quality across overall, first-half, second-half,
+        and recent-form views, while a separate playoff section tracks the league's
+        split-season races.
       </p>
 
       <p
@@ -923,9 +979,9 @@
       <p>
         Unlike traditional standings, the index considers not only whether a team
         wins, but also how strongly it performs and the quality of the opponents
-        it has faced. The playoff section remains separate from the Power Index:
-        team quality uses the full season, while postseason position follows the
-        official first-half and second-half standings.
+        it has faced. The Power Index can be viewed across the full season, either
+        official half, or each team's rolling recent window. The playoff section
+        remains separate and follows the official split-season standings.
       </p>
 
     </section>
@@ -947,15 +1003,83 @@
 
           </div>
 
+          <div
+            id="power-view-tabs"
+            class="view-controls"
+            role="tablist"
+            aria-label="Power Rankings view"
+          >
+            <button
+              class="view-tab"
+              type="button"
+              role="tab"
+              id="view-tab-overall"
+              data-view="overall"
+              aria-selected="true"
+              aria-controls="power-rankings-panel"
+              tabindex="0"
+            >
+              Overall
+            </button>
+
+            <button
+              class="view-tab"
+              type="button"
+              role="tab"
+              id="view-tab-first-half"
+              data-view="first_half"
+              aria-selected="false"
+              aria-controls="power-rankings-panel"
+              tabindex="-1"
+            >
+              First Half
+            </button>
+
+            <button
+              class="view-tab"
+              type="button"
+              role="tab"
+              id="view-tab-second-half"
+              data-view="second_half"
+              aria-selected="false"
+              aria-controls="power-rankings-panel"
+              tabindex="-1"
+            >
+              Second Half
+            </button>
+
+            <button
+              class="view-tab"
+              type="button"
+              role="tab"
+              id="view-tab-recent"
+              data-view="recent"
+              aria-selected="false"
+              aria-controls="power-rankings-panel"
+              tabindex="-1"
+            >
+              Recent
+            </button>
+          </div>
+
+          <p
+            id="power-view-context"
+            class="view-context"
+            aria-live="polite"
+          >
+            Overall: all completed regular-season games.
+          </p>
+
           <p class="table-note">
-            Rankings and supporting statistics reflect full-season Texas League
-            performance. Hover over abbreviated column names for definitions.
+            Supporting statistics use the same game window as the selected
+            Power view. Hover over abbreviated column names for definitions.
           </p>
 
           <div
+            id="power-rankings-panel"
             class="table-scroll"
-            role="region"
-            aria-label="Texas League power rankings table"
+            role="tabpanel"
+            aria-labelledby="view-tab-overall"
             tabindex="0"
           >
 
@@ -980,7 +1104,7 @@
                   <th scope="col">Team</th>
 
                   <th scope="col">
-                    <abbr title="Full-season win-loss record">
+                    <abbr title="Win-loss record within the selected view">
                       Record
                     </abbr>
                   </th>
@@ -1010,20 +1134,14 @@
                   </th>
 
                   <th scope="col">
-                    <abbr title="Expected win-loss record based on runs scored and allowed">
-                      X-W/L
-                    </abbr>
-                  </th>
-
-                  <th scope="col">
-                    <abbr title="Record over the last 10 games">
-                      L10
-                    </abbr>
-                  </th>
-
-                  <th scope="col">
-                    <abbr title="Average opponent winning percentage">
+                    <abbr title="Average opponent winning percentage within the selected view">
                       OWP
+                    </abbr>
+                  </th>
+
+                  <th scope="col">
+                    <abbr title="Record over the most recent 10 games within the selected view">
+                      L10
                     </abbr>
                   </th>
                 </tr>
@@ -1032,7 +1150,7 @@
               <tbody id="power-rankings-body">
 
                 <tr>
-                  <td colspan="12" class="loading-message">
+                  <td colspan="11" class="loading-message">
                     Loading current rankings...
                   </td>
                 </tr>
@@ -1070,18 +1188,13 @@
               </p>
 
               <p class="legend-item">
-                <strong>X-W/L:</strong>
-                Record expected from scoring results
+                <strong>OWP:</strong>
+                Average opponent winning percentage in the selected view
               </p>
 
               <p class="legend-item">
                 <strong>L10:</strong>
-                Record over the last 10 games
-              </p>
-
-              <p class="legend-item">
-                <strong>OWP:</strong>
-                Average opponent winning percentage
+                Most recent 10-game record within the selected view
               </p>
 
               <p class="legend-item">
@@ -1139,10 +1252,11 @@
           >
 
             <p class="playoff-intro">
-              The Power Index measures full-season team quality. Playoff berths
-              are tracked separately using the official standings for the active
-              half. During the second half, each first-half champion is shown as
-              already qualified and removed from the race for the remaining berth.
+              Power Rankings can be explored across several analytical views.
+              Playoff berths are tracked separately using the official standings
+              for the active half. During the second half, each first-half champion
+              is shown as already qualified and removed from the race for the
+              remaining berth.
             </p>
 
             <div
@@ -1224,8 +1338,9 @@
 
         <p>
           The Texas League Power Index is a weighted analytical rating designed
-          to measure full-season team strength beyond simple win-loss record.
-          Each component is normalized across the league before the weighted
+          to measure team strength beyond simple win-loss record. The selected
+          view determines which games are included, and then each component is
+          normalized across the league within that same view before the weighted
           score is calculated.
         </p>
 
@@ -1233,17 +1348,17 @@
 
           <li>
             <span class="component-weight">50%</span>
-            Full-season run differential per game
+            Run differential per game in the selected view
           </li>
 
           <li>
             <span class="component-weight">25%</span>
-            Full-season actual winning percentage
+            Actual winning percentage in the selected view
           </li>
 
           <li>
             <span class="component-weight">25%</span>
-            Full-season average opponent winning percentage
+            Average opponent winning percentage in the selected view
           </li>
 
         </ul>
@@ -1253,10 +1368,11 @@
           <p>
             <strong>How to read the score:</strong>
             Power scores are centered around 50. Scores above 50 indicate
-            stronger-than-average full-season performance, while scores below
-            50 indicate weaker-than-average performance. Power is a comparative
-            rating within the current Texas League season and is not a projected
-            winning percentage.
+            stronger-than-average performance within the selected view, while
+            scores below 50 indicate weaker-than-average performance. Because
+            each view is normalized independently, Power values should be compared
+            within a view rather than subtracted across different views. Power is
+            not a projected winning percentage.
           </p>
 
         </div>
@@ -1287,21 +1403,22 @@
 
         <p>
           <strong>OWP</strong> stands for Average Opponent Winning Percentage.
-          It measures schedule strength by averaging the current winning
-          percentage of every opponent a team has played, weighted by the number
-          of games played against each opponent.
+          It measures schedule strength by averaging each opponent's winning
+          percentage from the same selected view, weighted by the number of games
+          played against that opponent.
         </p>
 
         <h3>
-          Expected Record
+          Understanding the Views
         </h3>
 
         <p>
-          <strong>X-W/L</strong> estimates the record normally associated with
-          a team's runs scored and runs allowed. It provides additional context
-          for teams whose actual record is substantially better or worse than
-          their scoring performance would suggest. Expected record is displayed
-          for interpretation but is not added as a separate Power Score component.
+          <strong>Overall</strong> uses every completed regular-season game.
+          <strong>First Half</strong> and <strong>Second Half</strong> use the
+          official split-season game sets. <strong>Recent</strong> uses each
+          team's most recent 24 completed games (or all available games before
+          24 have been played), so teams' Recent windows can begin on different
+          dates. The same Power formula is applied separately inside each view.
         </p>
 
       </article>
@@ -1319,17 +1436,23 @@
 
         <ul>
           <li>
-            Ratings use each team's full-season body of work.
+            Ratings use the body of work defined by the selected view.
           </li>
 
           <li>
-            Scores are smoothed using previously published ratings to reduce
-            excessive movement from a single game.
+            Overall and Second Half expand as games are completed; First Half
+            freezes when that official half is complete; Recent rolls forward
+            one game at a time once a team has 24 completed games.
+          </li>
+
+          <li>
+            Scores are smoothed within each view using previously published
+            ratings to reduce excessive movement from a single new result.
           </li>
 
           <li>
             Final scores are compressed toward the league average so the scale
-            remains readable and comparable.
+            remains readable within each view.
           </li>
 
           <li>
@@ -1353,18 +1476,19 @@
 
         <p>
           Current game and standings data are processed into a structured JSON
-          dataset containing team records, run totals, expected records,
-          opponent strength, rating components, historical movement, recent
-          game results, half-season standings, and playoff qualification state.
+          dataset containing four Power views, team records, run totals, opponent
+          strength, rating components, historical movement, recent game results,
+          half-season standings, and playoff qualification state.
         </p>
 
         <p>
           The browser loads the latest dataset and dynamically renders the
-          rankings table, trend indicators, score changes, completed games, and
-          the active playoff races. The page reads the current-half state from
-          the dataset, so no manual first-half or second-half switch is required.
-          The responsive layout is designed to remain usable on desktop and
-          mobile screens.
+          selected Power view, trend indicators, score changes, completed games,
+          and active playoff races. The rankings controls switch among Overall,
+          First Half, Second Half, and Recent without reloading the page, while
+          the playoff section independently reads the active-half state from the
+          dataset. The responsive layout is designed to remain usable on desktop
+          and mobile screens.
         </p>
 
         <ul
@@ -1753,6 +1877,436 @@
         .join("");
     };
 
+    const VIEW_KEYS = [
+      "overall",
+      "first_half",
+      "second_half",
+      "recent"
+    ];
+
+    const VIEW_FALLBACKS = {
+      overall: {
+        label: "Overall",
+        description: "All completed regular-season games."
+      },
+      first_half: {
+        label: "First Half",
+        description: "Games assigned to the official first half."
+      },
+      second_half: {
+        label: "Second Half",
+        description: "Games assigned to the official second half."
+      },
+      recent: {
+        label: "Recent",
+        description: "Each team's most recent up to 24 completed games."
+      }
+    };
+
+    let standingsData = null;
+    let activeViewKey = "overall";
+
+    const getAvailableView = (data, viewKey) => {
+      const view = data?.views?.[viewKey];
+
+      if (view && Array.isArray(view.teams)) {
+        return view;
+      }
+
+      if (viewKey === "overall" && Array.isArray(data?.teams)) {
+        return {
+          ...VIEW_FALLBACKS.overall,
+          key: "overall",
+          teams: data.teams
+        };
+      }
+
+      return null;
+    };
+
+    const getRequestedViewKey = data => {
+      const params = new URLSearchParams(window.location.search);
+      const requested = params.get("view");
+
+      if (
+        requested &&
+        VIEW_KEYS.includes(requested) &&
+        getAvailableView(data, requested)
+      ) {
+        return requested;
+      }
+
+      return "overall";
+    };
+
+    const updateViewUrl = viewKey => {
+      const url = new URL(window.location.href);
+
+      if (viewKey === "overall") {
+        url.searchParams.delete("view");
+      } else {
+        url.searchParams.set("view", viewKey);
+      }
+
+      window.history.replaceState(
+        { view: viewKey },
+        "",
+        url
+      );
+    };
+
+    const updateViewTabs = viewKey => {
+      const tabs = Array.from(
+        document.querySelectorAll(".view-tab")
+      );
+
+      tabs.forEach(tab => {
+        const isActive = tab.dataset.view === viewKey;
+
+        tab.setAttribute(
+          "aria-selected",
+          isActive ? "true" : "false"
+        );
+
+        tab.tabIndex = isActive ? 0 : -1;
+      });
+
+      const activeTab = tabs.find(
+        tab => tab.dataset.view === viewKey
+      );
+
+      const panel =
+        document.getElementById("power-rankings-panel");
+
+      if (activeTab && panel) {
+        panel.setAttribute(
+          "aria-labelledby",
+          activeTab.id
+        );
+      }
+    };
+
+    const renderPowerView = (data, viewKey, updateUrl = true) => {
+      const tbody =
+        document.getElementById("power-rankings-body");
+
+      const context =
+        document.getElementById("power-view-context");
+
+      const view =
+        getAvailableView(data, viewKey) ||
+        getAvailableView(data, "overall");
+
+      if (!view) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="11" class="error-message">
+              No team data is currently available.
+            </td>
+          </tr>
+        `;
+
+        context.textContent =
+          "Power view data is currently unavailable.";
+
+        return;
+      }
+
+      activeViewKey = view.key || viewKey || "overall";
+      updateViewTabs(activeViewKey);
+
+      if (updateUrl) {
+        updateViewUrl(activeViewKey);
+      }
+
+      const fallback =
+        VIEW_FALLBACKS[activeViewKey] ||
+        VIEW_FALLBACKS.overall;
+
+      const label = view.label || fallback.label;
+      const description =
+        view.description || fallback.description;
+
+      const recentQualifier =
+        activeViewKey === "recent"
+          ? " Each team's window is team-relative and may cover different calendar dates."
+          : "";
+
+      context.textContent =
+        `${label}: ${description}${recentQualifier}`;
+
+      const teams = Array.isArray(view.teams)
+        ? view.teams
+        : [];
+
+      if (!teams.length) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="11" class="error-message">
+              No team data is currently available for this view.
+            </td>
+          </tr>
+        `;
+
+        return;
+      }
+
+      tbody.innerHTML = "";
+
+      teams.forEach(team => {
+        const row = document.createElement("tr");
+
+        const numericPower = Number(team.power_score);
+        const formattedPower = Number.isFinite(numericPower)
+          ? numericPower.toFixed(1)
+          : "—";
+
+        const trendClass =
+          team.trend === "↑"
+            ? "trend-up"
+            : team.trend === "↓"
+              ? "trend-down"
+              : "trend-flat";
+
+        const diffClass =
+          team.diff > 0
+            ? "positive"
+            : team.diff < 0
+              ? "negative"
+              : "neutral";
+
+        const formattedDiff =
+          team.diff > 0
+            ? `+${team.diff}`
+            : team.diff ?? "—";
+
+        row.innerHTML = `
+          <td>
+            ${escapeHtml(team.rank ?? "—")}
+          </td>
+
+          <td>
+            ${escapeHtml(formattedPower)}
+          </td>
+
+          <td>
+
+            <span
+              class="${escapeHtml(trendClass)}"
+              aria-label="Rank trend ${escapeHtml(
+                team.trend || "unchanged"
+              )}"
+            >
+              ${escapeHtml(team.trend || "→")}
+            </span>
+
+            <span
+              class="${escapeHtml(
+                team.power_delta_class || "delta-neutral"
+              )}"
+              aria-label="Power score change ${escapeHtml(
+                team.power_delta_display || "0.0"
+              )}"
+            >
+              ${escapeHtml(
+                team.power_delta_display || "0.0"
+              )}
+            </span>
+
+          </td>
+
+          <td>
+
+            <span class="team-cell-content">
+
+              <span>
+                ${escapeHtml(team.team || "Unknown team")}
+              </span>
+
+              ${formatBerthBadge(team)}
+
+            </span>
+
+          </td>
+
+          <td>
+            ${escapeHtml(team.record || "—")}
+          </td>
+
+          <td>
+            ${escapeHtml(team.pct || "—")}
+          </td>
+
+          <td>
+            ${escapeHtml(team.rs ?? "—")}
+          </td>
+
+          <td>
+            ${escapeHtml(team.ra ?? "—")}
+          </td>
+
+          <td class="${escapeHtml(diffClass)}">
+            ${escapeHtml(formattedDiff)}
+          </td>
+
+          <td>
+            ${escapeHtml(
+              team.owp ||
+              team.opponent_win_pct ||
+              "—"
+            )}
+          </td>
+
+          <td>
+            ${escapeHtml(team.last10 || "—")}
+          </td>
+        `;
+
+        tbody.appendChild(row);
+      });
+    };
+
+    const configureViewTabs = () => {
+      const tabs = Array.from(
+        document.querySelectorAll(".view-tab")
+      );
+
+      tabs.forEach((tab, index) => {
+        tab.addEventListener("click", () => {
+          if (!standingsData) {
+            return;
+          }
+
+          const viewKey = tab.dataset.view;
+
+          if (!getAvailableView(standingsData, viewKey)) {
+            return;
+          }
+
+          renderPowerView(
+            standingsData,
+            viewKey
+          );
+        });
+
+        tab.addEventListener("keydown", event => {
+          const handledKeys = [
+            "ArrowLeft",
+            "ArrowRight",
+            "Home",
+            "End"
+          ];
+
+          if (!handledKeys.includes(event.key)) {
+            return;
+          }
+
+          event.preventDefault();
+
+          let targetIndex = index;
+
+          if (event.key === "ArrowRight") {
+            targetIndex = (index + 1) % tabs.length;
+          } else if (event.key === "ArrowLeft") {
+            targetIndex =
+              (index - 1 + tabs.length) % tabs.length;
+          } else if (event.key === "Home") {
+            targetIndex = 0;
+          } else if (event.key === "End") {
+            targetIndex = tabs.length - 1;
+          }
+
+          const targetTab = tabs[targetIndex];
+
+          targetTab.focus();
+
+          if (
+            standingsData &&
+            getAvailableView(
+              standingsData,
+              targetTab.dataset.view
+            )
+          ) {
+            renderPowerView(
+              standingsData,
+              targetTab.dataset.view
+            );
+          }
+        });
+      });
+    };
+
+    const renderPreviousGames = data => {
+      const previousGamesBody =
+        document.getElementById("previous-games-body");
+
+      const previousGames = Array.isArray(data.previous_games)
+        ? data.previous_games
+        : [];
+
+      if (!previousGames.length) {
+        previousGamesBody.innerHTML = `
+          <p class="loading-message">
+            No previous games are currently available.
+          </p>
+        `;
+
+        return;
+      }
+
+      previousGamesBody.innerHTML = previousGames
+        .map(game => {
+          const awayScore = Number(game.away_score);
+          const homeScore = Number(game.home_score);
+
+          const awayWon = awayScore > homeScore;
+          const homeWon = homeScore > awayScore;
+
+          return `
+            <article class="previous-game">
+
+              <div
+                class="previous-game-row ${
+                  awayWon ? "winner" : "loser"
+                }"
+              >
+                <span>
+                  ${escapeHtml(game.away_team || "Away team")}
+                </span>
+
+                <span class="previous-game-score">
+                  ${escapeHtml(game.away_score ?? "—")}
+                </span>
+              </div>
+
+              <div
+                class="previous-game-row ${
+                  homeWon ? "winner" : "loser"
+                }"
+              >
+                <span>
+                  ${escapeHtml(game.home_team || "Home team")}
+                </span>
+
+                <span class="previous-game-score">
+                  ${escapeHtml(game.home_score ?? "—")}
+                </span>
+              </div>
+
+              <div class="previous-game-status">
+                ${escapeHtml(game.status || "Final")}
+                ·
+                ${escapeHtml(game.game_date || "Date unavailable")}
+              </div>
+
+            </article>
+          `;
+        })
+        .join("");
+    };
+
+    configureViewTabs();
+
     fetch("data/standings.json")
       .then(response => {
         if (!response.ok) {
@@ -1764,19 +2318,7 @@
         return response.json();
       })
       .then(data => {
-        const tbody =
-          document.getElementById("power-rankings-body");
-
-        const previousGamesBody =
-          document.getElementById("previous-games-body");
-
-        const teams = Array.isArray(data.teams)
-          ? data.teams
-          : [];
-
-        const previousGames = Array.isArray(data.previous_games)
-          ? data.previous_games
-          : [];
+        standingsData = data;
 
         const updated = new Date(data.last_updated);
 
@@ -1788,193 +2330,17 @@
             "Last updated: unavailable";
         }
 
-        if (!teams.length) {
-          tbody.innerHTML = `
-            <tr>
-              <td colspan="12" class="error-message">
-                No team data is currently available.
-              </td>
-            </tr>
-          `;
-        } else {
-          tbody.innerHTML = "";
+        const initialViewKey =
+          getRequestedViewKey(data);
 
-          teams.forEach(team => {
-            const row = document.createElement("tr");
-
-            const numericPower = Number(team.power_score);
-            const formattedPower = Number.isFinite(numericPower)
-              ? numericPower.toFixed(1)
-              : "—";
-
-            const trendClass =
-              team.trend === "↑"
-                ? "trend-up"
-                : team.trend === "↓"
-                  ? "trend-down"
-                  : "trend-flat";
-
-            const diffClass =
-              team.diff > 0
-                ? "positive"
-                : team.diff < 0
-                  ? "negative"
-                  : "neutral";
-
-            const formattedDiff =
-              team.diff > 0
-                ? `+${team.diff}`
-                : team.diff ?? "—";
-
-            row.innerHTML = `
-              <td>
-                ${escapeHtml(team.rank ?? "—")}
-              </td>
-
-              <td>
-                ${escapeHtml(formattedPower)}
-              </td>
-
-              <td>
-
-                <span
-                  class="${escapeHtml(trendClass)}"
-                  aria-label="Rank trend ${escapeHtml(
-                    team.trend || "unchanged"
-                  )}"
-                >
-                  ${escapeHtml(team.trend || "→")}
-                </span>
-
-                <span
-                  class="${escapeHtml(
-                    team.power_delta_class || "delta-neutral"
-                  )}"
-                  aria-label="Power score change ${escapeHtml(
-                    team.power_delta_display || "0.0"
-                  )}"
-                >
-                  ${escapeHtml(
-                    team.power_delta_display || "0.0"
-                  )}
-                </span>
-
-              </td>
-
-              <td>
-
-                <span class="team-cell-content">
-
-                  <span>
-                    ${escapeHtml(team.team || "Unknown team")}
-                  </span>
-
-                  ${formatBerthBadge(team)}
-
-                </span>
-
-              </td>
-
-              <td>
-                ${escapeHtml(team.record || "—")}
-              </td>
-
-              <td>
-                ${escapeHtml(team.pct || "—")}
-              </td>
-
-              <td>
-                ${escapeHtml(team.rs ?? "—")}
-              </td>
-
-              <td>
-                ${escapeHtml(team.ra ?? "—")}
-              </td>
-
-              <td class="${escapeHtml(diffClass)}">
-                ${escapeHtml(formattedDiff)}
-              </td>
-
-              <td>
-                ${escapeHtml(team.xwl || "—")}
-              </td>
-
-              <td>
-                ${escapeHtml(team.last10 || "—")}
-              </td>
-
-              <td>
-                ${escapeHtml(
-                  team.owp ||
-                  team.opponent_win_pct ||
-                  "—"
-                )}
-              </td>
-            `;
-
-            tbody.appendChild(row);
-          });
-        }
+        renderPowerView(
+          data,
+          initialViewKey,
+          false
+        );
 
         renderPlayoffRaces(data);
-
-        if (!previousGames.length) {
-          previousGamesBody.innerHTML = `
-            <p class="loading-message">
-              No previous games are currently available.
-            </p>
-          `;
-        } else {
-          previousGamesBody.innerHTML = previousGames
-            .map(game => {
-              const awayScore = Number(game.away_score);
-              const homeScore = Number(game.home_score);
-
-              const awayWon = awayScore > homeScore;
-              const homeWon = homeScore > awayScore;
-
-              return `
-                <article class="previous-game">
-
-                  <div
-                    class="previous-game-row ${
-                      awayWon ? "winner" : "loser"
-                    }"
-                  >
-                    <span>
-                      ${escapeHtml(game.away_team || "Away team")}
-                    </span>
-
-                    <span class="previous-game-score">
-                      ${escapeHtml(game.away_score ?? "—")}
-                    </span>
-                  </div>
-
-                  <div
-                    class="previous-game-row ${
-                      homeWon ? "winner" : "loser"
-                    }"
-                  >
-                    <span>
-                      ${escapeHtml(game.home_team || "Home team")}
-                    </span>
-
-                    <span class="previous-game-score">
-                      ${escapeHtml(game.home_score ?? "—")}
-                    </span>
-                  </div>
-
-                  <div class="previous-game-status">
-                    ${escapeHtml(game.status || "Final")}
-                    ·
-                    ${escapeHtml(game.game_date || "Date unavailable")}
-                  </div>
-
-                </article>
-              `;
-            })
-            .join("");
-        }
+        renderPreviousGames(data);
       })
       .catch(error => {
         console.error(error);
@@ -1982,9 +2348,12 @@
         document.getElementById("last-updated").textContent =
           "Last updated: data unavailable";
 
+        document.getElementById("power-view-context").textContent =
+          "Power view data is unavailable.";
+
         document.getElementById("power-rankings-body").innerHTML = `
           <tr>
-            <td colspan="12" class="error-message">
+            <td colspan="11" class="error-message">
               Rankings could not be loaded. Please try again later.
             </td>
           </tr>
