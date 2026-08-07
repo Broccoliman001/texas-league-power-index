@@ -51,7 +51,9 @@ POWER_WIN_PCT_WEIGHT = 0.25
 POWER_OWP_WEIGHT = 0.25
 
 RECENT_MAX_GAMES = 24
-POWER_MODEL_VERSION = "2026-08-multiview-v1"
+POWER_MODEL_VERSION = "2026-08-multiview-v2"
+OWP_EXCLUDE_HEAD_TO_HEAD = True
+RECENT_POWER_SMOOTHING_ENABLED = False
 
 VIEW_CONFIG = {
     "overall": {
@@ -902,7 +904,24 @@ def get_previous_display_power(previous_team, fallback_power_score):
     return fallback_power_score if value is None else value
 
 
-def power_model_signature():
+def get_view_smoothing_config(view_key):
+    if view_key == "recent" and not RECENT_POWER_SMOOTHING_ENABLED:
+        return {
+            "enabled": False,
+            "previous_weight": 0.0,
+            "raw_weight": 1.0,
+        }
+
+    return {
+        "enabled": True,
+        "previous_weight": POWER_SMOOTHING_PREVIOUS_WEIGHT,
+        "raw_weight": POWER_SMOOTHING_RAW_WEIGHT,
+    }
+
+
+def power_model_signature(view_key):
+    smoothing = get_view_smoothing_config(view_key)
+
     return {
         "model_version": POWER_MODEL_VERSION,
         "weights": {
@@ -910,14 +929,13 @@ def power_model_signature():
             "win_pct": POWER_WIN_PCT_WEIGHT,
             "owp": POWER_OWP_WEIGHT,
         },
-        "owp_bounds": {
-            "lower": OWP_LOWER_BOUND,
-            "upper": OWP_UPPER_BOUND,
+        "owp": {
+            "lower_bound": OWP_LOWER_BOUND,
+            "upper_bound": OWP_UPPER_BOUND,
+            "exclude_head_to_head": OWP_EXCLUDE_HEAD_TO_HEAD,
+            "empty_adjusted_record_fallback": 0.500,
         },
-        "smoothing": {
-            "previous_weight": POWER_SMOOTHING_PREVIOUS_WEIGHT,
-            "raw_weight": POWER_SMOOTHING_RAW_WEIGHT,
-        },
+        "smoothing": smoothing,
         "compression": {
             "center": POWER_COMPRESSION_CENTER,
             "factor": POWER_COMPRESSION_FACTOR,
@@ -1198,11 +1216,30 @@ def opponent_id_for_game(team_id, game):
     return None
 
 
-def calculate_opponent_win_percentages_for_view(
-    games_by_team,
-    team_win_pct_by_id,
+def calculate_head_to_head_excluded_win_pct(
+    team_id,
+    excluded_opponent_id,
+    games,
 ):
+    independent_games = [
+        game
+        for game in games
+        if opponent_id_for_game(team_id, game) != excluded_opponent_id
+    ]
+
+    if not independent_games:
+        # With no independent evidence yet (most relevant very early in the
+        # season), use a neutral schedule-strength value rather than allowing
+        # the evaluated team to create its own OWP signal.
+        return 0.500
+
+    stats = calculate_team_game_stats(team_id, independent_games)
+    return stats["pct_num"]
+
+
+def calculate_opponent_win_percentages_for_view(games_by_team):
     average_opponent_win_pct = {}
+    adjusted_pct_cache = {}
 
     for team_id, games in games_by_team.items():
         opponent_values = []
@@ -1213,10 +1250,31 @@ def calculate_opponent_win_percentages_for_view(
             if opponent_id is None:
                 continue
 
-            opponent_win_pct = team_win_pct_by_id.get(opponent_id)
+            cache_key = (opponent_id, team_id)
 
-            if opponent_win_pct is not None:
-                opponent_values.append(opponent_win_pct)
+            if cache_key not in adjusted_pct_cache:
+                opponent_games = games_by_team.get(opponent_id, [])
+
+                if OWP_EXCLUDE_HEAD_TO_HEAD:
+                    adjusted_pct_cache[cache_key] = (
+                        calculate_head_to_head_excluded_win_pct(
+                            opponent_id,
+                            team_id,
+                            opponent_games,
+                        )
+                    )
+                else:
+                    stats = calculate_team_game_stats(
+                        opponent_id,
+                        opponent_games,
+                    )
+                    adjusted_pct_cache[cache_key] = (
+                        stats["pct_num"] if stats["games"] else 0.500
+                    )
+
+            # Append once per game in the evaluated team's view so opponents
+            # remain weighted by the number of times they were actually faced.
+            opponent_values.append(adjusted_pct_cache[cache_key])
 
         if opponent_values:
             average_opponent_win_pct[team_id] = (
@@ -1291,7 +1349,7 @@ def build_input_fingerprint(view_key, teams, game_fingerprint):
     payload = {
         "view": view_key,
         "game_fingerprint": game_fingerprint,
-        "model": power_model_signature(),
+        "model": power_model_signature(view_key),
         "inputs": [
             {
                 "team_id": team["team_id"],
@@ -1415,15 +1473,9 @@ def build_base_view_teams(
             ),
         })
 
-    team_win_pct_by_id = {
-        team["team_id"]: team["win_pct_num"]
-        for team in teams
-    }
-
     average_opponent_win_pct_by_id = (
         calculate_opponent_win_percentages_for_view(
             games_by_team,
-            team_win_pct_by_id,
         )
     )
 
@@ -1625,9 +1677,21 @@ def apply_power_index(
         previous_snapshot,
         view_key,
     )
-    comparison_team_map = get_snapshot_team_map(
-        comparison_snapshot,
-        view_key,
+
+    previous_model_compatible = (
+        previous_snapshot.get("model_version") == POWER_MODEL_VERSION
+    )
+    comparison_model_compatible = (
+        comparison_snapshot.get("model_version") == POWER_MODEL_VERSION
+    )
+
+    # Weekly movement must compare like with like. A model-version change can
+    # legitimately move ratings even with identical games, so an older-model
+    # baseline is not treated as a team-strength trend.
+    comparison_team_map = (
+        get_snapshot_team_map(comparison_snapshot, view_key)
+        if comparison_model_compatible
+        else {}
     )
 
     previous_fingerprint = get_snapshot_view_fingerprint(
@@ -1668,8 +1732,26 @@ def apply_power_index(
             previous_team,
             raw_power_score,
         )
+        smoothing = get_view_smoothing_config(view_key)
 
-        if previous_team and not data_changed:
+        if not smoothing["enabled"]:
+            # Recent is already stabilized by its rolling 24-game sample.
+            # Publishing the current raw score directly ensures that games
+            # leaving that window no longer influence Recent Power indirectly
+            # through an older smoothing state.
+            smoothed_power_score = raw_power_score
+            compressed_power_score = compress_power_score(
+                smoothed_power_score
+            )
+        elif previous_team and not previous_model_compatible:
+            # Do not blend a new formula with smoothing state created by an
+            # older model. This is especially important for a frozen view such
+            # as First Half, which otherwise could retain the old model forever.
+            smoothed_power_score = raw_power_score
+            compressed_power_score = compress_power_score(
+                smoothed_power_score
+            )
+        elif previous_team and not data_changed:
             smoothed_power_score = previous_smoothed_power_score
 
             # If the underlying model inputs are unchanged, carry forward the
@@ -1683,9 +1765,9 @@ def apply_power_index(
         elif previous_team:
             smoothed_power_score = (
                 previous_smoothed_power_score
-                * POWER_SMOOTHING_PREVIOUS_WEIGHT
+                * smoothing["previous_weight"]
                 + raw_power_score
-                * POWER_SMOOTHING_RAW_WEIGHT
+                * smoothing["raw_weight"]
             )
             compressed_power_score = compress_power_score(
                 smoothed_power_score
@@ -1729,6 +1811,7 @@ def apply_power_index(
             1,
         )
         team["raw_power_score"] = round(raw_power_score, 1)
+        team["smoothing_enabled"] = smoothing["enabled"]
 
         # Preserve the smoothing state at full floating-point precision for
         # the next run. The *_score fields remain rounded for readable JSON
@@ -1989,6 +2072,13 @@ for view_key, config in VIEW_CONFIG.items():
         "game_fingerprint": game_fingerprint,
         "input_fingerprint": input_fingerprint,
         "data_changed_since_previous_run": data_changed,
+        "previous_model_compatible": (
+            previous_snapshot.get("model_version") == POWER_MODEL_VERSION
+        ),
+        "comparison_model_compatible": (
+            comparison_snapshot.get("model_version") == POWER_MODEL_VERSION
+        ),
+        "smoothing": get_view_smoothing_config(view_key),
         "teams": ranked_teams,
     }
 
@@ -2235,27 +2325,34 @@ output = {
         ),
         "opponent_strength": (
             "Average Opponent Winning Percentage = opponents' winning "
-            "percentages within the same selected view, bounded-normalized "
-            "against .450 to .550"
+            "percentages within the same selected view after excluding games "
+            "against the team being evaluated, bounded-normalized against "
+            ".450 to .550"
         ),
     },
 
     "power_smoothing": {
         "enabled": True,
-        "previous_weight": POWER_SMOOTHING_PREVIOUS_WEIGHT,
-        "raw_weight": POWER_SMOOTHING_RAW_WEIGHT,
         "data_change_driven": True,
         "full_precision_state": True,
+        "default": {
+            "enabled": True,
+            "previous_weight": POWER_SMOOTHING_PREVIOUS_WEIGHT,
+            "raw_weight": POWER_SMOOTHING_RAW_WEIGHT,
+        },
+        "recent": get_view_smoothing_config("recent"),
         "formula": (
-            "When a view's model inputs change: smoothed_power_score = "
+            "Overall, First Half, and Second Half smooth changed inputs as "
             "previous_smoothed_power_score * 0.75 + raw_power_score * 0.25. "
-            "When inputs do not change, the prior smoothed state and exact "
-            "published Power score are carried forward unchanged."
+            "Recent uses no additional smoothing because the rolling 24-game "
+            "window already provides temporal smoothing."
         ),
         "state_note": (
             "The internal smoothed_power_state is stored without display "
-            "rounding. One-decimal smoothed_power_score remains available "
-            "for readability and debugging."
+            "rounding for smoothed views. Recent stores its current raw score "
+            "in the same field for schema compatibility. When the model version "
+            "changes, smoothed views reset to the new raw score instead of "
+            "blending incompatible model states."
         ),
     },
 
@@ -2286,12 +2383,16 @@ output = {
         "season_start_date": season_start_date,
         "lower_bound": OWP_LOWER_BOUND,
         "upper_bound": OWP_UPPER_BOUND,
+        "exclude_head_to_head": OWP_EXCLUDE_HEAD_TO_HEAD,
+        "empty_adjusted_record_fallback": ".500",
         "formula": (
             "For each selected team game, use that opponent's winning "
-            "percentage from the same view, then average those opponent "
-            "values. Opponents are therefore weighted by games played. "
-            "OWP score is bounded-normalized so .450 = 0, .500 = 50, "
-            "and .550 = 100."
+            "percentage from the same view after excluding all games against "
+            "the team being evaluated, then average those opponent values. "
+            "Opponents remain weighted by games played. If an opponent has no "
+            "independent games after the exclusion, use neutral .500. OWP "
+            "score is bounded-normalized so .450 = 0, .500 = 50, and "
+            ".550 = 100."
         ),
         # Legacy field retained for the current page/debug output.
         "completed_games_used": len(completed_games),
