@@ -1,3 +1,4 @@
+import hashlib
 import json
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -44,6 +45,38 @@ POWER_COMPRESSION_FACTOR = 0.75
 
 OWP_LOWER_BOUND = 0.450
 OWP_UPPER_BOUND = 0.550
+
+POWER_DIFF_WEIGHT = 0.50
+POWER_WIN_PCT_WEIGHT = 0.25
+POWER_OWP_WEIGHT = 0.25
+
+RECENT_MAX_GAMES = 24
+POWER_MODEL_VERSION = "2026-08-multiview-v1"
+
+VIEW_CONFIG = {
+    "overall": {
+        "label": "Overall",
+        "description": "All completed regular-season games.",
+        "standings_type": "regularSeason",
+    },
+    "first_half": {
+        "label": "First Half",
+        "description": "Games assigned to the official first half.",
+        "standings_type": "firstHalf",
+    },
+    "second_half": {
+        "label": "Second Half",
+        "description": "Games assigned to the official second half.",
+        "standings_type": "secondHalf",
+    },
+    "recent": {
+        "label": "Recent",
+        "description": (
+            "Each team\'s most recent up to 24 completed games."
+        ),
+        "standings_type": None,
+    },
+}
 
 TEAM_NAMES = {
     "Travelers": "Arkansas Travelers",
@@ -334,6 +367,8 @@ def build_standings_lookup(data):
                 "pct_num": values["pct_num"],
                 "pct": values["pct"],
                 "record": values["record"],
+                "runs_scored": team_data.get("runsScored", 0),
+                "runs_allowed": team_data.get("runsAllowed", 0),
                 "games_back": team_data.get("gamesBack", "-"),
                 "division_rank": team_data.get("divisionRank"),
                 "division_rank_num": safe_int(
@@ -691,43 +726,54 @@ def build_team_playoff_state(playoff_races):
 # Existing snapshot and Power Index helpers
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Snapshot, model-state, and Power Index helpers
+# ---------------------------------------------------------------------------
 
-def load_rank_snapshot(path):
+
+def load_json_file(path):
     if not path or not path.exists():
         return {}
 
     try:
         with path.open("r", encoding="utf-8") as f:
-            data = json.load(f)
+            return json.load(f)
+    except Exception as e:
+        print(f"Could not load JSON from {path}: {e}")
+        return {}
 
+
+def get_snapshot_view(snapshot, view_key):
+    views = snapshot.get("views", {})
+    view = views.get(view_key)
+
+    if view:
+        return view
+
+    # Backward compatibility with snapshots created before multi-view support.
+    if view_key == "overall" and snapshot.get("teams"):
         return {
-            team["team"]: team["rank"]
-            for team in data.get("teams", [])
-            if "team" in team and "rank" in team
+            "teams": snapshot.get("teams", []),
+            "input_fingerprint": None,
+            "game_fingerprint": None,
         }
 
-    except Exception as e:
-        print(f"Could not load rank snapshot from {path}: {e}")
-        return {}
+    return {}
 
 
-def load_power_snapshot(path):
-    if not path or not path.exists():
-        return {}
+def get_snapshot_team_map(snapshot, view_key):
+    view = get_snapshot_view(snapshot, view_key)
 
-    try:
-        with path.open("r", encoding="utf-8") as f:
-            data = json.load(f)
+    return {
+        team["team"]: team
+        for team in view.get("teams", [])
+        if "team" in team
+    }
 
-        return {
-            team["team"]: team["power_score"]
-            for team in data.get("teams", [])
-            if "team" in team and "power_score" in team
-        }
 
-    except Exception as e:
-        print(f"Could not load power snapshot from {path}: {e}")
-        return {}
+def get_snapshot_view_fingerprint(snapshot, view_key):
+    view = get_snapshot_view(snapshot, view_key)
+    return view.get("input_fingerprint")
 
 
 def find_comparison_snapshot(today):
@@ -792,119 +838,99 @@ def get_power_delta_direction(delta):
     return "neutral"
 
 
-# ---------------------------------------------------------------------------
-# Schedule and OWP helpers
-# ---------------------------------------------------------------------------
-
-
-def get_previous_games(
-    texas_league_team_ids,
-    max_games=5,
-    max_days_back=10,
-):
-    previous_games = []
-    seen_game_pks = set()
-
-    start_date = datetime.now(timezone.utc).date() - timedelta(days=1)
-
-    for offset in range(max_days_back):
-        game_date = start_date - timedelta(days=offset)
-
-        url = SCHEDULE_URL.format(
-            sport_id=SPORT_ID,
-            league_id=LEAGUE_ID,
-            date=game_date.isoformat(),
+def compress_power_score(smoothed_power_score):
+    return (
+        POWER_COMPRESSION_CENTER
+        + (
+            (smoothed_power_score - POWER_COMPRESSION_CENTER)
+            * POWER_COMPRESSION_FACTOR
         )
-
-        print(f"\nChecking schedule for {game_date}")
-        print(url)
-
-        try:
-            response = requests.get(url, timeout=20)
-            response.raise_for_status()
-            data = response.json()
-
-        except Exception as e:
-            print(f"Could not fetch schedule for {game_date}: {e}")
-            continue
-
-        for date_block in data.get("dates", []):
-            for game in date_block.get("games", []):
-                away_debug = (
-                    game.get("teams", {})
-                    .get("away", {})
-                    .get("team", {})
-                )
-                home_debug = (
-                    game.get("teams", {})
-                    .get("home", {})
-                    .get("team", {})
-                )
-
-                print(
-                    game.get("gameDate"),
-                    away_debug.get("id"),
-                    away_debug.get("name"),
-                    "at",
-                    home_debug.get("id"),
-                    home_debug.get("name"),
-                    game.get("status", {}).get("abstractGameState"),
-                    game.get("status", {}).get("detailedState"),
-                )
-
-                game_pk = game.get("gamePk")
-
-                if game_pk in seen_game_pks:
-                    continue
-
-                status = game.get("status", {})
-                abstract_state = status.get("abstractGameState", "")
-                detailed_state = status.get("detailedState", "")
-
-                if abstract_state != "Final":
-                    continue
-
-                away = game.get("teams", {}).get("away", {})
-                home = game.get("teams", {}).get("home", {})
-
-                away_team_data = away.get("team", {})
-                home_team_data = home.get("team", {})
-
-                away_team_id = away_team_data.get("id")
-                home_team_id = home_team_data.get("id")
-
-                if (
-                    away_team_id not in texas_league_team_ids
-                    and home_team_id not in texas_league_team_ids
-                ):
-                    continue
-
-                away_team = normalize_team_name(
-                    away_team_data.get("name", "Away")
-                )
-
-                home_team = normalize_team_name(
-                    home_team_data.get("name", "Home")
-                )
-
-                previous_games.append({
-                    "game_date": game_date.isoformat(),
-                    "status": detailed_state,
-                    "away_team": away_team,
-                    "away_score": away.get("score", 0),
-                    "home_team": home_team,
-                    "home_score": home.get("score", 0),
-                })
-
-                seen_game_pks.add(game_pk)
-
-                if len(previous_games) >= max_games:
-                    return previous_games
-
-    return previous_games
+    )
 
 
-def get_completed_games_for_owp(
+def inverse_compress_power_score(power_score):
+    if POWER_COMPRESSION_FACTOR == 0:
+        return POWER_COMPRESSION_CENTER
+
+    return (
+        POWER_COMPRESSION_CENTER
+        + (
+            (power_score - POWER_COMPRESSION_CENTER)
+            / POWER_COMPRESSION_FACTOR
+        )
+    )
+
+
+def get_previous_smoothed_power(previous_team, fallback_raw_score):
+    if not previous_team:
+        return fallback_raw_score
+
+    value = previous_team.get("smoothed_power_score")
+
+    if value is not None:
+        return value
+
+    # The pre-multiview script stored its uncompressed smoothing intermediate
+    # as displayed_power_score. Prefer that for a gentler migration.
+    value = previous_team.get("displayed_power_score")
+
+    if value is not None:
+        return value
+
+    value = previous_team.get("power_score")
+
+    if value is not None:
+        return inverse_compress_power_score(value)
+
+    return fallback_raw_score
+
+
+def get_previous_display_power(previous_team, fallback_power_score):
+    if not previous_team:
+        return fallback_power_score
+
+    value = previous_team.get("power_score")
+    return fallback_power_score if value is None else value
+
+
+def power_model_signature():
+    return {
+        "model_version": POWER_MODEL_VERSION,
+        "weights": {
+            "diff": POWER_DIFF_WEIGHT,
+            "win_pct": POWER_WIN_PCT_WEIGHT,
+            "owp": POWER_OWP_WEIGHT,
+        },
+        "owp_bounds": {
+            "lower": OWP_LOWER_BOUND,
+            "upper": OWP_UPPER_BOUND,
+        },
+        "smoothing": {
+            "previous_weight": POWER_SMOOTHING_PREVIOUS_WEIGHT,
+            "raw_weight": POWER_SMOOTHING_RAW_WEIGHT,
+        },
+        "compression": {
+            "center": POWER_COMPRESSION_CENTER,
+            "factor": POWER_COMPRESSION_FACTOR,
+        },
+    }
+
+
+# ---------------------------------------------------------------------------
+# Schedule, game-history, and view helpers
+# ---------------------------------------------------------------------------
+
+
+def game_sort_key(game):
+    return (
+        game.get("game_date") or "",
+        game.get("game_datetime") or "",
+        safe_int(game.get("game_number"), 1),
+        safe_int(game.get("game_pk"), 0),
+    )
+
+
+def get_completed_games(
     texas_league_team_ids,
     start_date,
     end_date,
@@ -919,7 +945,7 @@ def get_completed_games_for_owp(
         end_date=end_date,
     )
 
-    print("\nFetching completed schedule for OWP:")
+    print("\nFetching completed regular-season schedule:")
     print(url)
 
     try:
@@ -928,11 +954,12 @@ def get_completed_games_for_owp(
         data = response.json()
 
     except Exception as e:
-        print(f"Could not fetch schedule range for OWP: {e}")
-        return completed_games
+        raise RuntimeError(
+            f"Could not fetch Texas League schedule range: {e}"
+        ) from e
 
     for date_block in data.get("dates", []):
-        game_date = date_block.get("date")
+        date_block_date = date_block.get("date")
 
         for game in date_block.get("games", []):
             game_pk = game.get("gamePk")
@@ -944,6 +971,13 @@ def get_completed_games_for_owp(
             abstract_state = status.get("abstractGameState", "")
 
             if abstract_state != "Final":
+                continue
+
+            # Keep postseason games out of the regular-season Power Index.
+            # MLB StatsAPI uses R for regular-season games.
+            game_type = game.get("gameType")
+
+            if game_type not in (None, "R"):
                 continue
 
             away = game.get("teams", {}).get("away", {})
@@ -961,45 +995,220 @@ def get_completed_games_for_owp(
             ):
                 continue
 
+            away_score = away.get("score")
+            home_score = home.get("score")
+
+            if away_score is None or home_score is None:
+                print(
+                    "Skipping final game without a complete score: "
+                    f"gamePk={game_pk}"
+                )
+                continue
+
             completed_games.append({
                 "game_pk": game_pk,
-                "game_date": game_date,
+                "game_date": date_block_date,
+                "game_datetime": game.get("gameDate"),
+                "game_number": game.get("gameNumber", 1),
+                "game_type": game_type,
+                "status": status.get("detailedState", "Final"),
                 "away_team_id": away_team_id,
+                "away_team": normalize_team_name(
+                    away_team_data.get("name", "Away")
+                ),
+                "away_score": away_score,
                 "home_team_id": home_team_id,
+                "home_team": normalize_team_name(
+                    home_team_data.get("name", "Home")
+                ),
+                "home_score": home_score,
             })
 
             seen_game_pks.add(game_pk)
 
-    print(f"Completed games used for OWP: {len(completed_games)}")
+    completed_games.sort(key=game_sort_key)
+
+    print(
+        "Completed regular-season Texas League games fetched: "
+        f"{len(completed_games)}"
+    )
 
     return completed_games
 
 
-def calculate_opponent_win_percentages(
-    completed_games,
-    team_win_pct_by_id,
-):
-    opponent_win_pcts = {
+def build_team_game_history(completed_games, texas_league_team_ids):
+    history = {
         team_id: []
-        for team_id in team_win_pct_by_id
+        for team_id in texas_league_team_ids
     }
 
     for game in completed_games:
         away_team_id = game["away_team_id"]
         home_team_id = game["home_team_id"]
 
-        away_win_pct = team_win_pct_by_id.get(away_team_id)
-        home_win_pct = team_win_pct_by_id.get(home_team_id)
+        if away_team_id in history:
+            history[away_team_id].append(game)
 
-        if away_win_pct is None or home_win_pct is None:
+        if home_team_id in history:
+            history[home_team_id].append(game)
+
+    for team_id in history:
+        history[team_id].sort(key=game_sort_key)
+
+    return history
+
+
+def calculate_team_game_stats(team_id, games):
+    wins = 0
+    losses = 0
+    rs = 0
+    ra = 0
+
+    for game in games:
+        if game["away_team_id"] == team_id:
+            team_score = game["away_score"]
+            opponent_score = game["home_score"]
+        elif game["home_team_id"] == team_id:
+            team_score = game["home_score"]
+            opponent_score = game["away_score"]
+        else:
             continue
 
-        opponent_win_pcts[away_team_id].append(home_win_pct)
-        opponent_win_pcts[home_team_id].append(away_win_pct)
+        rs += team_score
+        ra += opponent_score
 
+        if team_score > opponent_score:
+            wins += 1
+        elif team_score < opponent_score:
+            losses += 1
+
+    games_with_decision = wins + losses
+    pct_num = wins / games_with_decision if games_with_decision else 0.0
+
+    return {
+        "wins": wins,
+        "losses": losses,
+        "games": games_with_decision,
+        "selected_games": len(games),
+        "record": f"{wins}-{losses}",
+        "pct_num": pct_num,
+        "pct": format_pct(pct_num),
+        "rs": rs,
+        "ra": ra,
+        "diff": rs - ra,
+    }
+
+
+def calculate_last_n_record(team_id, games, max_games=10):
+    selected_games = games[-max_games:]
+    stats = calculate_team_game_stats(team_id, selected_games)
+    return stats["record"]
+
+
+def select_first_half_games(
+    all_games_by_team,
+    first_half_lookup,
+    active_half,
+):
+    selected = {}
+
+    for team_id, games in all_games_by_team.items():
+        official = first_half_lookup.get(team_id)
+
+        if official:
+            game_count = official.get("games", 0)
+            selected[team_id] = list(games[:game_count])
+
+        elif active_half == 1:
+            # If the firstHalf endpoint is temporarily unavailable while the
+            # first half is active, all completed games belong to that half.
+            selected[team_id] = list(games)
+
+        else:
+            selected[team_id] = []
+
+    return selected
+
+
+def select_second_half_games(
+    all_games_by_team,
+    second_half_lookup,
+):
+    selected = {}
+
+    for team_id, games in all_games_by_team.items():
+        official = second_half_lookup.get(team_id)
+        game_count = official.get("games", 0) if official else 0
+
+        if game_count > 0:
+            selected[team_id] = list(games[-game_count:])
+        else:
+            selected[team_id] = []
+
+    return selected
+
+
+def select_recent_games(all_games_by_team, max_games=RECENT_MAX_GAMES):
+    return {
+        team_id: list(games[-max_games:])
+        for team_id, games in all_games_by_team.items()
+    }
+
+
+def build_view_game_sets(
+    all_games_by_team,
+    first_half_lookup,
+    second_half_lookup,
+    active_half,
+):
+    return {
+        "overall": {
+            team_id: list(games)
+            for team_id, games in all_games_by_team.items()
+        },
+        "first_half": select_first_half_games(
+            all_games_by_team,
+            first_half_lookup,
+            active_half,
+        ),
+        "second_half": select_second_half_games(
+            all_games_by_team,
+            second_half_lookup,
+        ),
+        "recent": select_recent_games(all_games_by_team),
+    }
+
+
+def opponent_id_for_game(team_id, game):
+    if game["away_team_id"] == team_id:
+        return game["home_team_id"]
+
+    if game["home_team_id"] == team_id:
+        return game["away_team_id"]
+
+    return None
+
+
+def calculate_opponent_win_percentages_for_view(
+    games_by_team,
+    team_win_pct_by_id,
+):
     average_opponent_win_pct = {}
 
-    for team_id, opponent_values in opponent_win_pcts.items():
+    for team_id, games in games_by_team.items():
+        opponent_values = []
+
+        for game in games:
+            opponent_id = opponent_id_for_game(team_id, game)
+
+            if opponent_id is None:
+                continue
+
+            opponent_win_pct = team_win_pct_by_id.get(opponent_id)
+
+            if opponent_win_pct is not None:
+                opponent_values.append(opponent_win_pct)
+
         if opponent_values:
             average_opponent_win_pct[team_id] = (
                 sum(opponent_values) / len(opponent_values)
@@ -1008,6 +1217,552 @@ def calculate_opponent_win_percentages(
             average_opponent_win_pct[team_id] = 0.500
 
     return average_opponent_win_pct
+
+
+def build_previous_games(completed_games, max_games=5):
+    previous_games = []
+
+    for game in sorted(
+        completed_games,
+        key=game_sort_key,
+        reverse=True,
+    )[:max_games]:
+        previous_games.append({
+            "game_date": game.get("game_date"),
+            "status": game.get("status", "Final"),
+            "away_team": game.get("away_team", "Away"),
+            "away_score": game.get("away_score", 0),
+            "home_team": game.get("home_team", "Home"),
+            "home_score": game.get("home_score", 0),
+        })
+
+    return previous_games
+
+
+def unique_game_count(games_by_team):
+    game_pks = {
+        game["game_pk"]
+        for games in games_by_team.values()
+        for game in games
+        if game.get("game_pk") is not None
+    }
+
+    return len(game_pks)
+
+
+def build_game_fingerprint(view_key, games_by_team):
+    payload = {
+        "view": view_key,
+        "games": {},
+    }
+
+    for team_id in sorted(games_by_team):
+        payload["games"][str(team_id)] = [
+            {
+                "game_pk": game.get("game_pk"),
+                "game_date": game.get("game_date"),
+                "away_team_id": game.get("away_team_id"),
+                "home_team_id": game.get("home_team_id"),
+                "away_score": game.get("away_score"),
+                "home_score": game.get("home_score"),
+            }
+            for game in games_by_team[team_id]
+        ]
+
+    serialized = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
+
+def build_input_fingerprint(view_key, teams, game_fingerprint):
+    payload = {
+        "view": view_key,
+        "game_fingerprint": game_fingerprint,
+        "model": power_model_signature(),
+        "inputs": [
+            {
+                "team_id": team["team_id"],
+                "wins": team["wins"],
+                "losses": team["losses"],
+                "rs": team["rs"],
+                "ra": team["ra"],
+                "diff_per_game": round(team["diff_per_game"], 8),
+                "win_pct_num": round(team["win_pct_num"], 8),
+                "owp_num": round(team["owp_num"], 8),
+            }
+            for team in sorted(teams, key=lambda row: row["team_id"])
+        ],
+    }
+
+    serialized = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
+
+def official_stats_for_team(team_id, official_lookup, fallback_games):
+    official = official_lookup.get(team_id) if official_lookup else None
+
+    if official:
+        raw = official.get("raw", {})
+        last10_record = find_split_record(raw, "lastTen")
+
+        wins = official.get("wins", 0)
+        losses = official.get("losses", 0)
+        games = wins + losses
+        rs = official.get("runs_scored", 0)
+        ra = official.get("runs_allowed", 0)
+
+        return {
+            "wins": wins,
+            "losses": losses,
+            "games": games,
+            "record": official.get("record", f"{wins}-{losses}"),
+            "pct_num": official.get(
+                "pct_num",
+                wins / games if games else 0.0,
+            ),
+            "pct": official.get(
+                "pct",
+                format_pct(wins / games if games else 0.0),
+            ),
+            "rs": rs,
+            "ra": ra,
+            "diff": rs - ra,
+            "last10": (
+                format_record(last10_record)
+                if last10_record
+                else calculate_last_n_record(team_id, fallback_games)
+            ),
+            "source": "official_standings",
+        }
+
+    stats = calculate_team_game_stats(team_id, fallback_games)
+    stats["last10"] = calculate_last_n_record(team_id, fallback_games)
+    stats["source"] = "schedule_fallback"
+    return stats
+
+
+def build_base_view_teams(
+    view_key,
+    regular_season_lookup,
+    official_lookup,
+    games_by_team,
+):
+    teams = []
+
+    for team_id in sorted(regular_season_lookup):
+        regular_record = regular_season_lookup[team_id]
+        games = games_by_team.get(team_id, [])
+
+        if view_key == "recent":
+            stats = calculate_team_game_stats(team_id, games)
+            stats["last10"] = calculate_last_n_record(
+                team_id,
+                games,
+            )
+            stats["source"] = "schedule_recent_window"
+        else:
+            stats = official_stats_for_team(
+                team_id,
+                official_lookup,
+                games,
+            )
+
+        games_count = stats["wins"] + stats["losses"]
+        diff = stats["rs"] - stats["ra"]
+
+        teams.append({
+            "team_id": team_id,
+            "team": regular_record["team"],
+            "division": regular_record.get("division", "Unknown"),
+            "division_name": regular_record.get("division_name", ""),
+            "view": view_key,
+            "stats_source": stats.get("source"),
+            "record": stats["record"],
+            "pct": stats["pct"],
+            "rs": stats["rs"],
+            "ra": stats["ra"],
+            "last10": stats["last10"],
+            "wins": stats["wins"],
+            "losses": stats["losses"],
+            "games": games_count,
+            "games_in_view": len(games),
+            "diff": diff,
+            "win_pct_num": (
+                stats["wins"] / games_count
+                if games_count else 0.0
+            ),
+            "diff_per_game": (
+                diff / games_count
+                if games_count else 0.0
+            ),
+        })
+
+    team_win_pct_by_id = {
+        team["team_id"]: team["win_pct_num"]
+        for team in teams
+    }
+
+    average_opponent_win_pct_by_id = (
+        calculate_opponent_win_percentages_for_view(
+            games_by_team,
+            team_win_pct_by_id,
+        )
+    )
+
+    for team in teams:
+        opponent_win_pct_num = average_opponent_win_pct_by_id.get(
+            team["team_id"],
+            0.500,
+        )
+
+        team["opponent_win_pct"] = format_pct(opponent_win_pct_num)
+        team["owp"] = format_pct(opponent_win_pct_num)
+        team["opponent_win_pct_num"] = opponent_win_pct_num
+        team["owp_num"] = opponent_win_pct_num
+
+    return teams
+
+
+def add_common_team_context(
+    teams,
+    team_playoff_state,
+    first_half_winners,
+):
+    for team in teams:
+        team_id = team["team_id"]
+        division_key = team.get("division", "Unknown")
+
+        playoff_state = team_playoff_state.get(
+            team_id,
+            {
+                "playoff_clinched": False,
+                "berth_type": "NONE",
+                "active_race_eligible": False,
+                "active_race_rank": None,
+                "active_race_games_back": None,
+            },
+        )
+
+        team["first_half_winner"] = (
+            first_half_winners.get(division_key, {}).get("team_id")
+            == team_id
+        )
+        team["playoff_clinched"] = playoff_state["playoff_clinched"]
+        team["berth_type"] = playoff_state["berth_type"]
+        team["active_playoff_race_eligible"] = playoff_state[
+            "active_race_eligible"
+        ]
+        team["active_playoff_race_rank"] = playoff_state[
+            "active_race_rank"
+        ]
+        team["active_playoff_race_games_back"] = playoff_state[
+            "active_race_games_back"
+        ]
+
+
+def add_overall_legacy_fields(
+    teams,
+    regular_season_lookup,
+    first_half_lookup,
+    second_half_lookup,
+    current_half_lookup,
+    active_half,
+):
+    for team in teams:
+        team_id = team["team_id"]
+        regular_record = regular_season_lookup.get(team_id, {})
+        raw = regular_record.get("raw", {})
+
+        expected_record = find_expected_record(raw)
+        vs500_record = find_split_record(raw, "winners")
+
+        first_half_record = first_half_lookup.get(team_id)
+        second_half_record = second_half_lookup.get(team_id)
+        current_half_record = current_half_lookup.get(team_id)
+
+        first_half_values = get_record_values(
+            first_half_record["raw"]
+            if first_half_record else None
+        )
+        second_half_values = get_record_values(
+            second_half_record["raw"]
+            if second_half_record else None
+        )
+        current_half_values = get_record_values(
+            current_half_record["raw"]
+            if current_half_record else None
+        )
+
+        # Fields retained so the current live HTML continues to work before
+        # the four-view front end is deployed.
+        team["xwl"] = format_record(expected_record)
+        team["vs500"] = format_record(vs500_record)
+        team["identity"] = "TBD"
+
+        team["first_half_record"] = first_half_values["record"]
+        team["first_half_wins"] = first_half_values["wins"]
+        team["first_half_losses"] = first_half_values["losses"]
+        team["first_half_pct"] = first_half_values["pct"]
+        team["first_half_pct_num"] = first_half_values["pct_num"]
+        team["first_half_division_rank"] = (
+            first_half_record.get("division_rank")
+            if first_half_record else None
+        )
+        team["first_half_clinch_indicator"] = (
+            first_half_record.get("clinch_indicator")
+            if first_half_record else None
+        )
+
+        team["second_half_record"] = second_half_values["record"]
+        team["second_half_wins"] = second_half_values["wins"]
+        team["second_half_losses"] = second_half_values["losses"]
+        team["second_half_pct"] = second_half_values["pct"]
+        team["second_half_pct_num"] = second_half_values["pct_num"]
+        team["second_half_division_rank"] = (
+            second_half_record.get("division_rank")
+            if second_half_record else None
+        )
+        team["second_half_games_back"] = (
+            second_half_record.get("games_back")
+            if second_half_record else None
+        )
+        team["second_half_clinch_indicator"] = (
+            second_half_record.get("clinch_indicator")
+            if second_half_record else None
+        )
+
+        team["current_half_record"] = current_half_values["record"]
+        team["current_half_wins"] = current_half_values["wins"]
+        team["current_half_losses"] = current_half_values["losses"]
+        team["current_half_pct"] = current_half_values["pct"]
+        team["current_half_pct_num"] = current_half_values["pct_num"]
+        team["active_half"] = active_half
+
+
+def validate_game_selection_against_official(
+    view_key,
+    games_by_team,
+    official_lookup,
+):
+    warnings = []
+
+    if not official_lookup:
+        return warnings
+
+    for team_id, official in official_lookup.items():
+        games = games_by_team.get(team_id, [])
+        calculated = calculate_team_game_stats(team_id, games)
+
+        expected_wins = official.get("wins", 0)
+        expected_losses = official.get("losses", 0)
+        expected_rs = official.get("runs_scored", 0)
+        expected_ra = official.get("runs_allowed", 0)
+
+        mismatches = []
+
+        if calculated["wins"] != expected_wins:
+            mismatches.append(
+                f"W {calculated['wins']} != {expected_wins}"
+            )
+
+        if calculated["losses"] != expected_losses:
+            mismatches.append(
+                f"L {calculated['losses']} != {expected_losses}"
+            )
+
+        # Only compare run totals when the standings endpoint provides them.
+        raw = official.get("raw", {})
+
+        if "runsScored" in raw and calculated["rs"] != expected_rs:
+            mismatches.append(
+                f"RS {calculated['rs']} != {expected_rs}"
+            )
+
+        if "runsAllowed" in raw and calculated["ra"] != expected_ra:
+            mismatches.append(
+                f"RA {calculated['ra']} != {expected_ra}"
+            )
+
+        if mismatches:
+            warnings.append(
+                f"{view_key}: schedule-selected games for "
+                f"{official.get('team', team_id)} do not match official "
+                f"standings ({'; '.join(mismatches)})."
+            )
+
+    return warnings
+
+
+def apply_power_index(
+    view_key,
+    teams,
+    input_fingerprint,
+    previous_snapshot,
+    comparison_snapshot,
+):
+    if not teams:
+        return [], False
+
+    previous_team_map = get_snapshot_team_map(
+        previous_snapshot,
+        view_key,
+    )
+    comparison_team_map = get_snapshot_team_map(
+        comparison_snapshot,
+        view_key,
+    )
+
+    previous_fingerprint = get_snapshot_view_fingerprint(
+        previous_snapshot,
+        view_key,
+    )
+
+    data_changed = previous_fingerprint != input_fingerprint
+
+    diff_values = [team["diff_per_game"] for team in teams]
+    actual_win_values = [team["win_pct_num"] for team in teams]
+
+    for team in teams:
+        diff_score = normalize(
+            team["diff_per_game"],
+            diff_values,
+        )
+
+        actual_win_score = normalize(
+            team["win_pct_num"],
+            actual_win_values,
+        )
+
+        opponent_strength_score = normalize_bounded(
+            team["opponent_win_pct_num"],
+            OWP_LOWER_BOUND,
+            OWP_UPPER_BOUND,
+        )
+
+        raw_power_score = (
+            POWER_DIFF_WEIGHT * diff_score
+            + POWER_WIN_PCT_WEIGHT * actual_win_score
+            + POWER_OWP_WEIGHT * opponent_strength_score
+        )
+
+        previous_team = previous_team_map.get(team["team"])
+        previous_smoothed_power_score = get_previous_smoothed_power(
+            previous_team,
+            raw_power_score,
+        )
+
+        if previous_team and not data_changed:
+            smoothed_power_score = previous_smoothed_power_score
+        elif previous_team:
+            smoothed_power_score = (
+                previous_smoothed_power_score
+                * POWER_SMOOTHING_PREVIOUS_WEIGHT
+                + raw_power_score
+                * POWER_SMOOTHING_RAW_WEIGHT
+            )
+        else:
+            # New views begin from their current raw score rather than from an
+            # arbitrary neutral value. Compression is still applied below.
+            smoothed_power_score = raw_power_score
+
+        compressed_power_score = compress_power_score(
+            smoothed_power_score
+        )
+
+        previous_power_score = get_previous_display_power(
+            previous_team,
+            compressed_power_score,
+        )
+
+        comparison_team = comparison_team_map.get(team["team"])
+        comparison_power_score = (
+            comparison_team.get("power_score", compressed_power_score)
+            if comparison_team else compressed_power_score
+        )
+
+        power_delta = (
+            compressed_power_score
+            - comparison_power_score
+        )
+
+        power_delta_direction = get_power_delta_direction(power_delta)
+
+        team["diff_score"] = round(diff_score, 1)
+        team["run_profile_score"] = round(diff_score, 1)
+        team["actual_win_score"] = round(actual_win_score, 1)
+        team["opponent_strength_score"] = round(
+            opponent_strength_score,
+            1,
+        )
+        team["owp_score"] = round(opponent_strength_score, 1)
+        team["quality_record_score"] = round(
+            opponent_strength_score,
+            1,
+        )
+        team["raw_power_score"] = round(raw_power_score, 1)
+        team["previous_smoothed_power_score"] = round(
+            previous_smoothed_power_score,
+            1,
+        )
+        team["smoothed_power_score"] = round(
+            smoothed_power_score,
+            1,
+        )
+        # Retain the old field name as an alias for compatibility/debugging.
+        team["displayed_power_score"] = round(
+            smoothed_power_score,
+            1,
+        )
+        team["previous_power_score"] = round(
+            previous_power_score,
+            1,
+        )
+        team["comparison_power_score"] = round(
+            comparison_power_score,
+            1,
+        )
+        team["power_score"] = round(compressed_power_score, 1)
+        team["power_delta"] = round(power_delta, 1)
+        team["power_delta_display"] = format_power_delta(power_delta)
+        team["power_delta_direction"] = power_delta_direction
+        team["power_delta_class"] = f"delta-{power_delta_direction}"
+
+    teams = sorted(
+        teams,
+        key=lambda team: team["power_score"],
+        reverse=True,
+    )
+
+    comparison_rank_map = {
+        name: team.get("rank")
+        for name, team in comparison_team_map.items()
+        if team.get("rank") is not None
+    }
+
+    for index, team in enumerate(teams, start=1):
+        team["rank"] = index
+
+        comparison_rank = comparison_rank_map.get(team["team"])
+
+        if comparison_rank is None:
+            team["trend"] = "→"
+        elif index < comparison_rank:
+            team["trend"] = "↑"
+        elif index > comparison_rank:
+            team["trend"] = "↓"
+        else:
+            team["trend"] = "→"
+
+    return teams, data_changed
 
 
 # ---------------------------------------------------------------------------
@@ -1066,18 +1821,8 @@ playoff_races = build_playoff_races(
 team_playoff_state = build_team_playoff_state(playoff_races)
 
 comparison_snapshot_path = find_comparison_snapshot(today)
-
-previous_ranks = (
-    load_rank_snapshot(comparison_snapshot_path)
-    if comparison_snapshot_path else {}
-)
-
-comparison_powers = (
-    load_power_snapshot(comparison_snapshot_path)
-    if comparison_snapshot_path else {}
-)
-
-previous_powers = load_power_snapshot(OUTPUT_PATH)
+comparison_snapshot = load_json_file(comparison_snapshot_path)
+previous_snapshot = load_json_file(OUTPUT_PATH)
 
 if comparison_snapshot_path:
     print(
@@ -1090,326 +1835,144 @@ else:
         "Trends and power deltas will default to neutral."
     )
 
-texas_league_team_ids = set()
-team_win_pct_by_id = {}
+texas_league_team_ids = set(regular_season_lookup)
 
-for division in regular_season_data.get("records", []):
-    for team_data in division.get("teamRecords", []):
-        team_id = team_data["team"]["id"]
-
-        wins = team_data["wins"]
-        losses = team_data["losses"]
-        games = wins + losses
-
-        texas_league_team_ids.add(team_id)
-        team_win_pct_by_id[team_id] = (
-            wins / games if games else 0.500
-        )
+if not texas_league_team_ids:
+    raise RuntimeError(
+        "No Texas League teams were found in regular-season standings."
+    )
 
 print("\nTexas League team IDs:")
 print(sorted(texas_league_team_ids))
 
-completed_games = get_completed_games_for_owp(
+completed_games = get_completed_games(
     texas_league_team_ids,
     season_start_date,
     today.isoformat(),
 )
 
-average_opponent_win_pct_by_id = (
-    calculate_opponent_win_percentages(
-        completed_games,
-        team_win_pct_by_id,
-    )
+all_games_by_team = build_team_game_history(
+    completed_games,
+    texas_league_team_ids,
 )
 
-previous_games = get_previous_games(texas_league_team_ids)
+view_game_sets = build_view_game_sets(
+    all_games_by_team,
+    first_half_lookup,
+    second_half_lookup,
+    active_half,
+)
 
-teams = []
+previous_games = build_previous_games(completed_games)
 
-for division in regular_season_data.get("records", []):
-    for team_data in division.get("teamRecords", []):
-        team_id = team_data["team"]["id"]
+view_official_lookups = {
+    "overall": regular_season_lookup,
+    "first_half": first_half_lookup,
+    "second_half": second_half_lookup,
+    "recent": {},
+}
 
-        regular_record = regular_season_lookup.get(team_id, {})
-        division_key = regular_record.get("division", "Unknown")
-        division_name = regular_record.get("division_name", "")
+view_validation_warnings = []
 
-        wins = team_data["wins"]
-        losses = team_data["losses"]
+for view_key in ("overall", "first_half", "second_half"):
+    official_lookup = view_official_lookups[view_key]
 
-        games = wins + losses
-
-        rs = team_data.get("runsScored", 0)
-        ra = team_data.get("runsAllowed", 0)
-
-        diff = rs - ra
-
-        raw_team_name = team_data["team"]["name"]
-        display_team_name = normalize_team_name(raw_team_name)
-
-        expected_record = find_expected_record(team_data)
-        xwl = format_record(expected_record)
-
-        last10_record = find_split_record(team_data, "lastTen")
-        vs500_record = find_split_record(team_data, "winners")
-
-        opponent_win_pct_num = average_opponent_win_pct_by_id.get(
-            team_id,
-            0.500,
-        )
-
-        first_half_record = first_half_lookup.get(team_id)
-        second_half_record = second_half_lookup.get(team_id)
-        current_half_record = current_half_lookup.get(team_id)
-
-        first_half_values = get_record_values(
-            first_half_record["raw"]
-            if first_half_record else None
-        )
-        second_half_values = get_record_values(
-            second_half_record["raw"]
-            if second_half_record else None
-        )
-        current_half_values = get_record_values(
-            current_half_record["raw"]
-            if current_half_record else None
-        )
-
-        playoff_state = team_playoff_state.get(
-            team_id,
-            {
-                "playoff_clinched": False,
-                "berth_type": "NONE",
-                "active_race_eligible": False,
-                "active_race_rank": None,
-                "active_race_games_back": None,
-            },
-        )
-
-        first_half_winner = (
-            first_half_winners.get(division_key, {}).get(
-                "team_id"
-            ) == team_id
-        )
-
-        # The asterisk carried in secondHalf/currentHalf standings identifies
-        # a previously secured first-half berth. It must not be interpreted as
-        # proof that a team has clinched the second-half berth.
-        playoff_clinched = playoff_state["playoff_clinched"]
-        berth_type = playoff_state["berth_type"]
-
-        team = {
-            "team_id": team_id,
-            "team": display_team_name,
-            "division": division_key,
-            "division_name": division_name,
-
-            # Existing overall-season fields used by the Power Index and page.
-            "record": f"{wins}-{losses}",
-            "pct": team_data.get(
-                "winningPercentage",
-                f"{wins / games:.3f}" if games else ".000",
-            ),
-            "rs": rs,
-            "ra": ra,
-            "xwl": xwl,
-            "last10": format_record(last10_record),
-            "vs500": format_record(vs500_record),
-            "opponent_win_pct": format_pct(opponent_win_pct_num),
-            "owp": format_pct(opponent_win_pct_num),
-            "identity": "TBD",
-            "wins": wins,
-            "losses": losses,
-            "diff": diff,
-            "win_pct_num": wins / games if games else 0,
-            "opponent_win_pct_num": opponent_win_pct_num,
-            "owp_num": opponent_win_pct_num,
-            "diff_per_game": diff / games if games else 0,
-
-            # Split-season standings fields.
-            "first_half_record": first_half_values["record"],
-            "first_half_wins": first_half_values["wins"],
-            "first_half_losses": first_half_values["losses"],
-            "first_half_pct": first_half_values["pct"],
-            "first_half_pct_num": first_half_values["pct_num"],
-            "first_half_division_rank": (
-                first_half_record.get("division_rank")
-                if first_half_record else None
-            ),
-            "first_half_clinch_indicator": (
-                first_half_record.get("clinch_indicator")
-                if first_half_record else None
-            ),
-            "first_half_winner": first_half_winner,
-
-            "second_half_record": second_half_values["record"],
-            "second_half_wins": second_half_values["wins"],
-            "second_half_losses": second_half_values["losses"],
-            "second_half_pct": second_half_values["pct"],
-            "second_half_pct_num": second_half_values["pct_num"],
-            "second_half_division_rank": (
-                second_half_record.get("division_rank")
-                if second_half_record else None
-            ),
-            "second_half_games_back": (
-                second_half_record.get("games_back")
-                if second_half_record else None
-            ),
-            "second_half_clinch_indicator": (
-                second_half_record.get("clinch_indicator")
-                if second_half_record else None
-            ),
-
-            "current_half_record": current_half_values["record"],
-            "current_half_wins": current_half_values["wins"],
-            "current_half_losses": current_half_values["losses"],
-            "current_half_pct": current_half_values["pct"],
-            "current_half_pct_num": current_half_values["pct_num"],
-
-            # Playoff-state fields for simple front-end rendering.
-            "active_half": active_half,
-            "playoff_clinched": playoff_clinched,
-            "berth_type": berth_type,
-            "active_playoff_race_eligible": playoff_state[
-                "active_race_eligible"
-            ],
-            "active_playoff_race_rank": playoff_state[
-                "active_race_rank"
-            ],
-            "active_playoff_race_games_back": playoff_state[
-                "active_race_games_back"
-            ],
-        }
-
-        teams.append(team)
-
-if not teams:
-    raise RuntimeError(
-        "No Texas League teams were found in regular-season standings."
-    )
-
-diff_values = [team["diff_per_game"] for team in teams]
-actual_win_values = [team["win_pct_num"] for team in teams]
-
-for team in teams:
-    diff_score = normalize(
-        team["diff_per_game"],
-        diff_values,
-    )
-
-    actual_win_score = normalize(
-        team["win_pct_num"],
-        actual_win_values,
-    )
-
-    opponent_strength_score = normalize_bounded(
-        team["opponent_win_pct_num"],
-        OWP_LOWER_BOUND,
-        OWP_UPPER_BOUND,
-    )
-
-    raw_power_score = (
-        0.50 * diff_score
-        + 0.25 * actual_win_score
-        + 0.25 * opponent_strength_score
-    )
-
-    previous_power_score = previous_powers.get(
-        team["team"],
-        raw_power_score,
-    )
-
-    displayed_power_score = (
-        previous_power_score
-        * POWER_SMOOTHING_PREVIOUS_WEIGHT
-        + raw_power_score
-        * POWER_SMOOTHING_RAW_WEIGHT
-    )
-
-    compressed_power_score = (
-        POWER_COMPRESSION_CENTER
-        + (
-            (
-                displayed_power_score
-                - POWER_COMPRESSION_CENTER
+    if official_lookup:
+        view_validation_warnings.extend(
+            validate_game_selection_against_official(
+                view_key,
+                view_game_sets[view_key],
+                official_lookup,
             )
-            * POWER_COMPRESSION_FACTOR
         )
+
+views = {}
+
+for view_key, config in VIEW_CONFIG.items():
+    official_lookup = view_official_lookups[view_key]
+    games_by_team = view_game_sets[view_key]
+
+    view_teams = build_base_view_teams(
+        view_key,
+        regular_season_lookup,
+        official_lookup,
+        games_by_team,
     )
 
-    comparison_power_score = comparison_powers.get(
-        team["team"],
-        compressed_power_score,
+    add_common_team_context(
+        view_teams,
+        team_playoff_state,
+        first_half_winners,
     )
 
-    power_delta = (
-        compressed_power_score
-        - comparison_power_score
+    if view_key == "overall":
+        add_overall_legacy_fields(
+            view_teams,
+            regular_season_lookup,
+            first_half_lookup,
+            second_half_lookup,
+            current_half_lookup,
+            active_half,
+        )
+
+    game_fingerprint = build_game_fingerprint(
+        view_key,
+        games_by_team,
     )
 
-    power_delta_direction = get_power_delta_direction(
-        power_delta
+    input_fingerprint = build_input_fingerprint(
+        view_key,
+        view_teams,
+        game_fingerprint,
     )
 
-    team["diff_score"] = round(diff_score, 1)
-    team["run_profile_score"] = round(diff_score, 1)
-    team["actual_win_score"] = round(actual_win_score, 1)
-    team["opponent_strength_score"] = round(
-        opponent_strength_score,
-        1,
-    )
-    team["owp_score"] = round(opponent_strength_score, 1)
-    team["quality_record_score"] = round(
-        opponent_strength_score,
-        1,
-    )
-    team["raw_power_score"] = round(raw_power_score, 1)
-    team["previous_power_score"] = round(
-        previous_power_score,
-        1,
-    )
-    team["displayed_power_score"] = round(
-        displayed_power_score,
-        1,
-    )
-    team["comparison_power_score"] = round(
-        comparison_power_score,
-        1,
-    )
-    team["power_score"] = round(compressed_power_score, 1)
-    team["power_delta"] = round(power_delta, 1)
-    team["power_delta_display"] = format_power_delta(
-        power_delta
-    )
-    team["power_delta_direction"] = power_delta_direction
-    team["power_delta_class"] = (
-        f"delta-{power_delta_direction}"
+    ranked_teams, data_changed = apply_power_index(
+        view_key,
+        view_teams,
+        input_fingerprint,
+        previous_snapshot,
+        comparison_snapshot,
     )
 
-teams = sorted(
-    teams,
-    key=lambda team: team["power_score"],
-    reverse=True,
-)
+    team_game_counts = {
+        team["team"]: team["games_in_view"]
+        for team in ranked_teams
+    }
 
-for index, team in enumerate(teams, start=1):
-    team["rank"] = index
+    views[view_key] = {
+        "key": view_key,
+        "label": config["label"],
+        "description": config["description"],
+        "standings_type": config["standings_type"],
+        "window_type": (
+            "rolling"
+            if view_key == "recent"
+            else "fixed_then_frozen"
+            if view_key == "first_half"
+            else "expanding"
+        ),
+        "max_games_per_team": (
+            RECENT_MAX_GAMES
+            if view_key == "recent" else None
+        ),
+        "unique_games_selected": unique_game_count(games_by_team),
+        "team_game_counts": team_game_counts,
+        "game_fingerprint": game_fingerprint,
+        "input_fingerprint": input_fingerprint,
+        "data_changed_since_previous_run": data_changed,
+        "teams": ranked_teams,
+    }
 
-    comparison_rank = previous_ranks.get(team["team"])
+# Backward-compatible alias used by the current live page.
+teams = views["overall"]["teams"]
 
-    if comparison_rank is None:
-        team["trend"] = "→"
 
-    elif index < comparison_rank:
-        team["trend"] = "↑"
+# ---------------------------------------------------------------------------
+# Validation
+# ---------------------------------------------------------------------------
 
-    elif index > comparison_rank:
-        team["trend"] = "↓"
 
-    else:
-        team["trend"] = "→"
-
-validation_warnings = []
+playoff_validation_warnings = []
 expected_team_count = 10
 regular_team_count = len(regular_season_lookup)
 first_half_team_count = len(first_half_lookup)
@@ -1428,26 +1991,26 @@ unknown_division_teams = sorted(
 )
 
 if regular_team_count != expected_team_count:
-    validation_warnings.append(
+    playoff_validation_warnings.append(
         "Expected 10 Texas League teams in regularSeason, "
         f"found {regular_team_count}."
     )
 
 if unknown_division_teams:
-    validation_warnings.append(
+    playoff_validation_warnings.append(
         "Could not resolve a division for: "
         + ", ".join(unknown_division_teams)
         + "."
     )
 
 if detected_divisions != EXPECTED_DIVISIONS:
-    validation_warnings.append(
+    playoff_validation_warnings.append(
         "Expected playoff races for North and South, but detected "
         f"{sorted(detected_divisions)}."
     )
 
 if active_half is None:
-    validation_warnings.append(
+    playoff_validation_warnings.append(
         "The active half could not be determined."
     )
 
@@ -1455,18 +2018,18 @@ if (
     active_half == 2
     and first_half_winner_divisions != EXPECTED_DIVISIONS
 ):
-    validation_warnings.append(
+    playoff_validation_warnings.append(
         "Second half was detected, but the script did not identify "
         "the first-half champions for both North and South."
     )
 
 if active_half == 1 and first_half_team_count == 0:
-    validation_warnings.append(
+    playoff_validation_warnings.append(
         "First half was detected, but firstHalf standings are empty."
     )
 
 if active_half == 2 and second_half_team_count == 0:
-    validation_warnings.append(
+    playoff_validation_warnings.append(
         "Second half was detected, but secondHalf standings are empty."
     )
 
@@ -1484,7 +2047,7 @@ for division_key in EXPECTED_DIVISIONS:
     )
 
     if actual_division_team_count != expected_division_team_count:
-        validation_warnings.append(
+        playoff_validation_warnings.append(
             f"Expected 5 teams in the {division_key} Division, "
             f"found {actual_division_team_count}."
         )
@@ -1493,7 +2056,7 @@ for division_key in EXPECTED_DIVISIONS:
         eligible_team_count = len(race.get("eligible_teams", []))
 
         if eligible_team_count != 4:
-            validation_warnings.append(
+            playoff_validation_warnings.append(
                 f"Expected 4 eligible teams in the {division_key} "
                 f"second-half race after excluding the first-half "
                 f"champion, found {eligible_team_count}."
@@ -1508,22 +2071,36 @@ playoff_state_valid = (
         active_half == 1
         or first_half_winner_divisions == EXPECTED_DIVISIONS
     )
-    and not validation_warnings
+    and not playoff_validation_warnings
 )
+
+validation_warnings = (
+    playoff_validation_warnings
+    + view_validation_warnings
+)
+
+
+# ---------------------------------------------------------------------------
+# Output
+# ---------------------------------------------------------------------------
+
 
 output = {
     "last_updated": datetime.now(timezone.utc).isoformat(),
     "season": season,
+    "model_version": POWER_MODEL_VERSION,
     "previous_games": previous_games,
 
     # Existing field retained for the current page.
     "data_source": "regularSeason",
 
-    # New split-season metadata.
     "standings_sources": {
+        # Legacy meaning retained: the default/top-level table is Overall.
         "power_index": "regularSeason",
+        "overall": "regularSeason",
         "first_half": "firstHalf",
         "second_half": "secondHalf",
+        "recent": "schedule_last_24",
         "active_half": "currentHalf",
     },
 
@@ -1572,18 +2149,40 @@ output = {
             first_half_winner_divisions
         ),
         "unknown_division_teams": unknown_division_teams,
+        "playoff_warnings": playoff_validation_warnings,
+        "view_game_selection_warnings": view_validation_warnings,
         "warnings": validation_warnings,
     },
 
+    "view_definitions": {
+        "overall": (
+            "All completed regular-season games for each team."
+        ),
+        "first_half": (
+            "Official first-half standings and each team's first "
+            "official first-half game count for schedule-based OWP."
+        ),
+        "second_half": (
+            "Official second-half standings and each team's most recent "
+            "official second-half game count for schedule-based OWP."
+        ),
+        "recent": (
+            "Each team's most recent up to 24 completed regular-season "
+            "games. Before 24 games have been played, all available games "
+            "are used. Once 24 are available, older games roll out as new "
+            "games are completed."
+        ),
+    },
+
     "trend_basis": (
-        "Rank arrows compare against the weekly baseline "
-        "snapshot from Monday or the first available "
+        "Within each view, rank arrows compare against that same view's "
+        "weekly baseline snapshot from Monday or the first available "
         "snapshot of the current week."
     ),
 
     "power_delta_basis": (
-        "Power delta compares against the same weekly "
-        "baseline snapshot used for rank arrows."
+        "Within each view, Power delta compares against the same weekly "
+        "baseline snapshot used for that view's rank arrows."
     ),
 
     "comparison_snapshot": (
@@ -1593,21 +2192,22 @@ output = {
 
     "power_formula": {
         "formula": (
-            "power_score = 50% Run Differential Per Game "
+            "raw_power_score = 50% Run Differential Per Game "
             "+ 25% Actual Winning Percentage "
             "+ 25% Average Opponent Winning Percentage"
         ),
         "diff": (
-            "Run Differential Per Game = "
-            "normalized run differential per game"
+            "Run Differential Per Game = normalized run differential "
+            "per game within the selected view"
         ),
         "actual_winning_percentage": (
-            "Actual Winning Percentage = "
-            "normalized current winning percentage"
+            "Actual Winning Percentage = normalized winning percentage "
+            "within the selected view"
         ),
         "opponent_strength": (
-            "Average Opponent Winning Percentage = "
-            "bounded-normalized against .450 to .550"
+            "Average Opponent Winning Percentage = opponents' winning "
+            "percentages within the same selected view, bounded-normalized "
+            "against .450 to .550"
         ),
     },
 
@@ -1615,9 +2215,12 @@ output = {
         "enabled": True,
         "previous_weight": POWER_SMOOTHING_PREVIOUS_WEIGHT,
         "raw_weight": POWER_SMOOTHING_RAW_WEIGHT,
+        "data_change_driven": True,
         "formula": (
-            "displayed_power_score = previous_power_score "
-            "* 0.75 + raw_power_score * 0.25"
+            "When a view's model inputs change: smoothed_power_score = "
+            "previous_smoothed_power_score * 0.75 + raw_power_score * 0.25. "
+            "When inputs do not change, the prior smoothed score is carried "
+            "forward unchanged."
         ),
     },
 
@@ -1627,7 +2230,11 @@ output = {
         "factor": POWER_COMPRESSION_FACTOR,
         "formula": (
             "power_score = 50 + "
-            "((displayed_power_score - 50) * 0.75)"
+            "((smoothed_power_score - 50) * 0.75)"
+        ),
+        "note": (
+            "Compression is applied once after smoothing and is not fed "
+            "back into the next smoothing step."
         ),
     },
 
@@ -1635,8 +2242,7 @@ output = {
         "enabled": True,
         "neutral_threshold": 0,
         "formula": (
-            "power_delta = "
-            "power_score - comparison_power_score"
+            "power_delta = power_score - comparison_power_score"
         ),
     },
 
@@ -1646,14 +2252,27 @@ output = {
         "lower_bound": OWP_LOWER_BOUND,
         "upper_bound": OWP_UPPER_BOUND,
         "formula": (
-            "OWP = average current winning percentage of all "
-            "opponents played, weighted by games played. "
-            "OWP score is bounded-normalized so .450 = 0, "
-            ".500 = 50, and .550 = 100."
+            "For each selected team game, use that opponent's winning "
+            "percentage from the same view, then average those opponent "
+            "values. Opponents are therefore weighted by games played. "
+            "OWP score is bounded-normalized so .450 = 0, .500 = 50, "
+            "and .550 = 100."
         ),
+        # Legacy field retained for the current page/debug output.
         "completed_games_used": len(completed_games),
+        "completed_regular_season_games_fetched": len(completed_games),
     },
 
+    "recent_window": {
+        "max_games_per_team": RECENT_MAX_GAMES,
+        "minimum_games_required": 0,
+        "rolling": True,
+    },
+
+    # New multi-view structure for the future tabbed interface.
+    "views": views,
+
+    # Backward-compatible alias: the current site can continue reading teams.
     "teams": teams,
 }
 
@@ -1671,6 +2290,7 @@ with history_path.open("w", encoding="utf-8") as f:
 print(f"\nWrote {OUTPUT_PATH}")
 print(f"Wrote {history_path}")
 print(f"Season: {season}")
+print(f"Model version: {POWER_MODEL_VERSION}")
 print(f"Active half: {active_half}")
 print(f"Active-half detection: {active_half_detection_method}")
 print(f"Detected divisions: {sorted(detected_divisions)}")
@@ -1681,13 +2301,25 @@ print(
 )
 print(f"Playoff state valid: {playoff_state_valid}")
 
+for view_key in VIEW_CONFIG:
+    view = views[view_key]
+    print(
+        f"View {view_key}: "
+        f"{len(view['teams'])} teams, "
+        f"{view['unique_games_selected']} unique selected games, "
+        f"data_changed={view['data_changed_since_previous_run']}"
+    )
+
 if validation_warnings:
     print("Validation warnings:")
 
     for warning in validation_warnings:
         print(f"- {warning}")
 
-print(f"Teams written: {len(teams)}")
+print(f"Teams written to legacy alias: {len(teams)}")
 print(f"Previous games written: {len(previous_games)}")
-print(f"Completed games used for OWP: {len(completed_games)}")
+print(
+    "Completed regular-season games fetched: "
+    f"{len(completed_games)}"
+)
 print(f"Last updated: {output['last_updated']}")
