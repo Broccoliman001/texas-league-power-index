@@ -10,7 +10,7 @@
 
   <meta
     name="description"
-    content="An independent analytics dashboard ranking all 10 teams in the Double-A Texas League using run differential, winning percentage, and opponent strength."
+    content="An independent analytics dashboard ranking all 10 Double-A Texas League teams and tracking the league\'s split-season playoff races."
   >
 
   <title>Texas League Power Index</title>
@@ -32,6 +32,9 @@
       --negative: #f87171;
       --accent: #38bdf8;
       --accent-soft: rgba(56, 189, 248, 0.1);
+      --positive-soft: rgba(34, 197, 94, 0.1);
+      --warning: #fbbf24;
+      --warning-soft: rgba(251, 191, 36, 0.1);
     }
 
     * {
@@ -253,14 +256,14 @@
       border-bottom: none;
     }
 
-    th:nth-child(4),
-    td:nth-child(4) {
+    .power-table th:nth-child(4),
+    .power-table td:nth-child(4) {
       min-width: 210px;
       white-space: normal;
     }
 
-    th:nth-child(10),
-    td:nth-child(10) {
+    .power-table th:nth-child(10),
+    .power-table td:nth-child(10) {
       min-width: 70px;
     }
 
@@ -292,6 +295,328 @@
 
     .legend-item strong {
       color: var(--text-secondary);
+    }
+
+
+    .team-cell-content {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .team-status-badge,
+    .race-status-badge,
+    .half-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 999px;
+
+      font-size: 0.7rem;
+      font-weight: bold;
+      letter-spacing: 0.04em;
+      line-height: 1;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .team-status-badge {
+      padding: 5px 7px;
+      color: var(--positive);
+      background: var(--positive-soft);
+      border: 1px solid rgba(34, 197, 94, 0.28);
+    }
+
+    .playoff-card {
+      margin-top: 24px;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .playoff-card > summary {
+      list-style: none;
+    }
+
+    .playoff-card > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .playoff-summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+
+      padding: 18px 20px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .playoff-summary:hover {
+      background: var(--card-background-hover);
+    }
+
+    .playoff-summary:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: -2px;
+    }
+
+    .playoff-summary-copy {
+      display: grid;
+      gap: 3px;
+    }
+
+    .playoff-summary-title {
+      color: var(--text-primary);
+      font-size: 1.35rem;
+      font-weight: bold;
+    }
+
+    .playoff-summary-meta {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      font-weight: normal;
+    }
+
+    .playoff-summary-toggle {
+      position: relative;
+      flex: 0 0 28px;
+      width: 28px;
+      height: 28px;
+
+      border: 1px solid var(--border-color);
+      border-radius: 999px;
+    }
+
+    .playoff-summary-toggle::before,
+    .playoff-summary-toggle::after {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+
+      width: 12px;
+      height: 2px;
+
+      background: var(--text-muted);
+      content: "";
+      transform: translate(-50%, -50%);
+      transition: transform 150ms ease;
+    }
+
+    .playoff-summary-toggle::after {
+      transform: translate(-50%, -50%) rotate(90deg);
+    }
+
+    .playoff-card[open] .playoff-summary-toggle::after {
+      transform: translate(-50%, -50%) rotate(0deg);
+    }
+
+    .playoff-content {
+      padding: 0 20px 20px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .playoff-intro {
+      margin: 16px 0;
+      color: var(--text-muted);
+      font-size: 0.92rem;
+    }
+
+    .playoff-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .division-race-card {
+      min-width: 0;
+      overflow: hidden;
+
+      background: var(--page-background);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+    }
+
+    .division-race-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+
+      padding: 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .division-race-header h3 {
+      margin: 0 0 3px;
+      font-size: 1.05rem;
+    }
+
+    .division-race-subtitle {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+    }
+
+    .half-badge {
+      padding: 6px 8px;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+    }
+
+    .clinched-berth {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+
+      margin: 14px;
+      padding: 12px;
+
+      background: var(--positive-soft);
+      border: 1px solid rgba(34, 197, 94, 0.24);
+      border-radius: 8px;
+    }
+
+    .clinched-icon {
+      display: inline-flex;
+      flex: 0 0 30px;
+      align-items: center;
+      justify-content: center;
+
+      width: 30px;
+      height: 30px;
+
+      color: var(--positive);
+      border: 1px solid rgba(34, 197, 94, 0.35);
+      border-radius: 999px;
+
+      font-weight: bold;
+    }
+
+    .clinched-copy {
+      display: grid;
+      min-width: 0;
+      gap: 1px;
+    }
+
+    .clinched-copy strong {
+      color: var(--text-primary);
+    }
+
+    .clinched-copy span {
+      color: var(--text-muted);
+      font-size: 0.78rem;
+    }
+
+    .race-table-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+
+      margin: 0 14px 8px;
+    }
+
+    .race-table-heading strong {
+      color: var(--text-secondary);
+      font-size: 0.88rem;
+    }
+
+    .race-table-heading span {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      text-align: right;
+    }
+
+    .playoff-table-scroll {
+      overflow-x: auto;
+    }
+
+    .playoff-table {
+      font-size: 0.84rem;
+    }
+
+    .playoff-table th,
+    .playoff-table td {
+      padding: 9px 8px;
+    }
+
+    .playoff-table th:first-child,
+    .playoff-table td:first-child {
+      padding-left: 14px;
+      width: 42px;
+      text-align: center;
+    }
+
+    .playoff-table th:last-child,
+    .playoff-table td:last-child {
+      padding-right: 14px;
+      text-align: right;
+    }
+
+    .playoff-table th:nth-child(3),
+    .playoff-table td:nth-child(3),
+    .playoff-table th:nth-child(4),
+    .playoff-table td:nth-child(4) {
+      text-align: right;
+    }
+
+    .playoff-table .race-leader {
+      background: var(--accent-soft);
+    }
+
+    .race-team-cell {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: normal;
+    }
+
+    .race-status-badge {
+      padding: 4px 6px;
+      color: var(--warning);
+      background: var(--warning-soft);
+      border: 1px solid rgba(251, 191, 36, 0.28);
+    }
+
+    .playoff-empty,
+    .playoff-warning {
+      margin: 14px;
+      padding: 12px;
+
+      color: var(--text-muted);
+      border: 1px dashed var(--border-color);
+      border-radius: 8px;
+
+      font-size: 0.86rem;
+    }
+
+    .playoff-warning {
+      color: var(--warning);
+      background: var(--warning-soft);
+      border-style: solid;
+      border-color: rgba(251, 191, 36, 0.28);
+    }
+
+    .playoff-source {
+      margin: 14px 0 0;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+    }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
 
     .previous-games-card h2 {
@@ -489,7 +814,8 @@
         position: static;
       }
 
-      .info-grid {
+      .info-grid,
+      .playoff-grid {
         grid-template-columns: 1fr;
       }
 
@@ -506,6 +832,18 @@
 
       .card {
         padding: 16px;
+      }
+
+      .playoff-card {
+        padding: 0;
+      }
+
+      .playoff-summary {
+        padding: 16px;
+      }
+
+      .playoff-content {
+        padding: 0 16px 16px;
       }
 
       .component-list {
@@ -552,7 +890,8 @@
         An independently developed analytics dashboard ranking all 10 teams in
         the Double-A Texas League, a professional Minor League Baseball circuit.
         The index combines full-season run differential, winning percentage,
-        and opponent strength to measure team quality beyond win-loss record alone.
+        and opponent strength to measure team quality beyond win-loss record alone,
+        while a separate playoff view tracks the league\'s split-season races.
       </p>
 
       <p
@@ -584,7 +923,9 @@
       <p>
         Unlike traditional standings, the index considers not only whether a team
         wins, but also how strongly it performs and the quality of the opponents
-        it has faced.
+        it has faced. The playoff section remains separate from the Power Index:
+        team quality uses the full season, while postseason position follows the
+        official first-half and second-half standings.
       </p>
 
     </section>
@@ -618,7 +959,7 @@
             tabindex="0"
           >
 
-            <table>
+            <table class="power-table">
 
               <thead>
                 <tr>
@@ -758,6 +1099,86 @@
           </div>
 
         </section>
+
+        <details
+          class="card playoff-card"
+          open
+        >
+
+          <summary class="playoff-summary">
+
+            <span class="playoff-summary-copy">
+
+              <span
+                id="playoff-race-heading"
+                class="playoff-summary-title"
+              >
+                Playoff Race
+              </span>
+
+              <span
+                id="playoff-summary-meta"
+                class="playoff-summary-meta"
+                aria-live="polite"
+              >
+                Loading split-season standings...
+              </span>
+
+            </span>
+
+            <span
+              class="playoff-summary-toggle"
+              aria-hidden="true"
+            ></span>
+
+          </summary>
+
+          <section
+            class="playoff-content"
+            aria-labelledby="playoff-race-heading"
+          >
+
+            <p class="playoff-intro">
+              The Power Index measures full-season team quality. Playoff berths
+              are tracked separately using the official standings for the active
+              half. During the second half, each first-half champion is shown as
+              already qualified and removed from the race for the remaining berth.
+            </p>
+
+            <div
+              id="playoff-races-body"
+              class="playoff-grid"
+              aria-live="polite"
+            >
+
+              <p class="loading-message">
+                Loading playoff races...
+              </p>
+
+            </div>
+
+            <p class="playoff-source">
+              Postseason format and standings context:
+              <a
+                href="https://www.milb.com/events/playoffs/procedures"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                official MiLB playoff procedures
+              </a>
+              and
+              <a
+                href="https://www.mlb.com/milb/standings/texas-league"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                official Texas League standings
+              </a>.
+            </p>
+
+          </section>
+
+        </details>
 
       </main>
 
@@ -933,13 +1354,15 @@
         <p>
           Current game and standings data are processed into a structured JSON
           dataset containing team records, run totals, expected records,
-          opponent strength, rating components, historical movement, and recent
-          game results.
+          opponent strength, rating components, historical movement, recent
+          game results, half-season standings, and playoff qualification state.
         </p>
 
         <p>
           The browser loads the latest dataset and dynamically renders the
-          rankings table, trend indicators, score changes, and completed games.
+          rankings table, trend indicators, score changes, completed games, and
+          the active playoff races. The page reads the current-half state from
+          the dataset, so no manual first-half or second-half switch is required.
           The responsive layout is designed to remain usable on desktop and
           mobile screens.
         </p>
@@ -981,6 +1404,352 @@
   </div>
 
   <script>
+    const escapeHtml = value => {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    };
+
+    const formatBerthBadge = team => {
+      if (!team?.playoff_clinched) {
+        return "";
+      }
+
+      const label =
+        team.berth_type === "FIRST_HALF_CHAMPION"
+          ? "1H Champ"
+          : team.berth_type === "SECOND_HALF_REPRESENTATIVE"
+            ? "2H Berth"
+            : "Clinched";
+
+      const description =
+        team.berth_type === "FIRST_HALF_CHAMPION"
+          ? "Clinched playoff berth as first-half champion"
+          : "Clinched playoff berth";
+
+      return `
+        <span
+          class="team-status-badge"
+          title="${escapeHtml(description)}"
+        >
+          ${escapeHtml(label)}
+        </span>
+      `;
+    };
+
+    const getRaceTitle = race => {
+      if (race?.race_type === "SECOND_HALF_BERTH") {
+        return "Open Second-Half Berth";
+      }
+
+      if (race?.race_type === "FIRST_HALF_BERTH") {
+        return "First-Half Berth Race";
+      }
+
+      return "Current Playoff Race";
+    };
+
+    const getHalfBadge = race => {
+      if (Number(race?.active_half) === 2) {
+        return "Second Half";
+      }
+
+      if (Number(race?.active_half) === 1) {
+        return "First Half";
+      }
+
+      return "Current";
+    };
+
+    const renderDivisionRace = (divisionKey, race) => {
+      if (!race) {
+        return `
+          <article class="division-race-card">
+            <div class="playoff-warning">
+              ${escapeHtml(divisionKey)} Division playoff data is unavailable.
+            </div>
+          </article>
+        `;
+      }
+
+      const clinchedTeam = race.clinched_team;
+      const eligibleTeams = Array.isArray(race.eligible_teams)
+        ? race.eligible_teams
+        : [];
+
+      const clinchedMarkup = clinchedTeam
+        ? `
+          <div class="clinched-berth">
+
+            <span
+              class="clinched-icon"
+              aria-hidden="true"
+            >
+              ✓
+            </span>
+
+            <span class="clinched-copy">
+
+              <strong>
+                ${escapeHtml(clinchedTeam.team || "Clinched team")}
+              </strong>
+
+              <span>
+                First-half champion
+                ${clinchedTeam.record
+                  ? ` · ${escapeHtml(clinchedTeam.record)}`
+                  : ""}
+              </span>
+
+            </span>
+
+          </div>
+        `
+        : "";
+
+      let raceBody;
+
+      if (!eligibleTeams.length) {
+        const message =
+          race.race_status === "FIRST_HALF_CLINCHED"
+            ? "The first-half berth has been clinched. The second-half race will appear when those standings begin."
+            : "No eligible standings are currently available for this division.";
+
+        raceBody = `
+          <div class="playoff-empty">
+            ${escapeHtml(message)}
+          </div>
+        `;
+      } else {
+        const rows = eligibleTeams
+          .map((team, index) => {
+            const isLeader = index === 0;
+            const statusBadge = team.officially_clinched
+              ? `
+                <span class="race-status-badge">
+                  Clinched
+                </span>
+              `
+              : isLeader
+                ? `
+                  <span class="race-status-badge">
+                    Leader
+                  </span>
+                `
+                : "";
+
+            const gamesBack =
+              team.eligible_games_back ??
+              team.games_back ??
+              "—";
+
+            return `
+              <tr class="${isLeader ? "race-leader" : ""}">
+
+                <td>
+                  ${escapeHtml(team.eligible_rank ?? index + 1)}
+                </td>
+
+                <td>
+
+                  <span class="race-team-cell">
+
+                    <span>
+                      ${escapeHtml(team.team || "Unknown team")}
+                    </span>
+
+                    ${statusBadge}
+
+                  </span>
+
+                </td>
+
+                <td>
+                  ${escapeHtml(team.record || "—")}
+                </td>
+
+                <td>
+                  ${escapeHtml(team.pct || "—")}
+                </td>
+
+                <td>
+                  ${escapeHtml(gamesBack)}
+                </td>
+
+              </tr>
+            `;
+          })
+          .join("");
+
+        const basisLabel =
+          race.open_berth_basis === "second_half_winning_percentage"
+            ? "Ranked by second-half PCT"
+            : race.open_berth_basis === "first_half_winning_percentage"
+              ? "Ranked by first-half PCT"
+              : "Ranked by current-half PCT";
+
+        raceBody = `
+          <div class="race-table-heading">
+
+            <strong>
+              Eligible standings
+            </strong>
+
+            <span>
+              ${escapeHtml(basisLabel)}
+            </span>
+
+          </div>
+
+          <div
+            class="playoff-table-scroll"
+            role="region"
+            aria-label="${escapeHtml(divisionKey)} Division playoff race table"
+            tabindex="0"
+          >
+
+            <table class="playoff-table">
+
+              <caption class="visually-hidden">
+                ${escapeHtml(divisionKey)} Division eligible playoff standings
+              </caption>
+
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Team</th>
+                  <th scope="col">Record</th>
+                  <th scope="col">PCT</th>
+                  <th scope="col">GB</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                ${rows}
+              </tbody>
+
+            </table>
+
+          </div>
+        `;
+      }
+
+      return `
+        <article class="division-race-card">
+
+          <header class="division-race-header">
+
+            <div>
+
+              <h3>
+                ${escapeHtml(divisionKey)} Division
+              </h3>
+
+              <p class="division-race-subtitle">
+                ${escapeHtml(getRaceTitle(race))}
+              </p>
+
+            </div>
+
+            <span class="half-badge">
+              ${escapeHtml(getHalfBadge(race))}
+            </span>
+
+          </header>
+
+          ${clinchedMarkup}
+          ${raceBody}
+
+        </article>
+      `;
+    };
+
+    const renderPlayoffRaces = data => {
+      const playoffBody =
+        document.getElementById("playoff-races-body");
+
+      const playoffSummary =
+        document.getElementById("playoff-summary-meta");
+
+      const validation = data.validation || {};
+      const races =
+        data.playoff_races &&
+        typeof data.playoff_races === "object"
+          ? data.playoff_races
+          : {};
+
+      const activeHalfLabel =
+        data.season_state?.active_half_label ||
+        "Current half";
+
+      if (validation.playoff_state_valid === false) {
+        const warnings = Array.isArray(validation.warnings)
+          ? validation.warnings
+          : [];
+
+        playoffSummary.textContent =
+          `${activeHalfLabel} · playoff data needs review`;
+
+        playoffBody.innerHTML = `
+          <div class="playoff-warning">
+            Playoff standings could not be validated.
+            ${
+              warnings.length
+                ? `<br>${warnings.map(escapeHtml).join("<br>")}`
+                : ""
+            }
+          </div>
+        `;
+
+        return;
+      }
+
+      const divisionOrder = ["North", "South"];
+      const availableDivisions = divisionOrder.filter(
+        division => races[division]
+      );
+
+      if (!availableDivisions.length) {
+        playoffSummary.textContent =
+          `${activeHalfLabel} · standings unavailable`;
+
+        playoffBody.innerHTML = `
+          <p class="playoff-empty">
+            No playoff-race data is currently available.
+          </p>
+        `;
+
+        return;
+      }
+
+      const clinchedTeams = availableDivisions
+        .map(division => races[division]?.clinched_team?.team)
+        .filter(Boolean);
+
+      if (clinchedTeams.length === 2) {
+        playoffSummary.textContent =
+          `${activeHalfLabel} · ${clinchedTeams.join(" and ")} already qualified`;
+      } else if (clinchedTeams.length === 1) {
+        playoffSummary.textContent =
+          `${activeHalfLabel} · ${clinchedTeams[0]} already qualified`;
+      } else {
+        playoffSummary.textContent =
+          `${activeHalfLabel} · division berth races`;
+      }
+
+      playoffBody.innerHTML = availableDivisions
+        .map(division =>
+          renderDivisionRace(
+            division,
+            races[division]
+          )
+        )
+        .join("");
+    };
+
     fetch("data/standings.json")
       .then(response => {
         if (!response.ok) {
@@ -992,7 +1761,9 @@
         return response.json();
       })
       .then(data => {
-        const tbody = document.getElementById("power-rankings-body");
+        const tbody =
+          document.getElementById("power-rankings-body");
+
         const previousGamesBody =
           document.getElementById("previous-games-body");
 
@@ -1053,54 +1824,96 @@
                 : team.diff ?? "—";
 
             row.innerHTML = `
-              <td>${team.rank ?? "—"}</td>
-
-              <td>${formattedPower}</td>
+              <td>
+                ${escapeHtml(team.rank ?? "—")}
+              </td>
 
               <td>
+                ${escapeHtml(formattedPower)}
+              </td>
+
+              <td>
+
                 <span
-                  class="${trendClass}"
-                  aria-label="Rank trend ${team.trend || "unchanged"}"
+                  class="${escapeHtml(trendClass)}"
+                  aria-label="Rank trend ${escapeHtml(
+                    team.trend || "unchanged"
+                  )}"
                 >
-                  ${team.trend || "→"}
+                  ${escapeHtml(team.trend || "→")}
                 </span>
 
                 <span
-                  class="${team.power_delta_class || "delta-neutral"}"
-                  aria-label="Power score change ${
+                  class="${escapeHtml(
+                    team.power_delta_class || "delta-neutral"
+                  )}"
+                  aria-label="Power score change ${escapeHtml(
                     team.power_delta_display || "0.0"
-                  }"
+                  )}"
                 >
-                  ${team.power_delta_display || "0.0"}
+                  ${escapeHtml(
+                    team.power_delta_display || "0.0"
+                  )}
                 </span>
+
               </td>
-
-              <td>${team.team || "Unknown team"}</td>
-
-              <td>${team.record || "—"}</td>
-
-              <td>${team.pct || "—"}</td>
-
-              <td>${team.rs ?? "—"}</td>
-
-              <td>${team.ra ?? "—"}</td>
-
-              <td class="${diffClass}">
-                ${formattedDiff}
-              </td>
-
-              <td>${team.xwl || "—"}</td>
-
-              <td>${team.last10 || "—"}</td>
 
               <td>
-                ${team.owp || team.opponent_win_pct || "—"}
+
+                <span class="team-cell-content">
+
+                  <span>
+                    ${escapeHtml(team.team || "Unknown team")}
+                  </span>
+
+                  ${formatBerthBadge(team)}
+
+                </span>
+
+              </td>
+
+              <td>
+                ${escapeHtml(team.record || "—")}
+              </td>
+
+              <td>
+                ${escapeHtml(team.pct || "—")}
+              </td>
+
+              <td>
+                ${escapeHtml(team.rs ?? "—")}
+              </td>
+
+              <td>
+                ${escapeHtml(team.ra ?? "—")}
+              </td>
+
+              <td class="${escapeHtml(diffClass)}">
+                ${escapeHtml(formattedDiff)}
+              </td>
+
+              <td>
+                ${escapeHtml(team.xwl || "—")}
+              </td>
+
+              <td>
+                ${escapeHtml(team.last10 || "—")}
+              </td>
+
+              <td>
+                ${escapeHtml(
+                  team.owp ||
+                  team.opponent_win_pct ||
+                  "—"
+                )}
               </td>
             `;
 
             tbody.appendChild(row);
           });
         }
+
+        renderPlayoffRaces(data);
 
         if (!previousGames.length) {
           previousGamesBody.innerHTML = `
@@ -1125,10 +1938,12 @@
                       awayWon ? "winner" : "loser"
                     }"
                   >
-                    <span>${game.away_team || "Away team"}</span>
+                    <span>
+                      ${escapeHtml(game.away_team || "Away team")}
+                    </span>
 
                     <span class="previous-game-score">
-                      ${game.away_score ?? "—"}
+                      ${escapeHtml(game.away_score ?? "—")}
                     </span>
                   </div>
 
@@ -1137,17 +1952,19 @@
                       homeWon ? "winner" : "loser"
                     }"
                   >
-                    <span>${game.home_team || "Home team"}</span>
+                    <span>
+                      ${escapeHtml(game.home_team || "Home team")}
+                    </span>
 
                     <span class="previous-game-score">
-                      ${game.home_score ?? "—"}
+                      ${escapeHtml(game.home_score ?? "—")}
                     </span>
                   </div>
 
                   <div class="previous-game-status">
-                    ${game.status || "Final"}
+                    ${escapeHtml(game.status || "Final")}
                     ·
-                    ${game.game_date || "Date unavailable"}
+                    ${escapeHtml(game.game_date || "Date unavailable")}
                   </div>
 
                 </article>
@@ -1168,6 +1985,15 @@
               Rankings could not be loaded. Please try again later.
             </td>
           </tr>
+        `;
+
+        document.getElementById("playoff-summary-meta").textContent =
+          "Playoff data unavailable";
+
+        document.getElementById("playoff-races-body").innerHTML = `
+          <p class="error-message">
+            Playoff races could not be loaded.
+          </p>
         `;
 
         document.getElementById("previous-games-body").innerHTML = `
