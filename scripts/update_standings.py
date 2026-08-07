@@ -865,6 +865,15 @@ def get_previous_smoothed_power(previous_team, fallback_raw_score):
     if not previous_team:
         return fallback_raw_score
 
+    # New snapshots retain an unrounded internal smoothing state so repeated
+    # runs with identical inputs never drift because of one-decimal storage.
+    value = previous_team.get("smoothed_power_state")
+
+    if value is not None:
+        return value
+
+    # Multiview snapshots created before the precision-state fix stored only
+    # the one-decimal debugging value. Use it once as the migration fallback.
     value = previous_team.get("smoothed_power_score")
 
     if value is not None:
@@ -1662,6 +1671,15 @@ def apply_power_index(
 
         if previous_team and not data_changed:
             smoothed_power_score = previous_smoothed_power_score
+
+            # If the underlying model inputs are unchanged, carry forward the
+            # exact previously published Power score. This prevents a repeated
+            # workflow run from moving a rating by 0.1 solely because an older
+            # snapshot stored the smoothing intermediate at one decimal place.
+            compressed_power_score = get_previous_display_power(
+                previous_team,
+                compress_power_score(smoothed_power_score),
+            )
         elif previous_team:
             smoothed_power_score = (
                 previous_smoothed_power_score
@@ -1669,14 +1687,16 @@ def apply_power_index(
                 + raw_power_score
                 * POWER_SMOOTHING_RAW_WEIGHT
             )
+            compressed_power_score = compress_power_score(
+                smoothed_power_score
+            )
         else:
             # New views begin from their current raw score rather than from an
             # arbitrary neutral value. Compression is still applied below.
             smoothed_power_score = raw_power_score
-
-        compressed_power_score = compress_power_score(
-            smoothed_power_score
-        )
+            compressed_power_score = compress_power_score(
+                smoothed_power_score
+            )
 
         previous_power_score = get_previous_display_power(
             previous_team,
@@ -1709,6 +1729,14 @@ def apply_power_index(
             1,
         )
         team["raw_power_score"] = round(raw_power_score, 1)
+
+        # Preserve the smoothing state at full floating-point precision for
+        # the next run. The *_score fields remain rounded for readable JSON
+        # and debugging, but they are no longer used as the primary state.
+        team["previous_smoothed_power_state"] = (
+            previous_smoothed_power_score
+        )
+        team["smoothed_power_state"] = smoothed_power_score
         team["previous_smoothed_power_score"] = round(
             previous_smoothed_power_score,
             1,
@@ -1717,6 +1745,7 @@ def apply_power_index(
             smoothed_power_score,
             1,
         )
+
         # Retain the old field name as an alias for compatibility/debugging.
         team["displayed_power_score"] = round(
             smoothed_power_score,
@@ -2216,11 +2245,17 @@ output = {
         "previous_weight": POWER_SMOOTHING_PREVIOUS_WEIGHT,
         "raw_weight": POWER_SMOOTHING_RAW_WEIGHT,
         "data_change_driven": True,
+        "full_precision_state": True,
         "formula": (
             "When a view's model inputs change: smoothed_power_score = "
             "previous_smoothed_power_score * 0.75 + raw_power_score * 0.25. "
-            "When inputs do not change, the prior smoothed score is carried "
-            "forward unchanged."
+            "When inputs do not change, the prior smoothed state and exact "
+            "published Power score are carried forward unchanged."
+        ),
+        "state_note": (
+            "The internal smoothed_power_state is stored without display "
+            "rounding. One-decimal smoothed_power_score remains available "
+            "for readability and debugging."
         ),
     },
 
