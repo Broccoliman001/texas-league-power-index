@@ -1404,8 +1404,11 @@
         <p>
           <strong>OWP</strong> stands for Average Opponent Winning Percentage.
           It measures schedule strength by averaging each opponent's winning
-          percentage from the same selected view, weighted by the number of games
-          played against that opponent.
+          percentage from the same selected view after excluding games that
+          opponent played against the team being evaluated. Opponents are still
+          weighted by the number of games played against them. This prevents a
+          team's own wins or losses from directly changing the schedule-strength
+          credit it receives.
         </p>
 
         <h3>
@@ -1446,8 +1449,10 @@
           </li>
 
           <li>
-            Scores are smoothed within each view using previously published
-            ratings to reduce excessive movement from a single new result.
+            Overall, First Half, and Second Half are smoothed using previously
+            published ratings to reduce excessive movement from a single new
+            result. Recent is not additionally smoothed because its rolling
+            24-game window already provides temporal smoothing.
           </li>
 
           <li>
