@@ -12,6 +12,7 @@ STANDINGS_URL = (
     "&leagueId={league_id}"
     "&season={season}"
     "&standingsTypes={standings_type}"
+    "&hydrate=division"
 )
 
 SCHEDULE_URL = (
@@ -58,6 +59,31 @@ TEAM_NAMES = {
 }
 
 
+# The standings endpoint normally returns hydrated division names because the
+# request includes hydrate=division. These IDs and team assignments are
+# defensive fallbacks for API responses that contain only division IDs or omit
+# division metadata, as occurred in the August 2026 response.
+DIVISION_ID_KEYS = {
+    241: "North",
+    242: "South",
+}
+
+TEAM_DIVISIONS_BY_ID = {
+    574: "North",   # Arkansas Travelers
+    1350: "North",  # Northwest Arkansas Naturals
+    440: "North",   # Springfield Cardinals
+    260: "North",   # Tulsa Drillers
+    3898: "North",  # Wichita Wind Surge
+    5368: "South",  # Amarillo Sod Poodles
+    482: "South",   # Corpus Christi Hooks
+    540: "South",   # Frisco RoughRiders
+    237: "South",   # Midland RockHounds
+    510: "South",   # San Antonio Missions
+}
+
+EXPECTED_DIVISIONS = {"North", "South"}
+
+
 # ---------------------------------------------------------------------------
 # General helpers
 # ---------------------------------------------------------------------------
@@ -85,7 +111,11 @@ def safe_int(value, default=999):
         return default
 
 
-def get_division_key(division_name):
+def get_division_key(
+    division_name=None,
+    division_id=None,
+    team_id=None,
+):
     normalized_name = (division_name or "").strip().lower()
 
     if "north" in normalized_name:
@@ -94,7 +124,23 @@ def get_division_key(division_name):
     if "south" in normalized_name:
         return "South"
 
-    return (division_name or "Unknown").strip() or "Unknown"
+    if division_id in DIVISION_ID_KEYS:
+        return DIVISION_ID_KEYS[division_id]
+
+    if team_id in TEAM_DIVISIONS_BY_ID:
+        return TEAM_DIVISIONS_BY_ID[team_id]
+
+    return "Unknown"
+
+
+def get_division_display_name(division_key, division_name=None):
+    if division_name:
+        return division_name
+
+    if division_key in EXPECTED_DIVISIONS:
+        return f"Texas League {division_key}"
+
+    return ""
 
 
 def get_record_values(team_data):
@@ -253,13 +299,24 @@ def build_standings_lookup(data):
     for division_record in data.get("records", []):
         division_data = division_record.get("division", {})
         division_name = division_data.get("name", "")
-        division_key = get_division_key(division_name)
+        division_id = division_data.get("id")
 
         for team_data in division_record.get("teamRecords", []):
             team_id = team_data.get("team", {}).get("id")
 
             if team_id is None:
                 continue
+
+            division_key = get_division_key(
+                division_name=division_name,
+                division_id=division_id,
+                team_id=team_id,
+            )
+
+            resolved_division_name = get_division_display_name(
+                division_key,
+                division_name,
+            )
 
             values = get_record_values(team_data)
 
@@ -269,8 +326,8 @@ def build_standings_lookup(data):
                     team_data.get("team", {}).get("name", "Unknown")
                 ),
                 "division": division_key,
-                "division_name": division_name,
-                "division_id": division_data.get("id"),
+                "division_name": resolved_division_name,
+                "division_id": division_id,
                 "wins": values["wins"],
                 "losses": values["losses"],
                 "games": values["games"],
@@ -357,48 +414,43 @@ def sort_standings_rows(rows):
     )
 
 
-def find_first_half_winners(first_half_data, active_half):
+def find_first_half_winners(first_half_lookup, active_half):
     winners = {}
+    rows_by_division = {}
 
-    for division_record in first_half_data.get("records", []):
-        division_name = division_record.get("division", {}).get(
-            "name",
-            "",
-        )
-        division_key = get_division_key(division_name)
+    for team in first_half_lookup.values():
+        division_key = team.get("division", "Unknown")
 
-        team_rows = []
+        row = {
+            "team_id": team["team_id"],
+            "team": team["team"],
+            "division": division_key,
+            "division_name": team.get("division_name", ""),
+            "division_id": team.get("division_id"),
+            "wins": team["wins"],
+            "losses": team["losses"],
+            "record": team["record"],
+            "pct": team["pct"],
+            "pct_num": team["pct_num"],
+            "division_rank": team.get("division_rank"),
+            "division_rank_num": team.get(
+                "division_rank_num",
+                999,
+            ),
+            "clinch_indicator": team.get("clinch_indicator"),
+            "officially_clinched": team.get(
+                "officially_clinched",
+                False,
+            ),
+        }
 
-        for team_data in division_record.get("teamRecords", []):
-            team_id = team_data.get("team", {}).get("id")
+        rows_by_division.setdefault(
+            division_key,
+            [],
+        ).append(row)
 
-            if team_id is None:
-                continue
-
-            values = get_record_values(team_data)
-
-            team_rows.append({
-                "team_id": team_id,
-                "team": normalize_team_name(
-                    team_data.get("team", {}).get("name", "Unknown")
-                ),
-                "division": division_key,
-                "wins": values["wins"],
-                "losses": values["losses"],
-                "record": values["record"],
-                "pct": values["pct"],
-                "pct_num": values["pct_num"],
-                "division_rank": team_data.get("divisionRank"),
-                "division_rank_num": safe_int(
-                    team_data.get("divisionRank")
-                ),
-                "clinch_indicator": team_data.get("clinchIndicator"),
-                "officially_clinched": has_official_clinch_marker(
-                    team_data
-                ),
-            })
-
-        if not team_rows:
+    for division_key, team_rows in rows_by_division.items():
+        if division_key == "Unknown" or not team_rows:
             continue
 
         ranked_rows = sort_standings_rows(team_rows)
@@ -411,8 +463,10 @@ def find_first_half_winners(first_half_data, active_half):
         source = None
 
         if official_rows:
+            # First-half standings use the marker to identify the team that
+            # secured the first-half berth.
             winner = official_rows[0]
-            source = "official_clinch_indicator"
+            source = "official_first_half_clinch_indicator"
 
         elif active_half == 2:
             # Once the second half is active, the first-half standings are
@@ -461,7 +515,7 @@ def build_eligible_race_rows(rows, excluded_team_id=None):
 
 
 def build_playoff_races(
-    regular_season_data,
+    regular_season_lookup,
     first_half_lookup,
     second_half_lookup,
     current_half_lookup,
@@ -469,19 +523,33 @@ def build_playoff_races(
     active_half,
 ):
     races = {}
+    division_team_ids = {}
 
-    for division_record in regular_season_data.get("records", []):
-        division_name = division_record.get("division", {}).get(
-            "name",
-            "",
+    for team_id, team in regular_season_lookup.items():
+        division_key = team.get("division", "Unknown")
+
+        division_team_ids.setdefault(
+            division_key,
+            set(),
+        ).add(team_id)
+
+    for division_key, team_ids in division_team_ids.items():
+        if division_key == "Unknown":
+            continue
+
+        representative_team = next(
+            (
+                regular_season_lookup[team_id]
+                for team_id in team_ids
+                if team_id in regular_season_lookup
+            ),
+            {},
         )
-        division_key = get_division_key(division_name)
 
-        division_team_ids = {
-            team_data.get("team", {}).get("id")
-            for team_data in division_record.get("teamRecords", [])
-        }
-        division_team_ids.discard(None)
+        division_name = representative_team.get(
+            "division_name",
+            get_division_display_name(division_key),
+        )
 
         first_half_winner = first_half_winners.get(division_key)
 
@@ -498,10 +566,6 @@ def build_playoff_races(
             standings_type = "firstHalf"
             race_type = "FIRST_HALF_BERTH"
             source_lookup = first_half_lookup
-
-            # If the first-half berth has officially been clinched but the
-            # currentHalf endpoint has not switched yet, stop presenting an
-            # open first-half race.
             excluded_team_id = None
 
         else:
@@ -513,7 +577,7 @@ def build_playoff_races(
         division_rows = [
             team
             for team_id, team in source_lookup.items()
-            if team_id in division_team_ids
+            if team_id in team_ids
         ]
 
         first_half_complete_waiting_for_second = (
@@ -530,10 +594,27 @@ def build_playoff_races(
                 division_rows,
                 excluded_team_id=excluded_team_id,
             )
-            race_status = (
-                "ACTIVE"
-                if eligible_rows else "DATA_UNAVAILABLE"
-            )
+
+            eligible_clinched_rows = [
+                row
+                for row in eligible_rows
+                if row.get("officially_clinched")
+            ]
+
+            if (
+                active_half == 2
+                and eligible_clinched_rows
+            ):
+                # A marker on an eligible team can represent the secured
+                # second-half berth. The first-half champion has already
+                # been excluded, preventing its persistent asterisk from
+                # being mistaken for a second-half clinch.
+                race_status = "SECOND_HALF_CLINCHED"
+            else:
+                race_status = (
+                    "ACTIVE"
+                    if eligible_rows else "DATA_UNAVAILABLE"
+                )
 
         open_berth_leader = (
             eligible_rows[0]
@@ -577,10 +658,25 @@ def build_team_playoff_state(playoff_races):
                 "active_race_games_back": None,
             }
 
+        second_half_clinched = (
+            race.get("race_status") == "SECOND_HALF_CLINCHED"
+        )
+        open_berth_leader = race.get("open_berth_leader")
+
         for row in race.get("eligible_teams", []):
+            row_has_second_half_berth = (
+                second_half_clinched
+                and open_berth_leader is not None
+                and row["team_id"] == open_berth_leader["team_id"]
+            )
+
             state_by_team_id[row["team_id"]] = {
-                "playoff_clinched": False,
-                "berth_type": "NONE",
+                "playoff_clinched": row_has_second_half_berth,
+                "berth_type": (
+                    "SECOND_HALF_REPRESENTATIVE"
+                    if row_has_second_half_berth
+                    else "NONE"
+                ),
                 "active_race_eligible": True,
                 "active_race_rank": row.get("eligible_rank"),
                 "active_race_games_back": row.get(
@@ -954,12 +1050,12 @@ active_half, active_half_detection_method = detect_active_half(
 )
 
 first_half_winners = find_first_half_winners(
-    first_half_data,
+    first_half_lookup,
     active_half,
 )
 
 playoff_races = build_playoff_races(
-    regular_season_data,
+    regular_season_lookup,
     first_half_lookup,
     second_half_lookup,
     current_half_lookup,
@@ -1031,11 +1127,12 @@ previous_games = get_previous_games(texas_league_team_ids)
 teams = []
 
 for division in regular_season_data.get("records", []):
-    division_name = division.get("division", {}).get("name", "")
-    division_key = get_division_key(division_name)
-
     for team_data in division.get("teamRecords", []):
         team_id = team_data["team"]["id"]
+
+        regular_record = regular_season_lookup.get(team_id, {})
+        division_key = regular_record.get("division", "Unknown")
+        division_name = regular_record.get("division_name", "")
 
         wins = team_data["wins"]
         losses = team_data["losses"]
@@ -1095,23 +1192,11 @@ for division in regular_season_data.get("records", []):
             ) == team_id
         )
 
-        second_half_officially_clinched = (
-            second_half_record.get("officially_clinched", False)
-            if second_half_record else False
-        )
-
-        playoff_clinched = (
-            playoff_state["playoff_clinched"]
-            or second_half_officially_clinched
-        )
-
+        # The asterisk carried in secondHalf/currentHalf standings identifies
+        # a previously secured first-half berth. It must not be interpreted as
+        # proof that a team has clinched the second-half berth.
+        playoff_clinched = playoff_state["playoff_clinched"]
         berth_type = playoff_state["berth_type"]
-
-        if (
-            berth_type == "NONE"
-            and second_half_officially_clinched
-        ):
-            berth_type = "SECOND_HALF_REPRESENTATIVE"
 
         team = {
             "team_id": team_id,
@@ -1330,8 +1415,17 @@ regular_team_count = len(regular_season_lookup)
 first_half_team_count = len(first_half_lookup)
 second_half_team_count = len(second_half_lookup)
 current_half_team_count = len(current_half_lookup)
-division_count = len(playoff_races)
+
+detected_divisions = set(playoff_races)
+first_half_winner_divisions = set(first_half_winners)
+division_count = len(detected_divisions)
 first_half_winner_count = len(first_half_winners)
+
+unknown_division_teams = sorted(
+    team["team"]
+    for team in teams
+    if team.get("division") == "Unknown"
+)
 
 if regular_team_count != expected_team_count:
     validation_warnings.append(
@@ -1339,15 +1433,31 @@ if regular_team_count != expected_team_count:
         f"found {regular_team_count}."
     )
 
+if unknown_division_teams:
+    validation_warnings.append(
+        "Could not resolve a division for: "
+        + ", ".join(unknown_division_teams)
+        + "."
+    )
+
+if detected_divisions != EXPECTED_DIVISIONS:
+    validation_warnings.append(
+        "Expected playoff races for North and South, but detected "
+        f"{sorted(detected_divisions)}."
+    )
+
 if active_half is None:
     validation_warnings.append(
         "The active half could not be determined."
     )
 
-if active_half == 2 and first_half_winner_count != division_count:
+if (
+    active_half == 2
+    and first_half_winner_divisions != EXPECTED_DIVISIONS
+):
     validation_warnings.append(
         "Second half was detected, but the script did not identify "
-        "one first-half winner in every division."
+        "the first-half champions for both North and South."
     )
 
 if active_half == 1 and first_half_team_count == 0:
@@ -1360,13 +1470,45 @@ if active_half == 2 and second_half_team_count == 0:
         "Second half was detected, but secondHalf standings are empty."
     )
 
+for division_key in EXPECTED_DIVISIONS:
+    race = playoff_races.get(division_key)
+
+    if not race:
+        continue
+
+    expected_division_team_count = 5
+    actual_division_team_count = sum(
+        1
+        for team in teams
+        if team.get("division") == division_key
+    )
+
+    if actual_division_team_count != expected_division_team_count:
+        validation_warnings.append(
+            f"Expected 5 teams in the {division_key} Division, "
+            f"found {actual_division_team_count}."
+        )
+
+    if active_half == 2:
+        eligible_team_count = len(race.get("eligible_teams", []))
+
+        if eligible_team_count != 4:
+            validation_warnings.append(
+                f"Expected 4 eligible teams in the {division_key} "
+                f"second-half race after excluding the first-half "
+                f"champion, found {eligible_team_count}."
+            )
+
 playoff_state_valid = (
     regular_team_count == expected_team_count
     and active_half in (1, 2)
+    and detected_divisions == EXPECTED_DIVISIONS
+    and not unknown_division_teams
     and (
         active_half == 1
-        or first_half_winner_count == division_count
+        or first_half_winner_divisions == EXPECTED_DIVISIONS
     )
+    and not validation_warnings
 )
 
 output = {
@@ -1423,7 +1565,13 @@ output = {
         "second_half_team_count": second_half_team_count,
         "current_half_team_count": current_half_team_count,
         "division_count": division_count,
+        "detected_divisions": sorted(detected_divisions),
+        "expected_divisions": sorted(EXPECTED_DIVISIONS),
         "first_half_winner_count": first_half_winner_count,
+        "first_half_winner_divisions": sorted(
+            first_half_winner_divisions
+        ),
+        "unknown_division_teams": unknown_division_teams,
         "warnings": validation_warnings,
     },
 
@@ -1525,7 +1673,12 @@ print(f"Wrote {history_path}")
 print(f"Season: {season}")
 print(f"Active half: {active_half}")
 print(f"Active-half detection: {active_half_detection_method}")
+print(f"Detected divisions: {sorted(detected_divisions)}")
 print(f"First-half winners found: {first_half_winner_count}")
+print(
+    "First-half winner divisions: "
+    f"{sorted(first_half_winner_divisions)}"
+)
 print(f"Playoff state valid: {playoff_state_valid}")
 
 if validation_warnings:
