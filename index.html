@@ -258,8 +258,8 @@
 
     .power-table th:nth-child(4),
     .power-table td:nth-child(4) {
-      min-width: 210px;
-      white-space: normal;
+      min-width: 235px;
+      white-space: nowrap;
     }
 
     .power-table th:nth-child(10),
@@ -300,7 +300,7 @@
 
     .team-cell-content {
       display: flex;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       align-items: center;
       gap: 7px;
     }
@@ -1420,20 +1420,23 @@
 
       const label =
         team.berth_type === "FIRST_HALF_CHAMPION"
-          ? "1H Champ"
+          ? "1H"
           : team.berth_type === "SECOND_HALF_REPRESENTATIVE"
-            ? "2H Berth"
+            ? "2H"
             : "Clinched";
 
       const description =
         team.berth_type === "FIRST_HALF_CHAMPION"
-          ? "Clinched playoff berth as first-half champion"
-          : "Clinched playoff berth";
+          ? "First-half champion — playoff berth clinched"
+          : team.berth_type === "SECOND_HALF_REPRESENTATIVE"
+            ? "Second-half representative — playoff berth clinched"
+            : "Playoff berth clinched";
 
       return `
         <span
           class="team-status-badge"
           title="${escapeHtml(description)}"
+          aria-label="${escapeHtml(description)}"
         >
           ${escapeHtml(label)}
         </span>
