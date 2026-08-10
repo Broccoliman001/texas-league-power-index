@@ -1,7 +1,10 @@
 import hashlib
 import json
+import math
+import random
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 import requests
 
 SPORT_ID = 12
@@ -54,6 +57,46 @@ RECENT_MAX_GAMES = 24
 POWER_MODEL_VERSION = "2026-08-multiview-v2"
 OWP_EXCLUDE_HEAD_TO_HEAD = True
 RECENT_POWER_SMOOTHING_ENABLED = False
+
+# Playoff forecast settings. The forecast is intentionally downstream from the
+# Power Index: it never changes a Power score. It combines the current raw
+# signals from three views, translates comparative strength into game-level
+# win probabilities, then simulates the remaining regular-season schedule.
+PLAYOFF_FORECAST_ENABLED = True
+PLAYOFF_FORECAST_MODEL_VERSION = "2026-08-playoff-v1"
+PLAYOFF_FORECAST_SIMULATIONS = 100_000
+
+PLAYOFF_FORECAST_VIEW_WEIGHTS = {
+    "recent": 0.50,
+    "second_half": 0.35,
+    "overall": 0.15,
+}
+
+# Forecast strength is stored on a readable 0-100-ish scale centered on 50.
+# The actual matchup model uses the underlying standardized z-score.
+PLAYOFF_FORECAST_POINTS_PER_Z = 15.0
+
+# A one-standard-deviation forecast-strength advantage contributes 0.40 to the
+# Bradley-Terry/logistic matchup log-odds. This is deliberately conservative
+# and is marked as provisional in the output until historical backtesting can
+# calibrate it from out-of-sample Texas League results.
+PLAYOFF_FORECAST_LOGIT_PER_Z = 0.40
+
+# Prevent a current-form rating from producing implausibly certain single-game
+# probabilities in a developmental league with substantial roster movement.
+PLAYOFF_FORECAST_MIN_GAME_WIN_PROB = 0.20
+PLAYOFF_FORECAST_MAX_GAME_WIN_PROB = 0.80
+
+# Home-field advantage is estimated from the current season's completed Texas
+# League games and shrunk toward .500 with this neutral prior.
+HOME_FIELD_PRIOR_GAMES = 100
+HOME_FIELD_PRIOR_WIN_PCT = 0.500
+
+# All Texas League clubs play in the Central Time Zone. Using league-local time
+# avoids a Sunday-night update being treated as Monday merely because UTC has
+# crossed midnight.
+LEAGUE_TIMEZONE_NAME = "America/Chicago"
+LEAGUE_TIMEZONE = ZoneInfo(LEAGUE_TIMEZONE_NAME)
 
 VIEW_CONFIG = {
     "overall": {
@@ -1810,6 +1853,7 @@ def apply_power_index(
             opponent_strength_score,
             1,
         )
+        team["raw_power_state"] = raw_power_score
         team["raw_power_score"] = round(raw_power_score, 1)
         team["smoothing_enabled"] = smoothing["enabled"]
 
@@ -1877,12 +1921,1193 @@ def apply_power_index(
     return teams, data_changed
 
 
+
+# ---------------------------------------------------------------------------
+# Playoff forecast helpers
+# ---------------------------------------------------------------------------
+
+
+def fetch_remaining_regular_season_games(
+    texas_league_team_ids,
+    start_date,
+    season,
+):
+    """
+    Fetch non-final Texas League regular-season games from start_date through
+    the end of the calendar year. The API range is intentionally wider than
+    the known regular-season window so the script does not need a hard-coded
+    season-ending date; postseason games are removed by gameType.
+    """
+    remaining_games = []
+    seen_game_pks = set()
+    end_date = f"{season}-12-31"
+
+    url = SCHEDULE_RANGE_URL.format(
+        sport_id=SPORT_ID,
+        league_id=LEAGUE_ID,
+        start_date=start_date,
+        end_date=end_date,
+    )
+
+    print("\nFetching remaining regular-season schedule:")
+    print(url)
+
+    try:
+        response = requests.get(url, timeout=30)
+        response.raise_for_status()
+        data = response.json()
+
+    except Exception as e:
+        raise RuntimeError(
+            f"Could not fetch remaining Texas League schedule: {e}"
+        ) from e
+
+    excluded_detailed_states = {
+        "cancelled",
+        "canceled",
+        "postponed",
+    }
+
+    for date_block in data.get("dates", []):
+        date_block_date = date_block.get("date")
+
+        for game in date_block.get("games", []):
+            game_pk = game.get("gamePk")
+
+            if game_pk in seen_game_pks:
+                continue
+
+            game_type = game.get("gameType")
+
+            # MLB StatsAPI uses R for regular-season games.
+            if game_type not in (None, "R"):
+                continue
+
+            status = game.get("status", {})
+            abstract_state = status.get("abstractGameState", "")
+            detailed_state = status.get("detailedState", "")
+
+            if abstract_state == "Final":
+                continue
+
+            if detailed_state.strip().lower() in excluded_detailed_states:
+                continue
+
+            away = game.get("teams", {}).get("away", {})
+            home = game.get("teams", {}).get("home", {})
+
+            away_team_data = away.get("team", {})
+            home_team_data = home.get("team", {})
+
+            away_team_id = away_team_data.get("id")
+            home_team_id = home_team_data.get("id")
+
+            if (
+                away_team_id not in texas_league_team_ids
+                or home_team_id not in texas_league_team_ids
+            ):
+                continue
+
+            remaining_games.append({
+                "game_pk": game_pk,
+                "game_date": date_block_date,
+                "game_datetime": game.get("gameDate"),
+                "game_number": game.get("gameNumber", 1),
+                "game_type": game_type,
+                "status": detailed_state or abstract_state or "Scheduled",
+                "abstract_state": abstract_state,
+                "away_team_id": away_team_id,
+                "away_team": normalize_team_name(
+                    away_team_data.get("name", "Away")
+                ),
+                "home_team_id": home_team_id,
+                "home_team": normalize_team_name(
+                    home_team_data.get("name", "Home")
+                ),
+            })
+
+            seen_game_pks.add(game_pk)
+
+    remaining_games.sort(key=game_sort_key)
+
+    print(
+        "Remaining regular-season Texas League games fetched: "
+        f"{len(remaining_games)}"
+    )
+
+    return remaining_games
+
+
+def build_remaining_schedule_fingerprint(remaining_games):
+    payload = [
+        {
+            "game_pk": game.get("game_pk"),
+            "game_date": game.get("game_date"),
+            "game_datetime": game.get("game_datetime"),
+            "game_number": game.get("game_number"),
+            "away_team_id": game.get("away_team_id"),
+            "home_team_id": game.get("home_team_id"),
+            "status": game.get("status"),
+        }
+        for game in remaining_games
+    ]
+
+    serialized = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
+
+def standardize_team_values(team_value_map):
+    if not team_value_map:
+        return {}
+
+    values = list(team_value_map.values())
+    mean_value = sum(values) / len(values)
+    variance = sum(
+        (value - mean_value) ** 2
+        for value in values
+    ) / len(values)
+
+    standard_deviation = math.sqrt(variance)
+
+    if standard_deviation <= 1e-12:
+        return {
+            team_id: 0.0
+            for team_id in team_value_map
+        }
+
+    return {
+        team_id: (value - mean_value) / standard_deviation
+        for team_id, value in team_value_map.items()
+    }
+
+
+def build_playoff_forecast_strengths(views):
+    """
+    Combine raw, unsmoothed Power signals after standardizing each view across
+    the league. Independent view normalization means raw scores from different
+    views should not be averaged directly without this standardization step.
+    """
+    view_z_scores = {}
+    raw_values_by_view = {}
+
+    for view_key, weight in PLAYOFF_FORECAST_VIEW_WEIGHTS.items():
+        view = views.get(view_key, {})
+        teams = view.get("teams", [])
+
+        values = {
+            team["team_id"]: float(
+                team.get(
+                    "raw_power_state",
+                    team.get("raw_power_score", 50.0),
+                )
+            )
+            for team in teams
+        }
+
+        raw_values_by_view[view_key] = values
+        view_z_scores[view_key] = standardize_team_values(values)
+
+    team_ids = set()
+
+    for values in raw_values_by_view.values():
+        team_ids.update(values)
+
+    strengths = {}
+
+    for team_id in team_ids:
+        weighted_z = 0.0
+        weight_used = 0.0
+        components = {}
+
+        for view_key, weight in PLAYOFF_FORECAST_VIEW_WEIGHTS.items():
+            if team_id not in view_z_scores.get(view_key, {}):
+                continue
+
+            z_value = view_z_scores[view_key][team_id]
+            weighted_z += weight * z_value
+            weight_used += weight
+
+            components[view_key] = {
+                "weight": weight,
+                "raw_power": round(
+                    raw_values_by_view[view_key][team_id],
+                    4,
+                ),
+                "z_score": round(z_value, 6),
+            }
+
+        if weight_used > 0:
+            weighted_z /= weight_used
+
+        display_strength = (
+            50.0
+            + PLAYOFF_FORECAST_POINTS_PER_Z * weighted_z
+        )
+
+        strengths[team_id] = {
+            "forecast_z": weighted_z,
+            "forecast_strength": display_strength,
+            "components": components,
+        }
+
+    return strengths
+
+
+def estimate_home_field_advantage(completed_games):
+    decisions = 0
+    home_wins = 0
+
+    for game in completed_games:
+        away_score = game.get("away_score")
+        home_score = game.get("home_score")
+
+        if away_score is None or home_score is None:
+            continue
+
+        if away_score == home_score:
+            continue
+
+        decisions += 1
+
+        if home_score > away_score:
+            home_wins += 1
+
+    empirical_pct = (
+        home_wins / decisions
+        if decisions else 0.500
+    )
+
+    prior_home_wins = (
+        HOME_FIELD_PRIOR_GAMES
+        * HOME_FIELD_PRIOR_WIN_PCT
+    )
+
+    shrunk_pct = (
+        (home_wins + prior_home_wins)
+        / (decisions + HOME_FIELD_PRIOR_GAMES)
+        if decisions + HOME_FIELD_PRIOR_GAMES > 0
+        else 0.500
+    )
+
+    # Protect the logit from an impossible 0 or 1 value.
+    shrunk_pct = max(0.001, min(0.999, shrunk_pct))
+
+    home_logit = math.log(
+        shrunk_pct / (1.0 - shrunk_pct)
+    )
+
+    return {
+        "completed_games": decisions,
+        "home_wins": home_wins,
+        "empirical_home_win_pct": empirical_pct,
+        "shrunk_home_win_pct": shrunk_pct,
+        "home_logit": home_logit,
+    }
+
+
+def logistic(value):
+    if value >= 0:
+        exponent = math.exp(-value)
+        return 1.0 / (1.0 + exponent)
+
+    exponent = math.exp(value)
+    return exponent / (1.0 + exponent)
+
+
+def calculate_matchup_probabilities(
+    remaining_games,
+    forecast_strengths,
+    home_field,
+):
+    games_with_probabilities = []
+
+    for game in remaining_games:
+        away_team_id = game["away_team_id"]
+        home_team_id = game["home_team_id"]
+
+        away_strength = forecast_strengths.get(
+            away_team_id,
+            {"forecast_z": 0.0},
+        )
+        home_strength = forecast_strengths.get(
+            home_team_id,
+            {"forecast_z": 0.0},
+        )
+
+        strength_logit = (
+            PLAYOFF_FORECAST_LOGIT_PER_Z
+            * (
+                home_strength["forecast_z"]
+                - away_strength["forecast_z"]
+            )
+        )
+
+        home_win_probability = logistic(
+            strength_logit + home_field["home_logit"]
+        )
+
+        home_win_probability = max(
+            PLAYOFF_FORECAST_MIN_GAME_WIN_PROB,
+            min(
+                PLAYOFF_FORECAST_MAX_GAME_WIN_PROB,
+                home_win_probability,
+            ),
+        )
+
+        games_with_probabilities.append({
+            **game,
+            "away_win_probability": 1.0 - home_win_probability,
+            "home_win_probability": home_win_probability,
+        })
+
+    return games_with_probabilities
+
+
+def build_completed_result_history(
+    completed_games,
+    texas_league_team_ids,
+):
+    history = {
+        team_id: []
+        for team_id in texas_league_team_ids
+    }
+
+    for game in sorted(completed_games, key=game_sort_key):
+        away_team_id = game["away_team_id"]
+        home_team_id = game["home_team_id"]
+        away_score = game["away_score"]
+        home_score = game["home_score"]
+
+        if away_score > home_score:
+            away_result = 1
+            home_result = 0
+        elif home_score > away_score:
+            away_result = 0
+            home_result = 1
+        else:
+            continue
+
+        if away_team_id in history:
+            history[away_team_id].append(away_result)
+
+        if home_team_id in history:
+            history[home_team_id].append(home_result)
+
+    return history
+
+
+def build_base_second_half_h2h(second_half_games_by_team):
+    """
+    Build a directional head-to-head matrix from unique completed second-half
+    games. matrix[a][b] = {"wins": wins by a over b, "games": games a vs b}.
+    """
+    matrix = {}
+    seen_game_pks = set()
+
+    unique_games = []
+
+    for games in second_half_games_by_team.values():
+        for game in games:
+            game_pk = game.get("game_pk")
+
+            if game_pk in seen_game_pks:
+                continue
+
+            seen_game_pks.add(game_pk)
+            unique_games.append(game)
+
+    unique_games.sort(key=game_sort_key)
+
+    for game in unique_games:
+        away_id = game["away_team_id"]
+        home_id = game["home_team_id"]
+        away_score = game["away_score"]
+        home_score = game["home_score"]
+
+        matrix.setdefault(
+            away_id,
+            {},
+        ).setdefault(
+            home_id,
+            {"wins": 0, "games": 0},
+        )
+
+        matrix.setdefault(
+            home_id,
+            {},
+        ).setdefault(
+            away_id,
+            {"wins": 0, "games": 0},
+        )
+
+        matrix[away_id][home_id]["games"] += 1
+        matrix[home_id][away_id]["games"] += 1
+
+        if away_score > home_score:
+            matrix[away_id][home_id]["wins"] += 1
+        elif home_score > away_score:
+            matrix[home_id][away_id]["wins"] += 1
+
+    return matrix
+
+
+def last_n_combined_win_pct(
+    team_id,
+    n,
+    completed_result_history,
+    simulated_future_results,
+):
+    past = completed_result_history.get(team_id, [])
+    future = simulated_future_results.get(team_id, [])
+
+    if len(future) >= n:
+        selected = future[-n:]
+    else:
+        needed_from_past = n - len(future)
+        selected = past[-needed_from_past:] + future
+
+    if not selected:
+        return 0.500
+
+    return sum(selected) / len(selected)
+
+
+def head_to_head_pct_among_tied(
+    team_id,
+    tied_team_ids,
+    base_second_half_h2h,
+    simulated_games,
+    simulated_winners,
+):
+    tied_set = set(tied_team_ids)
+    wins = 0
+    games = 0
+
+    for opponent_id in tied_set:
+        if opponent_id == team_id:
+            continue
+
+        base = (
+            base_second_half_h2h
+            .get(team_id, {})
+            .get(opponent_id, {})
+        )
+
+        wins += base.get("wins", 0)
+        games += base.get("games", 0)
+
+    for game, winner_id in zip(
+        simulated_games,
+        simulated_winners,
+    ):
+        away_id = game["away_team_id"]
+        home_id = game["home_team_id"]
+
+        if (
+            away_id not in tied_set
+            or home_id not in tied_set
+        ):
+            continue
+
+        if team_id not in (away_id, home_id):
+            continue
+
+        games += 1
+
+        if winner_id == team_id:
+            wins += 1
+
+    return wins / games if games else 0.500
+
+
+def filter_best_by_metric(team_ids, metric_by_team):
+    if not team_ids:
+        return []
+
+    best_value = max(
+        metric_by_team[team_id]
+        for team_id in team_ids
+    )
+
+    return [
+        team_id
+        for team_id in team_ids
+        if abs(metric_by_team[team_id] - best_value) <= 1e-12
+    ]
+
+
+def resolve_playoff_tie(
+    tied_team_ids,
+    base_second_half_h2h,
+    simulated_games,
+    simulated_winners,
+    completed_result_history,
+    simulated_future_results,
+    rng,
+):
+    candidates = list(tied_team_ids)
+
+    h2h_metrics = {
+        team_id: head_to_head_pct_among_tied(
+            team_id,
+            candidates,
+            base_second_half_h2h,
+            simulated_games,
+            simulated_winners,
+        )
+        for team_id in candidates
+    }
+
+    candidates = filter_best_by_metric(
+        candidates,
+        h2h_metrics,
+    )
+
+    if len(candidates) == 1:
+        return candidates[0], "second_half_head_to_head"
+
+    # Official MiLB procedure next compares overall winning percentage over
+    # the final 20 games, then 21, 22, and so on until the tie breaks.
+    max_history_length = max(
+        len(completed_result_history.get(team_id, []))
+        + len(simulated_future_results.get(team_id, []))
+        for team_id in candidates
+    )
+
+    for n in range(20, max_history_length + 1):
+        last_n_metrics = {
+            team_id: last_n_combined_win_pct(
+                team_id,
+                n,
+                completed_result_history,
+                simulated_future_results,
+            )
+            for team_id in candidates
+        }
+
+        candidates = filter_best_by_metric(
+            candidates,
+            last_n_metrics,
+        )
+
+        if len(candidates) == 1:
+            return candidates[0], f"overall_last_{n}"
+
+    # The published procedure should resolve a practical tie before this point.
+    # Keep a deterministic seeded fallback so the simulation never fails if an
+    # extraordinary exact tie survives every official comparison available.
+    return rng.choice(candidates), "seeded_unresolved_fallback"
+
+
+def current_second_half_records(second_half_lookup):
+    return {
+        team_id: {
+            "wins": team.get("wins", 0),
+            "losses": team.get("losses", 0),
+        }
+        for team_id, team in second_half_lookup.items()
+    }
+
+
+def build_forecast_fingerprint(
+    playoff_races,
+    second_half_lookup,
+    forecast_strengths,
+    remaining_schedule_fingerprint,
+    completed_game_fingerprint,
+    second_half_game_fingerprint,
+    home_field,
+):
+    payload = {
+        "forecast_model_version": PLAYOFF_FORECAST_MODEL_VERSION,
+        "simulations": PLAYOFF_FORECAST_SIMULATIONS,
+        "view_weights": PLAYOFF_FORECAST_VIEW_WEIGHTS,
+        "logit_per_z": PLAYOFF_FORECAST_LOGIT_PER_Z,
+        "min_game_win_prob": PLAYOFF_FORECAST_MIN_GAME_WIN_PROB,
+        "max_game_win_prob": PLAYOFF_FORECAST_MAX_GAME_WIN_PROB,
+        "remaining_schedule_fingerprint": remaining_schedule_fingerprint,
+        "completed_game_fingerprint": completed_game_fingerprint,
+        "second_half_game_fingerprint": second_half_game_fingerprint,
+        "home_field": {
+            "completed_games": home_field["completed_games"],
+            "home_wins": home_field["home_wins"],
+            "shrunk_home_win_pct": round(
+                home_field["shrunk_home_win_pct"],
+                10,
+            ),
+        },
+        "second_half_records": {
+            str(team_id): {
+                "wins": record.get("wins", 0),
+                "losses": record.get("losses", 0),
+            }
+            for team_id, record in sorted(second_half_lookup.items())
+        },
+        "strengths": {
+            str(team_id): round(
+                data["forecast_z"],
+                10,
+            )
+            for team_id, data in sorted(forecast_strengths.items())
+        },
+        "eligible_team_ids": {
+            division: [
+                row.get("team_id")
+                for row in race.get("eligible_teams", [])
+            ]
+            for division, race in sorted(playoff_races.items())
+        },
+    }
+
+    serialized = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
+
+def simulate_playoff_forecast(
+    playoff_races,
+    second_half_lookup,
+    remaining_games,
+    forecast_strengths,
+    completed_games,
+    second_half_games_by_team,
+    completed_game_fingerprint,
+    second_half_game_fingerprint,
+    previous_snapshot,
+):
+    if not PLAYOFF_FORECAST_ENABLED:
+        return {
+            "enabled": False,
+            "status": "disabled",
+        }
+
+    second_half_active = any(
+        race.get("active_half") == 2
+        for race in playoff_races.values()
+    )
+
+    if not second_half_active or not second_half_lookup:
+        return {
+            "enabled": True,
+            "status": "not_second_half",
+            "model_version": PLAYOFF_FORECAST_MODEL_VERSION,
+            "simulations": 0,
+            "team_probabilities": {},
+            "remaining_schedule": [],
+            "note": (
+                "Second-half berth forecasting begins when official "
+                "second-half standings are active."
+            ),
+        }
+
+    home_field = estimate_home_field_advantage(completed_games)
+
+    games_with_probabilities = calculate_matchup_probabilities(
+        remaining_games,
+        forecast_strengths,
+        home_field,
+    )
+
+    remaining_schedule_fingerprint = (
+        build_remaining_schedule_fingerprint(
+            remaining_games
+        )
+    )
+
+    forecast_fingerprint = build_forecast_fingerprint(
+        playoff_races,
+        second_half_lookup,
+        forecast_strengths,
+        remaining_schedule_fingerprint,
+        completed_game_fingerprint,
+        second_half_game_fingerprint,
+        home_field,
+    )
+
+    simulation_count = (
+        PLAYOFF_FORECAST_SIMULATIONS
+        if games_with_probabilities
+        else 1
+    )
+
+    forecast_status = (
+        "active"
+        if games_with_probabilities
+        else "season_complete"
+    )
+
+    previous_forecast = previous_snapshot.get(
+        "playoff_forecast",
+        {},
+    )
+
+    if (
+        previous_forecast.get("forecast_fingerprint")
+        == forecast_fingerprint
+        and previous_forecast.get("status") == forecast_status
+    ):
+        reused = dict(previous_forecast)
+        reused["reused_previous_result"] = True
+        reused["remaining_schedule"] = games_with_probabilities
+        print(
+            "Playoff forecast inputs are unchanged; "
+            "reusing previous deterministic simulation result."
+        )
+        return reused
+
+    seed = int(forecast_fingerprint[:16], 16)
+    rng = random.Random(seed)
+
+    team_ids = sorted(second_half_lookup)
+    current_records = current_second_half_records(
+        second_half_lookup
+    )
+
+    base_second_half_h2h = build_base_second_half_h2h(
+        second_half_games_by_team
+    )
+
+    completed_result_history = build_completed_result_history(
+        completed_games,
+        set(team_ids),
+    )
+
+    berth_counts = {
+        team_id: 0
+        for team_id in team_ids
+    }
+
+    final_wins_sum = {
+        team_id: 0.0
+        for team_id in team_ids
+    }
+
+    final_losses_sum = {
+        team_id: 0.0
+        for team_id in team_ids
+    }
+
+    tiebreak_method_counts = {}
+
+    eligible_by_division = {
+        division: [
+            row["team_id"]
+            for row in race.get("eligible_teams", [])
+        ]
+        for division, race in playoff_races.items()
+    }
+
+    clinched_open_berth_by_division = {}
+
+    for division, race in playoff_races.items():
+        if race.get("race_status") != "SECOND_HALF_CLINCHED":
+            continue
+
+        clinched_row = next(
+            (
+                row
+                for row in race.get("eligible_teams", [])
+                if row.get("officially_clinched")
+            ),
+            race.get("open_berth_leader"),
+        )
+
+        if clinched_row:
+            clinched_open_berth_by_division[division] = (
+                clinched_row["team_id"]
+            )
+
+    for _ in range(simulation_count):
+        simulated_wins = {
+            team_id: current_records.get(
+                team_id,
+                {"wins": 0},
+            )["wins"]
+            for team_id in team_ids
+        }
+
+        simulated_losses = {
+            team_id: current_records.get(
+                team_id,
+                {"losses": 0},
+            )["losses"]
+            for team_id in team_ids
+        }
+
+        simulated_future_results = {
+            team_id: []
+            for team_id in team_ids
+        }
+
+        simulated_winners = []
+
+        for game in games_with_probabilities:
+            away_id = game["away_team_id"]
+            home_id = game["home_team_id"]
+
+            home_won = (
+                rng.random()
+                < game["home_win_probability"]
+            )
+
+            if home_won:
+                winner_id = home_id
+                loser_id = away_id
+                simulated_future_results[home_id].append(1)
+                simulated_future_results[away_id].append(0)
+            else:
+                winner_id = away_id
+                loser_id = home_id
+                simulated_future_results[away_id].append(1)
+                simulated_future_results[home_id].append(0)
+
+            simulated_wins[winner_id] += 1
+            simulated_losses[loser_id] += 1
+            simulated_winners.append(winner_id)
+
+        for team_id in team_ids:
+            final_wins_sum[team_id] += simulated_wins[team_id]
+            final_losses_sum[team_id] += simulated_losses[team_id]
+
+        for division, eligible_team_ids in eligible_by_division.items():
+            if not eligible_team_ids:
+                continue
+
+            clinched_winner = clinched_open_berth_by_division.get(
+                division
+            )
+
+            if clinched_winner is not None:
+                berth_counts[clinched_winner] += 1
+                tiebreak_method_counts["officially_clinched"] = (
+                    tiebreak_method_counts.get(
+                        "officially_clinched",
+                        0,
+                    )
+                    + 1
+                )
+                continue
+
+            pct_by_team = {}
+
+            for team_id in eligible_team_ids:
+                wins = simulated_wins[team_id]
+                losses = simulated_losses[team_id]
+                games = wins + losses
+
+                pct_by_team[team_id] = (
+                    wins / games
+                    if games else 0.0
+                )
+
+            best_pct = max(pct_by_team.values())
+
+            tied_team_ids = [
+                team_id
+                for team_id, pct in pct_by_team.items()
+                if abs(pct - best_pct) <= 1e-12
+            ]
+
+            if len(tied_team_ids) == 1:
+                berth_winner = tied_team_ids[0]
+                method = "winning_percentage"
+            else:
+                berth_winner, method = resolve_playoff_tie(
+                    tied_team_ids,
+                    base_second_half_h2h,
+                    games_with_probabilities,
+                    simulated_winners,
+                    completed_result_history,
+                    simulated_future_results,
+                    rng,
+                )
+
+            berth_counts[berth_winner] += 1
+            tiebreak_method_counts[method] = (
+                tiebreak_method_counts.get(method, 0) + 1
+            )
+
+    team_probabilities = {}
+
+    for team_id in team_ids:
+        probability = (
+            berth_counts[team_id]
+            / simulation_count
+        )
+
+        expected_final_wins = (
+            final_wins_sum[team_id]
+            / simulation_count
+        )
+
+        expected_final_losses = (
+            final_losses_sum[team_id]
+            / simulation_count
+        )
+
+        remaining_games_for_team = sum(
+            1
+            for game in games_with_probabilities
+            if team_id in (
+                game["away_team_id"],
+                game["home_team_id"],
+            )
+        )
+
+        team_probabilities[str(team_id)] = {
+            "team_id": team_id,
+            "team": second_half_lookup.get(
+                team_id,
+                {},
+            ).get("team"),
+            "open_berth_probability": probability,
+            "open_berth_probability_display": (
+                f"{100 * probability:.1f}%"
+            ),
+            "remaining_games": remaining_games_for_team,
+            "expected_final_second_half_wins": round(
+                expected_final_wins,
+                2,
+            ),
+            "expected_final_second_half_losses": round(
+                expected_final_losses,
+                2,
+            ),
+            "expected_final_second_half_record": (
+                f"{expected_final_wins:.1f}-"
+                f"{expected_final_losses:.1f}"
+            ),
+            "forecast_strength": round(
+                forecast_strengths.get(
+                    team_id,
+                    {"forecast_strength": 50.0},
+                )["forecast_strength"],
+                1,
+            ),
+            "forecast_z": round(
+                forecast_strengths.get(
+                    team_id,
+                    {"forecast_z": 0.0},
+                )["forecast_z"],
+                6,
+            ),
+        }
+
+    return {
+        "enabled": True,
+        "status": forecast_status,
+        "model_version": PLAYOFF_FORECAST_MODEL_VERSION,
+        "calibration_status": "provisional_not_backtested",
+        "simulations": simulation_count,
+        "deterministic_seed": seed,
+        "forecast_fingerprint": forecast_fingerprint,
+        "remaining_schedule_fingerprint": (
+            remaining_schedule_fingerprint
+        ),
+        "completed_game_fingerprint": completed_game_fingerprint,
+        "second_half_game_fingerprint": second_half_game_fingerprint,
+        "reused_previous_result": False,
+        "strength_model": {
+            "source_score": "raw_power_state",
+            "standardization": (
+                "Each selected Power view is z-standardized across the "
+                "10-team league before weighting."
+            ),
+            "weights": PLAYOFF_FORECAST_VIEW_WEIGHTS,
+            "display_points_per_z": (
+                PLAYOFF_FORECAST_POINTS_PER_Z
+            ),
+            "matchup_logit_per_z_difference": (
+                PLAYOFF_FORECAST_LOGIT_PER_Z
+            ),
+            "single_game_probability_floor": (
+                PLAYOFF_FORECAST_MIN_GAME_WIN_PROB
+            ),
+            "single_game_probability_ceiling": (
+                PLAYOFF_FORECAST_MAX_GAME_WIN_PROB
+            ),
+        },
+        "home_field": {
+            "method": (
+                "Current-season Texas League home win percentage shrunk "
+                "toward .500 with a neutral prior."
+            ),
+            "prior_games": HOME_FIELD_PRIOR_GAMES,
+            "prior_win_pct": HOME_FIELD_PRIOR_WIN_PCT,
+            "completed_games": home_field["completed_games"],
+            "home_wins": home_field["home_wins"],
+            "empirical_home_win_pct": round(
+                home_field["empirical_home_win_pct"],
+                6,
+            ),
+            "shrunk_home_win_pct": round(
+                home_field["shrunk_home_win_pct"],
+                6,
+            ),
+        },
+        "tiebreakers": {
+            "order": [
+                "second_half_head_to_head",
+                "overall_last_20",
+                "overall_last_21_plus_until_broken",
+            ],
+            "simulation_resolution_counts": (
+                tiebreak_method_counts
+            ),
+        },
+        "remaining_regular_season_games": len(
+            games_with_probabilities
+        ),
+        "team_probabilities": team_probabilities,
+        "remaining_schedule": games_with_probabilities,
+        "note": (
+            "These are model estimates, not official probabilities. "
+            "The matchup conversion is intentionally conservative and "
+            "should be recalibrated after out-of-sample backtesting."
+        ),
+    }
+
+
+def attach_playoff_forecast_to_data(
+    playoff_races,
+    views,
+    first_half_winners,
+    playoff_forecast,
+):
+    probabilities = playoff_forecast.get(
+        "team_probabilities",
+        {},
+    )
+
+    first_half_winner_ids = {
+        winner["team_id"]
+        for winner in first_half_winners.values()
+        if winner.get("team_id") is not None
+    }
+
+    for division, race in playoff_races.items():
+        for row in race.get("eligible_teams", []):
+            team_probability = probabilities.get(
+                str(row["team_id"]),
+                {},
+            )
+
+            row["forecast_strength"] = (
+                team_probability.get("forecast_strength")
+            )
+            row["remaining_games"] = (
+                team_probability.get("remaining_games")
+            )
+            row["open_berth_probability"] = (
+                team_probability.get(
+                    "open_berth_probability"
+                )
+            )
+            row["open_berth_probability_display"] = (
+                team_probability.get(
+                    "open_berth_probability_display"
+                )
+            )
+            row["expected_final_second_half_wins"] = (
+                team_probability.get(
+                    "expected_final_second_half_wins"
+                )
+            )
+            row["expected_final_second_half_losses"] = (
+                team_probability.get(
+                    "expected_final_second_half_losses"
+                )
+            )
+            row["expected_final_second_half_record"] = (
+                team_probability.get(
+                    "expected_final_second_half_record"
+                )
+            )
+
+        leader = race.get("open_berth_leader")
+
+        if leader:
+            leader_probability = probabilities.get(
+                str(leader["team_id"]),
+                {},
+            )
+
+            leader["open_berth_probability"] = (
+                leader_probability.get(
+                    "open_berth_probability"
+                )
+            )
+            leader["open_berth_probability_display"] = (
+                leader_probability.get(
+                    "open_berth_probability_display"
+                )
+            )
+
+    for view in views.values():
+        for team in view.get("teams", []):
+            team_id = team["team_id"]
+            team_probability = probabilities.get(
+                str(team_id),
+                {},
+            )
+
+            open_probability = team_probability.get(
+                "open_berth_probability",
+                0.0,
+            )
+
+            already_clinched = team_id in first_half_winner_ids
+
+            team["forecast_strength"] = (
+                team_probability.get("forecast_strength")
+            )
+            team["remaining_games"] = (
+                team_probability.get("remaining_games")
+            )
+            team["open_berth_probability"] = (
+                0.0 if already_clinched else open_probability
+            )
+            team["open_berth_probability_display"] = (
+                "0.0%"
+                if already_clinched
+                else team_probability.get(
+                    "open_berth_probability_display"
+                )
+            )
+            team["playoff_berth_probability"] = (
+                1.0 if already_clinched else open_probability
+            )
+            team["playoff_berth_probability_display"] = (
+                "100.0%"
+                if already_clinched
+                else team_probability.get(
+                    "open_berth_probability_display"
+                )
+            )
+            team["expected_final_second_half_record"] = (
+                team_probability.get(
+                    "expected_final_second_half_record"
+                )
+            )
+
+
 # ---------------------------------------------------------------------------
 # Main program
 # ---------------------------------------------------------------------------
 
 
-today = datetime.now(timezone.utc).date()
+run_now_utc = datetime.now(timezone.utc)
+run_now_local = run_now_utc.astimezone(LEAGUE_TIMEZONE)
+today = run_now_local.date()
 
 season, regular_season_data = resolve_season(today)
 season_start_date = f"{season}-01-01"
@@ -1961,6 +3186,12 @@ completed_games = get_completed_games(
     texas_league_team_ids,
     season_start_date,
     today.isoformat(),
+)
+
+remaining_games = fetch_remaining_regular_season_games(
+    texas_league_team_ids,
+    today.isoformat(),
+    season,
 )
 
 all_games_by_team = build_team_game_history(
@@ -2085,6 +3316,29 @@ for view_key, config in VIEW_CONFIG.items():
 # Backward-compatible alias used by the current live page.
 teams = views["overall"]["teams"]
 
+playoff_forecast_strengths = (
+    build_playoff_forecast_strengths(views)
+)
+
+playoff_forecast = simulate_playoff_forecast(
+    playoff_races,
+    second_half_lookup,
+    remaining_games,
+    playoff_forecast_strengths,
+    completed_games,
+    view_game_sets["second_half"],
+    views["overall"]["game_fingerprint"],
+    views["second_half"]["game_fingerprint"],
+    previous_snapshot,
+)
+
+attach_playoff_forecast_to_data(
+    playoff_races,
+    views,
+    first_half_winners,
+    playoff_forecast,
+)
+
 
 # ---------------------------------------------------------------------------
 # Validation
@@ -2181,6 +3435,75 @@ for division_key in EXPECTED_DIVISIONS:
                 f"champion, found {eligible_team_count}."
             )
 
+forecast_validation_warnings = []
+
+if active_half == 2 and PLAYOFF_FORECAST_ENABLED:
+    if playoff_forecast.get("status") not in (
+        "active",
+        "season_complete",
+    ):
+        forecast_validation_warnings.append(
+            "Playoff forecast did not reach an active or completed state."
+        )
+
+    if playoff_forecast.get("status") == "active":
+        remaining_counts = {
+            int(team_id): values.get("remaining_games", 0)
+            for team_id, values in playoff_forecast.get(
+                "team_probabilities",
+                {},
+            ).items()
+        }
+
+        teams_with_no_remaining_schedule = [
+            regular_season_lookup[team_id]["team"]
+            for team_id in sorted(texas_league_team_ids)
+            if (
+                second_half_lookup.get(team_id, {}).get("games", 0) > 0
+                and remaining_counts.get(team_id, 0) == 0
+            )
+        ]
+
+        if teams_with_no_remaining_schedule:
+            forecast_validation_warnings.append(
+                "No remaining regular-season games were found for: "
+                + ", ".join(teams_with_no_remaining_schedule)
+                + "."
+            )
+
+    if playoff_forecast.get("status") in (
+        "active",
+        "season_complete",
+    ):
+        forecast_probabilities = playoff_forecast.get(
+            "team_probabilities",
+            {},
+        )
+
+        for division_key, race in playoff_races.items():
+            eligible_ids = [
+                row.get("team_id")
+                for row in race.get("eligible_teams", [])
+                if row.get("team_id") is not None
+            ]
+
+            if not eligible_ids:
+                continue
+
+            probability_sum = sum(
+                forecast_probabilities.get(
+                    str(team_id),
+                    {},
+                ).get("open_berth_probability", 0.0)
+                for team_id in eligible_ids
+            )
+
+            if abs(probability_sum - 1.0) > 0.002:
+                forecast_validation_warnings.append(
+                    f"{division_key} playoff forecast probabilities "
+                    f"sum to {probability_sum:.4f}, expected 1.0000."
+                )
+
 playoff_state_valid = (
     regular_team_count == expected_team_count
     and active_half in (1, 2)
@@ -2196,6 +3519,7 @@ playoff_state_valid = (
 validation_warnings = (
     playoff_validation_warnings
     + view_validation_warnings
+    + forecast_validation_warnings
 )
 
 
@@ -2205,7 +3529,7 @@ validation_warnings = (
 
 
 output = {
-    "last_updated": datetime.now(timezone.utc).isoformat(),
+    "last_updated": run_now_utc.isoformat(),
     "season": season,
     "model_version": POWER_MODEL_VERSION,
     "previous_games": previous_games,
@@ -2221,6 +3545,7 @@ output = {
         "second_half": "secondHalf",
         "recent": "schedule_last_24",
         "active_half": "currentHalf",
+        "remaining_schedule": "schedule_future_regular_season",
     },
 
     "season_state": {
@@ -2238,6 +3563,8 @@ output = {
         ),
         "first_half_complete": active_half == 2,
         "second_half_started": active_half == 2,
+        "league_timezone": LEAGUE_TIMEZONE_NAME,
+        "local_date": today.isoformat(),
     },
 
     "playoff_format": {
@@ -2248,10 +3575,16 @@ output = {
             "the first-half champion"
         ),
         "standings_measure": "winning_percentage",
+        "tiebreakers": [
+            "head_to_head_record_in_respective_half",
+            "overall_winning_percentage_last_20_games",
+            "overall_winning_percentage_last_21_plus_until_broken",
+        ],
     },
 
     "first_half_winners": first_half_winners,
     "playoff_races": playoff_races,
+    "playoff_forecast": playoff_forecast,
 
     "validation": {
         "playoff_state_valid": playoff_state_valid,
@@ -2270,6 +3603,7 @@ output = {
         "unknown_division_teams": unknown_division_teams,
         "playoff_warnings": playoff_validation_warnings,
         "view_game_selection_warnings": view_validation_warnings,
+        "playoff_forecast_warnings": forecast_validation_warnings,
         "warnings": validation_warnings,
     },
 
@@ -2436,6 +3770,18 @@ print(
     f"{sorted(first_half_winner_divisions)}"
 )
 print(f"Playoff state valid: {playoff_state_valid}")
+print(
+    "Playoff forecast status: "
+    f"{playoff_forecast.get('status')}"
+)
+print(
+    "Remaining regular-season games: "
+    f"{len(remaining_games)}"
+)
+print(
+    "Playoff forecast simulations: "
+    f"{playoff_forecast.get('simulations', 0)}"
+)
 
 for view_key in VIEW_CONFIG:
     view = views[view_key]
