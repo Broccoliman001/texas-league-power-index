@@ -10,7 +10,7 @@
 
   <meta
     name="description"
-    content="An independent analytics dashboard ranking all 10 Double-A Texas League teams across overall, half-season, and recent-form views while tracking the league's split-season playoff races."
+    content="An independent analytics dashboard ranking all 10 Double-A Texas League teams across overall, half-season, and recent-form views while tracking split-season playoff races with model-estimated berth probabilities."
   >
 
   <title>Texas League Power Index</title>
@@ -612,15 +612,79 @@
       text-align: right;
     }
 
-    .playoff-table th:nth-child(3),
-    .playoff-table td:nth-child(3),
-    .playoff-table th:nth-child(4),
-    .playoff-table td:nth-child(4) {
+    .playoff-table th:nth-child(n+3),
+    .playoff-table td:nth-child(n+3) {
       text-align: right;
     }
 
     .playoff-table .race-leader {
       background: var(--accent-soft);
+    }
+
+    .forecast-score {
+      color: var(--text-secondary);
+      font-weight: bold;
+    }
+
+    .playoff-odds {
+      color: var(--accent);
+      font-weight: bold;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .playoff-odds.clinched {
+      color: var(--positive);
+    }
+
+    .forecast-explainer {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: center;
+
+      margin: 0 0 16px;
+      padding: 14px 16px;
+
+      background: var(--accent-soft);
+      border: 1px solid rgba(56, 189, 248, 0.24);
+      border-radius: 9px;
+    }
+
+    .forecast-explainer-copy {
+      min-width: 0;
+    }
+
+    .forecast-explainer-copy strong {
+      color: var(--text-primary);
+    }
+
+    .forecast-explainer-copy p {
+      margin: 4px 0 0;
+      color: var(--text-muted);
+      font-size: 0.84rem;
+    }
+
+    .forecast-explainer-meta {
+      display: grid;
+      gap: 2px;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .forecast-explainer-meta strong {
+      color: var(--accent);
+      font-size: 0.92rem;
+    }
+
+    .forecast-explainer-meta span {
+      color: var(--text-muted);
+      font-size: 0.74rem;
+    }
+
+    .forecast-caution {
+      margin: 14px 0 0;
+      color: var(--text-muted);
+      font-size: 0.78rem;
     }
 
     .race-team-cell {
@@ -905,6 +969,14 @@
         grid-template-columns: 1fr;
       }
 
+      .forecast-explainer {
+        grid-template-columns: 1fr;
+      }
+
+      .forecast-explainer-meta {
+        text-align: left;
+      }
+
       .legend-grid {
         grid-template-columns: repeat(2, minmax(120px, 1fr));
       }
@@ -946,8 +1018,9 @@
         the Double-A Texas League, a professional Minor League Baseball circuit.
         The index combines run differential, winning percentage, and opponent
         strength to compare team quality across overall, first-half, second-half,
-        and recent-form views, while a separate playoff section tracks the league's
-        split-season races.
+        and recent-form views. A separate playoff section tracks the league's
+        split-season races and estimates each eligible team's berth probability
+        from the remaining schedule.
       </p>
 
       <p
@@ -981,7 +1054,10 @@
         wins, but also how strongly it performs and the quality of the opponents
         it has faced. The Power Index can be viewed across the full season, either
         official half, or each team's rolling recent window. The playoff section
-        remains separate and follows the official split-season standings.
+        remains separate from the descriptive Power rankings: it follows the
+        official split-season standings and uses current team-strength signals,
+        the remaining schedule, home field, and official tiebreak procedures to
+        estimate each eligible team's chance of earning the open berth.
       </p>
 
     </section>
@@ -1260,6 +1336,11 @@
             </p>
 
             <div
+              id="playoff-forecast-summary"
+              aria-live="polite"
+            ></div>
+
+            <div
               id="playoff-races-body"
               class="playoff-grid"
               aria-live="polite"
@@ -1274,7 +1355,7 @@
             <p class="playoff-source">
               Postseason format and standings context:
               <a
-                href="https://www.milb.com/events/playoffs/procedures"
+                href="https://www.mlb.com/milb/events/playoffs/procedures"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -1480,20 +1561,22 @@
         </h2>
 
         <p>
-          Current game and standings data are processed into a structured JSON
-          dataset containing four Power views, team records, run totals, opponent
-          strength, rating components, historical movement, recent game results,
-          half-season standings, and playoff qualification state.
+          Current game, standings, and schedule data are processed into a
+          structured JSON dataset containing four Power views, team records, run
+          totals, opponent strength, rating components, historical movement,
+          recent game results, half-season standings, playoff qualification state,
+          remaining matchups, and model-estimated playoff berth probabilities.
         </p>
 
         <p>
           The browser loads the latest dataset and dynamically renders the
           selected Power view, trend indicators, score changes, completed games,
           and active playoff races. The rankings controls switch among Overall,
-          First Half, Second Half, and Recent without reloading the page, while
-          the playoff section independently reads the active-half state from the
-          dataset. The responsive layout is designed to remain usable on desktop
-          and mobile screens.
+          First Half, Second Half, and Recent without reloading the page. The
+          playoff section independently reads the active-half state and forecast
+          output, including comparative forecast strength and Monte Carlo berth
+          odds generated from the remaining schedule. The responsive layout is
+          designed to remain usable on desktop and mobile screens.
         </p>
 
         <ul
@@ -1525,7 +1608,8 @@
 
       <p>
         Team names, standings, scores, and game information are presented for
-        analytical and informational purposes.
+        analytical and informational purposes. Playoff probabilities are model
+        estimates, not official odds or guarantees of future results.
       </p>
 
     </footer>
@@ -1596,6 +1680,119 @@
       return "Current";
     };
 
+    const formatOneDecimal = value => {
+      const numericValue = Number(value);
+
+      return Number.isFinite(numericValue)
+        ? numericValue.toFixed(1)
+        : "—";
+    };
+
+    const formatWeightPercent = value => {
+      const numericValue = Number(value);
+
+      return Number.isFinite(numericValue)
+        ? `${Math.round(numericValue * 100)}%`
+        : "—";
+    };
+
+    const renderPlayoffForecastSummary = data => {
+      const container =
+        document.getElementById("playoff-forecast-summary");
+
+      if (!container) {
+        return;
+      }
+
+      const forecast = data?.playoff_forecast;
+
+      if (
+        !forecast?.enabled ||
+        forecast.status !== "active"
+      ) {
+        container.innerHTML = "";
+        return;
+      }
+
+      const simulations = Number(forecast.simulations);
+      const remainingGames = Number(
+        forecast.remaining_regular_season_games
+      );
+
+      const weights =
+        forecast.strength_model?.weights || {};
+
+      const homeFieldPct = Number(
+        forecast.home_field?.shrunk_home_win_pct
+      );
+
+      const simulationLabel = Number.isFinite(simulations)
+        ? simulations.toLocaleString()
+        : "Multiple";
+
+      const gamesLabel = Number.isFinite(remainingGames)
+        ? remainingGames.toLocaleString()
+        : "Current";
+
+      const homeFieldText = Number.isFinite(homeFieldPct)
+        ? ` Current-season home field is estimated at ${(homeFieldPct * 100).toFixed(1)}%.`
+        : "";
+
+      const provisional =
+        forecast.calibration_status === "provisional_not_backtested";
+
+      container.innerHTML = `
+        <div class="forecast-explainer">
+
+          <div class="forecast-explainer-copy">
+
+            <strong>
+              Model-estimated playoff odds
+            </strong>
+
+            <p>
+              Forecast strength blends Recent
+              (${escapeHtml(formatWeightPercent(weights.recent))}),
+              Second Half
+              (${escapeHtml(formatWeightPercent(weights.second_half))}),
+              and Overall
+              (${escapeHtml(formatWeightPercent(weights.overall))})
+              team-strength signals. Each remaining matchup is simulated using
+              the two teams' comparative forecast strength plus home field, and
+              tied finishes are resolved with the official MiLB tiebreak order.
+              ${escapeHtml(homeFieldText)}
+            </p>
+
+          </div>
+
+          <div class="forecast-explainer-meta">
+
+            <strong>
+              ${escapeHtml(simulationLabel)} simulations
+            </strong>
+
+            <span>
+              ${escapeHtml(gamesLabel)} league games remaining
+            </span>
+
+          </div>
+
+        </div>
+
+        ${
+          provisional
+            ? `
+              <p class="forecast-caution">
+                Forecast calibration is provisional and has not yet been
+                selected through out-of-sample backtesting. Percentages are
+                model estimates, not official odds.
+              </p>
+            `
+            : ""
+        }
+      `;
+    };
+
     const renderDivisionRace = (divisionKey, race) => {
       if (!race) {
         return `
@@ -1611,6 +1808,13 @@
       const eligibleTeams = Array.isArray(race.eligible_teams)
         ? race.eligible_teams
         : [];
+
+      const hasForecast = eligibleTeams.some(team => {
+        return (
+          Number.isFinite(Number(team.forecast_strength)) &&
+          Number.isFinite(Number(team.open_berth_probability))
+        );
+      });
 
       const clinchedMarkup = clinchedTeam
         ? `
@@ -1678,6 +1882,44 @@
               team.games_back ??
               "—";
 
+            const forecastStrength =
+              formatOneDecimal(team.forecast_strength);
+
+            const oddsDisplay =
+              team.open_berth_probability_display ||
+              (
+                Number.isFinite(Number(team.open_berth_probability))
+                  ? `${(
+                      Number(team.open_berth_probability) * 100
+                    ).toFixed(1)}%`
+                  : "—"
+              );
+
+            const expectedRecord =
+              team.expected_final_second_half_record || "Unavailable";
+
+            const forecastCells = hasForecast
+              ? `
+                <td>
+                  <span
+                    class="forecast-score"
+                    title="Comparative current-strength forecast; not a winning percentage"
+                  >
+                    ${escapeHtml(forecastStrength)}
+                  </span>
+                </td>
+
+                <td>
+                  <span
+                    class="playoff-odds"
+                    title="Model-estimated chance to earn the open berth. Expected final second-half record: ${escapeHtml(expectedRecord)}"
+                  >
+                    ${escapeHtml(oddsDisplay)}
+                  </span>
+                </td>
+              `
+              : "";
+
             return `
               <tr class="${isLeader ? "race-leader" : ""}">
 
@@ -1711,6 +1953,8 @@
                   ${escapeHtml(gamesBack)}
                 </td>
 
+                ${forecastCells}
+
               </tr>
             `;
           })
@@ -1723,6 +1967,26 @@
               ? "Ranked by first-half PCT"
               : "Ranked by current-half PCT";
 
+        const forecastHeading = hasForecast
+          ? `
+            <th scope="col">
+              <abbr
+                title="Comparative current-strength forecast blended from Recent, Second Half, and Overall Power signals"
+              >
+                Forecast
+              </abbr>
+            </th>
+
+            <th scope="col">
+              <abbr
+                title="Model-estimated probability of earning the open playoff berth"
+              >
+                Odds
+              </abbr>
+            </th>
+          `
+          : "";
+
         raceBody = `
           <div class="race-table-heading">
 
@@ -1732,6 +1996,7 @@
 
             <span>
               ${escapeHtml(basisLabel)}
+              ${hasForecast ? " · schedule-adjusted forecast" : ""}
             </span>
 
           </div>
@@ -1756,6 +2021,7 @@
                   <th scope="col">Record</th>
                   <th scope="col">PCT</th>
                   <th scope="col">GB</th>
+                  ${forecastHeading}
                 </tr>
               </thead>
 
@@ -1806,6 +2072,9 @@
       const playoffSummary =
         document.getElementById("playoff-summary-meta");
 
+      const forecastSummary =
+        document.getElementById("playoff-forecast-summary");
+
       const validation = data.validation || {};
       const races =
         data.playoff_races &&
@@ -1818,6 +2087,10 @@
         "Current half";
 
       if (validation.playoff_state_valid === false) {
+        if (forecastSummary) {
+          forecastSummary.innerHTML = "";
+        }
+
         const warnings = Array.isArray(validation.warnings)
           ? validation.warnings
           : [];
@@ -1845,6 +2118,10 @@
       );
 
       if (!availableDivisions.length) {
+        if (forecastSummary) {
+          forecastSummary.innerHTML = "";
+        }
+
         playoffSummary.textContent =
           `${activeHalfLabel} · standings unavailable`;
 
@@ -1856,6 +2133,8 @@
 
         return;
       }
+
+      renderPlayoffForecastSummary(data);
 
       const clinchedTeams = availableDivisions
         .map(division => races[division]?.clinched_team?.team)
@@ -2372,6 +2651,13 @@
             Playoff races could not be loaded.
           </p>
         `;
+
+        const forecastSummary =
+          document.getElementById("playoff-forecast-summary");
+
+        if (forecastSummary) {
+          forecastSummary.innerHTML = "";
+        }
 
         document.getElementById("previous-games-body").innerHTML = `
           <p class="error-message">
