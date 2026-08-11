@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-08-11T01:20:54.854467+00:00",
+  "last_updated": "2026-08-11T01:27:40.697304+00:00",
   "season": 2026,
   "model_version": "2026-08-multiview-v2",
   "previous_games": [
@@ -163,13 +163,13 @@
         "eligible_rank": 1,
         "eligible_games_back_num": 0.0,
         "eligible_games_back": "-",
-        "forecast_strength": 66.2,
+        "forecast_strength": 67.3,
         "remaining_games": 30,
-        "open_berth_probability": 0.92723,
-        "open_berth_probability_display": "92.7%",
-        "expected_final_second_half_wins": 42.04,
-        "expected_final_second_half_losses": 26.96,
-        "expected_final_second_half_record": "42.0-27.0"
+        "open_berth_probability": 0.88573,
+        "open_berth_probability_display": "88.6%",
+        "expected_final_second_half_wins": 41.11,
+        "expected_final_second_half_losses": 27.89,
+        "expected_final_second_half_record": "41.1-27.9"
       },
       "eligible_teams": [
         {
@@ -195,13 +195,13 @@
           "eligible_rank": 1,
           "eligible_games_back_num": 0.0,
           "eligible_games_back": "-",
-          "forecast_strength": 66.2,
+          "forecast_strength": 67.3,
           "remaining_games": 30,
-          "open_berth_probability": 0.92723,
-          "open_berth_probability_display": "92.7%",
-          "expected_final_second_half_wins": 42.04,
-          "expected_final_second_half_losses": 26.96,
-          "expected_final_second_half_record": "42.0-27.0"
+          "open_berth_probability": 0.88573,
+          "open_berth_probability_display": "88.6%",
+          "expected_final_second_half_wins": 41.11,
+          "expected_final_second_half_losses": 27.89,
+          "expected_final_second_half_record": "41.1-27.9"
         },
         {
           "team_id": 574,
@@ -226,13 +226,13 @@
           "eligible_rank": 2,
           "eligible_games_back_num": 5.0,
           "eligible_games_back": "5.0",
-          "forecast_strength": 59.8,
+          "forecast_strength": 62.8,
           "remaining_games": 30,
-          "open_berth_probability": 0.07189,
-          "open_berth_probability_display": "7.2%",
-          "expected_final_second_half_wins": 35.12,
-          "expected_final_second_half_losses": 33.88,
-          "expected_final_second_half_record": "35.1-33.9"
+          "open_berth_probability": 0.11363,
+          "open_berth_probability_display": "11.4%",
+          "expected_final_second_half_wins": 35.28,
+          "expected_final_second_half_losses": 33.72,
+          "expected_final_second_half_record": "35.3-33.7"
         },
         {
           "team_id": 3898,
@@ -257,13 +257,13 @@
           "eligible_rank": 3,
           "eligible_games_back_num": 7.0,
           "eligible_games_back": "7.0",
-          "forecast_strength": 46.9,
+          "forecast_strength": 37.7,
           "remaining_games": 30,
-          "open_berth_probability": 0.00088,
+          "open_berth_probability": 0.00061,
           "open_berth_probability_display": "0.1%",
-          "expected_final_second_half_wins": 30.96,
-          "expected_final_second_half_losses": 38.04,
-          "expected_final_second_half_record": "31.0-38.0"
+          "expected_final_second_half_wins": 29.86,
+          "expected_final_second_half_losses": 39.14,
+          "expected_final_second_half_record": "29.9-39.1"
         },
         {
           "team_id": 1350,
@@ -288,13 +288,13 @@
           "eligible_rank": 4,
           "eligible_games_back_num": 9.0,
           "eligible_games_back": "9.0",
-          "forecast_strength": 29.7,
+          "forecast_strength": 23.6,
           "remaining_games": 30,
-          "open_berth_probability": 0.0,
+          "open_berth_probability": 3e-05,
           "open_berth_probability_display": "0.0%",
-          "expected_final_second_half_wins": 25.33,
-          "expected_final_second_half_losses": 43.67,
-          "expected_final_second_half_record": "25.3-43.7"
+          "expected_final_second_half_wins": 26.04,
+          "expected_final_second_half_losses": 42.96,
+          "expected_final_second_half_record": "26.0-43.0"
         }
       ]
     },
@@ -347,13 +347,13 @@
         "eligible_rank": 1,
         "eligible_games_back_num": 0.0,
         "eligible_games_back": "-",
-        "forecast_strength": 61.7,
+        "forecast_strength": 57.6,
         "remaining_games": 30,
-        "open_berth_probability": 0.62301,
-        "open_berth_probability_display": "62.3%",
-        "expected_final_second_half_wins": 38.86,
-        "expected_final_second_half_losses": 30.14,
-        "expected_final_second_half_record": "38.9-30.1"
+        "open_berth_probability": 0.49427,
+        "open_berth_probability_display": "49.4%",
+        "expected_final_second_half_wins": 36.99,
+        "expected_final_second_half_losses": 32.01,
+        "expected_final_second_half_record": "37.0-32.0"
       },
       "eligible_teams": [
         {
@@ -379,13 +379,13 @@
           "eligible_rank": 1,
           "eligible_games_back_num": 0.0,
           "eligible_games_back": "-",
-          "forecast_strength": 61.7,
+          "forecast_strength": 57.6,
           "remaining_games": 30,
-          "open_berth_probability": 0.62301,
-          "open_berth_probability_display": "62.3%",
-          "expected_final_second_half_wins": 38.86,
-          "expected_final_second_half_losses": 30.14,
-          "expected_final_second_half_record": "38.9-30.1"
+          "open_berth_probability": 0.49427,
+          "open_berth_probability_display": "49.4%",
+          "expected_final_second_half_wins": 36.99,
+          "expected_final_second_half_losses": 32.01,
+          "expected_final_second_half_record": "37.0-32.0"
         },
         {
           "team_id": 482,
@@ -410,13 +410,13 @@
           "eligible_rank": 2,
           "eligible_games_back_num": 1.0,
           "eligible_games_back": "1.0",
-          "forecast_strength": 60.1,
+          "forecast_strength": 60.6,
           "remaining_games": 30,
-          "open_berth_probability": 0.35761,
-          "open_berth_probability_display": "35.8%",
-          "expected_final_second_half_wins": 37.31,
-          "expected_final_second_half_losses": 31.69,
-          "expected_final_second_half_record": "37.3-31.7"
+          "open_berth_probability": 0.41412,
+          "open_berth_probability_display": "41.4%",
+          "expected_final_second_half_wins": 36.41,
+          "expected_final_second_half_losses": 32.59,
+          "expected_final_second_half_record": "36.4-32.6"
         },
         {
           "team_id": 237,
@@ -441,13 +441,13 @@
           "eligible_rank": 3,
           "eligible_games_back_num": 2.0,
           "eligible_games_back": "2.0",
-          "forecast_strength": 32.0,
+          "forecast_strength": 40.9,
           "remaining_games": 30,
-          "open_berth_probability": 0.00325,
-          "open_berth_probability_display": "0.3%",
-          "expected_final_second_half_wins": 29.18,
-          "expected_final_second_half_losses": 39.82,
-          "expected_final_second_half_record": "29.2-39.8"
+          "open_berth_probability": 0.05579,
+          "open_berth_probability_display": "5.6%",
+          "expected_final_second_half_wins": 31.98,
+          "expected_final_second_half_losses": 37.02,
+          "expected_final_second_half_record": "32.0-37.0"
         },
         {
           "team_id": 510,
@@ -472,13 +472,13 @@
           "eligible_rank": 4,
           "eligible_games_back_num": 3.0,
           "eligible_games_back": "3.0",
-          "forecast_strength": 43.1,
+          "forecast_strength": 41.5,
           "remaining_games": 30,
-          "open_berth_probability": 0.01613,
-          "open_berth_probability_display": "1.6%",
-          "expected_final_second_half_wins": 32.37,
-          "expected_final_second_half_losses": 36.63,
-          "expected_final_second_half_record": "32.4-36.6"
+          "open_berth_probability": 0.03582,
+          "open_berth_probability_display": "3.6%",
+          "expected_final_second_half_wins": 32.28,
+          "expected_final_second_half_losses": 36.72,
+          "expected_final_second_half_record": "32.3-36.7"
         }
       ]
     }
@@ -486,25 +486,25 @@
   "playoff_forecast": {
     "enabled": true,
     "status": "active",
-    "model_version": "2026-08-playoff-v1",
+    "model_version": "2026-08-playoff-v2",
     "calibration_status": "provisional_not_backtested",
     "simulations": 100000,
-    "deterministic_seed": 6565588272772230837,
-    "forecast_fingerprint": "5b1da7bf840f2eb5d9f13e383e5cb4e16932af791ce8e0030a36a76bc73efad7",
+    "deterministic_seed": 4150451755656611374,
+    "forecast_fingerprint": "39995de1b94f062e2bace047d6331aae0cd66d7ad8fa8023fc7704de553c3c32",
     "remaining_schedule_fingerprint": "26fc0382c98ef9db8a0500fd0337d9a4cc61b3c3d3c384f8c74ac95886d8d1cd",
     "completed_game_fingerprint": "7e94fc5a73bc9191c9e23fff7f6d696fb8cda89a1dc7e654ed7ac860354ec165",
     "second_half_game_fingerprint": "64dd79a4fbf25cf27544a5e56c781d559e90484d32a67259c5975a111097ffe9",
-    "reused_previous_result": true,
+    "reused_previous_result": false,
     "strength_model": {
       "source_score": "raw_power_state",
       "standardization": "Each selected Power view is z-standardized across the 10-team league before weighting.",
       "weights": {
-        "recent": 0.5,
-        "second_half": 0.35,
+        "recent": 0.15,
+        "second_half": 0.7,
         "overall": 0.15
       },
       "display_points_per_z": 15.0,
-      "matchup_logit_per_z_difference": 0.4,
+      "matchup_logit_per_z_difference": 0.25,
       "single_game_probability_floor": 0.2,
       "single_game_probability_ceiling": 0.8
     },
@@ -524,18 +524,18 @@
         "overall_last_21_plus_until_broken"
       ],
       "simulation_resolution_counts": {
-        "winning_percentage": 187420,
-        "second_half_head_to_head": 8308,
-        "overall_last_20": 3472,
-        "overall_last_21": 405,
-        "overall_last_22": 192,
-        "overall_last_23": 100,
-        "overall_last_24": 55,
-        "overall_last_26": 12,
-        "overall_last_28": 3,
+        "winning_percentage": 183732,
+        "second_half_head_to_head": 11026,
+        "overall_last_21": 515,
+        "overall_last_20": 4345,
+        "overall_last_27": 8,
+        "overall_last_22": 189,
         "overall_last_25": 19,
-        "overall_last_29": 6,
-        "overall_last_27": 5,
+        "overall_last_29": 2,
+        "overall_last_23": 104,
+        "overall_last_26": 6,
+        "overall_last_24": 49,
+        "overall_last_28": 2,
         "overall_last_30": 3
       }
     },
@@ -544,14 +544,14 @@
       "237": {
         "team_id": 237,
         "team": "Midland RockHounds",
-        "open_berth_probability": 0.00325,
-        "open_berth_probability_display": "0.3%",
+        "open_berth_probability": 0.05579,
+        "open_berth_probability_display": "5.6%",
         "remaining_games": 30,
-        "expected_final_second_half_wins": 29.18,
-        "expected_final_second_half_losses": 39.82,
-        "expected_final_second_half_record": "29.2-39.8",
-        "forecast_strength": 32.0,
-        "forecast_z": -1.201423
+        "expected_final_second_half_wins": 31.98,
+        "expected_final_second_half_losses": 37.02,
+        "expected_final_second_half_record": "32.0-37.0",
+        "forecast_strength": 40.9,
+        "forecast_z": -0.609879
       },
       "260": {
         "team_id": 260,
@@ -559,47 +559,47 @@
         "open_berth_probability": 0.0,
         "open_berth_probability_display": "0.0%",
         "remaining_games": 30,
-        "expected_final_second_half_wins": 39.54,
-        "expected_final_second_half_losses": 29.46,
-        "expected_final_second_half_record": "39.5-29.5",
-        "forecast_strength": 58.9,
-        "forecast_z": 0.594224
+        "expected_final_second_half_wins": 39.27,
+        "expected_final_second_half_losses": 29.73,
+        "expected_final_second_half_record": "39.3-29.7",
+        "forecast_strength": 62.7,
+        "forecast_z": 0.84599
       },
       "440": {
         "team_id": 440,
         "team": "Springfield Cardinals",
-        "open_berth_probability": 0.92723,
-        "open_berth_probability_display": "92.7%",
+        "open_berth_probability": 0.88573,
+        "open_berth_probability_display": "88.6%",
         "remaining_games": 30,
-        "expected_final_second_half_wins": 42.04,
-        "expected_final_second_half_losses": 26.96,
-        "expected_final_second_half_record": "42.0-27.0",
-        "forecast_strength": 66.2,
-        "forecast_z": 1.077616
+        "expected_final_second_half_wins": 41.11,
+        "expected_final_second_half_losses": 27.89,
+        "expected_final_second_half_record": "41.1-27.9",
+        "forecast_strength": 67.3,
+        "forecast_z": 1.154792
       },
       "482": {
         "team_id": 482,
         "team": "Corpus Christi Hooks",
-        "open_berth_probability": 0.35761,
-        "open_berth_probability_display": "35.8%",
+        "open_berth_probability": 0.41412,
+        "open_berth_probability_display": "41.4%",
         "remaining_games": 30,
-        "expected_final_second_half_wins": 37.31,
-        "expected_final_second_half_losses": 31.69,
-        "expected_final_second_half_record": "37.3-31.7",
-        "forecast_strength": 60.1,
-        "forecast_z": 0.674758
+        "expected_final_second_half_wins": 36.41,
+        "expected_final_second_half_losses": 32.59,
+        "expected_final_second_half_record": "36.4-32.6",
+        "forecast_strength": 60.6,
+        "forecast_z": 0.706088
       },
       "510": {
         "team_id": 510,
         "team": "San Antonio Missions",
-        "open_berth_probability": 0.01613,
-        "open_berth_probability_display": "1.6%",
+        "open_berth_probability": 0.03582,
+        "open_berth_probability_display": "3.6%",
         "remaining_games": 30,
-        "expected_final_second_half_wins": 32.37,
-        "expected_final_second_half_losses": 36.63,
-        "expected_final_second_half_record": "32.4-36.6",
-        "forecast_strength": 43.1,
-        "forecast_z": -0.460834
+        "expected_final_second_half_wins": 32.28,
+        "expected_final_second_half_losses": 36.72,
+        "expected_final_second_half_record": "32.3-36.7",
+        "forecast_strength": 41.5,
+        "forecast_z": -0.567112
       },
       "540": {
         "team_id": 540,
@@ -607,59 +607,59 @@
         "open_berth_probability": 0.0,
         "open_berth_probability_display": "0.0%",
         "remaining_games": 30,
-        "expected_final_second_half_wins": 34.28,
-        "expected_final_second_half_losses": 34.72,
-        "expected_final_second_half_record": "34.3-34.7",
-        "forecast_strength": 41.7,
-        "forecast_z": -0.553144
+        "expected_final_second_half_wins": 35.77,
+        "expected_final_second_half_losses": 33.23,
+        "expected_final_second_half_record": "35.8-33.2",
+        "forecast_strength": 45.3,
+        "forecast_z": -0.311547
       },
       "574": {
         "team_id": 574,
         "team": "Arkansas Travelers",
-        "open_berth_probability": 0.07189,
-        "open_berth_probability_display": "7.2%",
+        "open_berth_probability": 0.11363,
+        "open_berth_probability_display": "11.4%",
         "remaining_games": 30,
-        "expected_final_second_half_wins": 35.12,
-        "expected_final_second_half_losses": 33.88,
-        "expected_final_second_half_record": "35.1-33.9",
-        "forecast_strength": 59.8,
-        "forecast_z": 0.653194
+        "expected_final_second_half_wins": 35.28,
+        "expected_final_second_half_losses": 33.72,
+        "expected_final_second_half_record": "35.3-33.7",
+        "forecast_strength": 62.8,
+        "forecast_z": 0.855172
       },
       "1350": {
         "team_id": 1350,
         "team": "Northwest Arkansas Naturals",
-        "open_berth_probability": 0.0,
+        "open_berth_probability": 3e-05,
         "open_berth_probability_display": "0.0%",
         "remaining_games": 30,
-        "expected_final_second_half_wins": 25.33,
-        "expected_final_second_half_losses": 43.67,
-        "expected_final_second_half_record": "25.3-43.7",
-        "forecast_strength": 29.7,
-        "forecast_z": -1.355064
+        "expected_final_second_half_wins": 26.04,
+        "expected_final_second_half_losses": 42.96,
+        "expected_final_second_half_record": "26.0-43.0",
+        "forecast_strength": 23.6,
+        "forecast_z": -1.759969
       },
       "3898": {
         "team_id": 3898,
         "team": "Wichita Wind Surge",
-        "open_berth_probability": 0.00088,
+        "open_berth_probability": 0.00061,
         "open_berth_probability_display": "0.1%",
         "remaining_games": 30,
-        "expected_final_second_half_wins": 30.96,
-        "expected_final_second_half_losses": 38.04,
-        "expected_final_second_half_record": "31.0-38.0",
-        "forecast_strength": 46.9,
-        "forecast_z": -0.207654
+        "expected_final_second_half_wins": 29.86,
+        "expected_final_second_half_losses": 39.14,
+        "expected_final_second_half_record": "29.9-39.1",
+        "forecast_strength": 37.7,
+        "forecast_z": -0.820977
       },
       "5368": {
         "team_id": 5368,
         "team": "Amarillo Sod Poodles",
-        "open_berth_probability": 0.62301,
-        "open_berth_probability_display": "62.3%",
+        "open_berth_probability": 0.49427,
+        "open_berth_probability_display": "49.4%",
         "remaining_games": 30,
-        "expected_final_second_half_wins": 38.86,
-        "expected_final_second_half_losses": 30.14,
-        "expected_final_second_half_record": "38.9-30.1",
-        "forecast_strength": 61.7,
-        "forecast_z": 0.778326
+        "expected_final_second_half_wins": 36.99,
+        "expected_final_second_half_losses": 32.01,
+        "expected_final_second_half_record": "37.0-32.0",
+        "forecast_strength": 57.6,
+        "forecast_z": 0.507442
       }
     },
     "remaining_schedule": [
@@ -675,8 +675,8 @@
         "away_team": "Corpus Christi Hooks",
         "home_team_id": 3898,
         "home_team": "Wichita Wind Surge",
-        "away_win_probability": 0.578160069427481,
-        "home_win_probability": 0.421839930572519
+        "away_win_probability": 0.5851681742326151,
+        "home_win_probability": 0.41483182576738487
       },
       {
         "game_pk": 817615,
@@ -690,8 +690,8 @@
         "away_team": "Midland RockHounds",
         "home_team_id": 5368,
         "home_team": "Amarillo Sod Poodles",
-        "away_win_probability": 0.3037211878828159,
-        "home_win_probability": 0.6962788121171841
+        "away_win_probability": 0.42138980089071687,
+        "home_win_probability": 0.5786101991092831
       },
       {
         "game_pk": 817063,
@@ -705,8 +705,8 @@
         "away_team": "Arkansas Travelers",
         "home_team_id": 260,
         "home_team": "Tulsa Drillers",
-        "away_win_probability": 0.4964620136285739,
-        "home_win_probability": 0.5035379863714261
+        "away_win_probability": 0.49113973257293764,
+        "home_win_probability": 0.5088602674270624
       },
       {
         "game_pk": 817131,
@@ -720,8 +720,8 @@
         "away_team": "Northwest Arkansas Naturals",
         "home_team_id": 440,
         "home_team": "Springfield Cardinals",
-        "away_win_probability": 0.26682092605685315,
-        "home_win_probability": 0.7331790739431469
+        "away_win_probability": 0.31725175489841584,
+        "home_win_probability": 0.6827482451015842
       },
       {
         "game_pk": 817410,
@@ -735,8 +735,8 @@
         "away_team": "San Antonio Missions",
         "home_team_id": 540,
         "home_team": "Frisco RoughRiders",
-        "away_win_probability": 0.4997959789441937,
-        "home_win_probability": 0.5002040210558063
+        "away_win_probability": 0.4746139178195452,
+        "home_win_probability": 0.5253860821804548
       },
       {
         "game_pk": 816989,
@@ -750,8 +750,8 @@
         "away_team": "Corpus Christi Hooks",
         "home_team_id": 3898,
         "home_team": "Wichita Wind Surge",
-        "away_win_probability": 0.578160069427481,
-        "home_win_probability": 0.421839930572519
+        "away_win_probability": 0.5851681742326151,
+        "home_win_probability": 0.41483182576738487
       },
       {
         "game_pk": 817612,
@@ -765,8 +765,8 @@
         "away_team": "Midland RockHounds",
         "home_team_id": 5368,
         "home_team": "Amarillo Sod Poodles",
-        "away_win_probability": 0.3037211878828159,
-        "home_win_probability": 0.6962788121171841
+        "away_win_probability": 0.42138980089071687,
+        "home_win_probability": 0.5786101991092831
       },
       {
         "game_pk": 817060,
@@ -780,8 +780,8 @@
         "away_team": "Arkansas Travelers",
         "home_team_id": 260,
         "home_team": "Tulsa Drillers",
-        "away_win_probability": 0.4964620136285739,
-        "home_win_probability": 0.5035379863714261
+        "away_win_probability": 0.49113973257293764,
+        "home_win_probability": 0.5088602674270624
       },
       {
         "game_pk": 817132,
@@ -795,8 +795,8 @@
         "away_team": "Northwest Arkansas Naturals",
         "home_team_id": 440,
         "home_team": "Springfield Cardinals",
-        "away_win_probability": 0.26682092605685315,
-        "home_win_probability": 0.7331790739431469
+        "away_win_probability": 0.31725175489841584,
+        "home_win_probability": 0.6827482451015842
       },
       {
         "game_pk": 817413,
@@ -810,8 +810,8 @@
         "away_team": "San Antonio Missions",
         "home_team_id": 540,
         "home_team": "Frisco RoughRiders",
-        "away_win_probability": 0.4997959789441937,
-        "home_win_probability": 0.5002040210558063
+        "away_win_probability": 0.4746139178195452,
+        "home_win_probability": 0.5253860821804548
       },
       {
         "game_pk": 816992,
@@ -825,8 +825,8 @@
         "away_team": "Corpus Christi Hooks",
         "home_team_id": 3898,
         "home_team": "Wichita Wind Surge",
-        "away_win_probability": 0.578160069427481,
-        "home_win_probability": 0.421839930572519
+        "away_win_probability": 0.5851681742326151,
+        "home_win_probability": 0.41483182576738487
       },
       {
         "game_pk": 817618,
@@ -840,8 +840,8 @@
         "away_team": "Midland RockHounds",
         "home_team_id": 5368,
         "home_team": "Amarillo Sod Poodles",
-        "away_win_probability": 0.3037211878828159,
-        "home_win_probability": 0.6962788121171841
+        "away_win_probability": 0.42138980089071687,
+        "home_win_probability": 0.5786101991092831
       },
       {
         "game_pk": 817062,
@@ -855,8 +855,8 @@
         "away_team": "Arkansas Travelers",
         "home_team_id": 260,
         "home_team": "Tulsa Drillers",
-        "away_win_probability": 0.4964620136285739,
-        "home_win_probability": 0.5035379863714261
+        "away_win_probability": 0.49113973257293764,
+        "home_win_probability": 0.5088602674270624
       },
       {
         "game_pk": 817134,
@@ -870,8 +870,8 @@
         "away_team": "Northwest Arkansas Naturals",
         "home_team_id": 440,
         "home_team": "Springfield Cardinals",
-        "away_win_probability": 0.26682092605685315,
-        "home_win_probability": 0.7331790739431469
+        "away_win_probability": 0.31725175489841584,
+        "home_win_probability": 0.6827482451015842
       },
       {
         "game_pk": 817411,
@@ -885,8 +885,8 @@
         "away_team": "San Antonio Missions",
         "home_team_id": 540,
         "home_team": "Frisco RoughRiders",
-        "away_win_probability": 0.4997959789441937,
-        "home_win_probability": 0.5002040210558063
+        "away_win_probability": 0.4746139178195452,
+        "home_win_probability": 0.5253860821804548
       },
       {
         "game_pk": 816995,
@@ -900,8 +900,8 @@
         "away_team": "Corpus Christi Hooks",
         "home_team_id": 3898,
         "home_team": "Wichita Wind Surge",
-        "away_win_probability": 0.578160069427481,
-        "home_win_probability": 0.421839930572519
+        "away_win_probability": 0.5851681742326151,
+        "home_win_probability": 0.41483182576738487
       },
       {
         "game_pk": 817056,
@@ -915,8 +915,8 @@
         "away_team": "Arkansas Travelers",
         "home_team_id": 260,
         "home_team": "Tulsa Drillers",
-        "away_win_probability": 0.4964620136285739,
-        "home_win_probability": 0.5035379863714261
+        "away_win_probability": 0.49113973257293764,
+        "home_win_probability": 0.5088602674270624
       },
       {
         "game_pk": 817130,
@@ -930,8 +930,8 @@
         "away_team": "Northwest Arkansas Naturals",
         "home_team_id": 440,
         "home_team": "Springfield Cardinals",
-        "away_win_probability": 0.26682092605685315,
-        "home_win_probability": 0.7331790739431469
+        "away_win_probability": 0.31725175489841584,
+        "home_win_probability": 0.6827482451015842
       },
       {
         "game_pk": 817400,
@@ -945,8 +945,8 @@
         "away_team": "San Antonio Missions",
         "home_team_id": 540,
         "home_team": "Frisco RoughRiders",
-        "away_win_probability": 0.4997959789441937,
-        "home_win_probability": 0.5002040210558063
+        "away_win_probability": 0.4746139178195452,
+        "home_win_probability": 0.5253860821804548
       },
       {
         "game_pk": 817614,
@@ -960,8 +960,8 @@
         "away_team": "Midland RockHounds",
         "home_team_id": 5368,
         "home_team": "Amarillo Sod Poodles",
-        "away_win_probability": 0.3037211878828159,
-        "home_win_probability": 0.6962788121171841
+        "away_win_probability": 0.42138980089071687,
+        "home_win_probability": 0.5786101991092831
       },
       {
         "game_pk": 816994,
@@ -975,8 +975,8 @@
         "away_team": "Corpus Christi Hooks",
         "home_team_id": 3898,
         "home_team": "Wichita Wind Surge",
-        "away_win_probability": 0.578160069427481,
-        "home_win_probability": 0.421839930572519
+        "away_win_probability": 0.5851681742326151,
+        "home_win_probability": 0.41483182576738487
       },
       {
         "game_pk": 817128,
@@ -990,8 +990,8 @@
         "away_team": "Northwest Arkansas Naturals",
         "home_team_id": 440,
         "home_team": "Springfield Cardinals",
-        "away_win_probability": 0.26682092605685315,
-        "home_win_probability": 0.7331790739431469
+        "away_win_probability": 0.31725175489841584,
+        "home_win_probability": 0.6827482451015842
       },
       {
         "game_pk": 817057,
@@ -1005,8 +1005,8 @@
         "away_team": "Arkansas Travelers",
         "home_team_id": 260,
         "home_team": "Tulsa Drillers",
-        "away_win_probability": 0.4964620136285739,
-        "home_win_probability": 0.5035379863714261
+        "away_win_probability": 0.49113973257293764,
+        "home_win_probability": 0.5088602674270624
       },
       {
         "game_pk": 817401,
@@ -1020,8 +1020,8 @@
         "away_team": "San Antonio Missions",
         "home_team_id": 540,
         "home_team": "Frisco RoughRiders",
-        "away_win_probability": 0.4997959789441937,
-        "home_win_probability": 0.5002040210558063
+        "away_win_probability": 0.4746139178195452,
+        "home_win_probability": 0.5253860821804548
       },
       {
         "game_pk": 817607,
@@ -1035,8 +1035,8 @@
         "away_team": "Midland RockHounds",
         "home_team_id": 5368,
         "home_team": "Amarillo Sod Poodles",
-        "away_win_probability": 0.3037211878828159,
-        "home_win_probability": 0.6962788121171841
+        "away_win_probability": 0.42138980089071687,
+        "home_win_probability": 0.5786101991092831
       },
       {
         "game_pk": 816993,
@@ -1050,8 +1050,8 @@
         "away_team": "Corpus Christi Hooks",
         "home_team_id": 3898,
         "home_team": "Wichita Wind Surge",
-        "away_win_probability": 0.578160069427481,
-        "home_win_probability": 0.421839930572519
+        "away_win_probability": 0.5851681742326151,
+        "home_win_probability": 0.41483182576738487
       },
       {
         "game_pk": 817606,
@@ -1065,8 +1065,8 @@
         "away_team": "Midland RockHounds",
         "home_team_id": 5368,
         "home_team": "Amarillo Sod Poodles",
-        "away_win_probability": 0.3037211878828159,
-        "home_win_probability": 0.6962788121171841
+        "away_win_probability": 0.42138980089071687,
+        "home_win_probability": 0.5786101991092831
       },
       {
         "game_pk": 817127,
@@ -1080,8 +1080,8 @@
         "away_team": "Northwest Arkansas Naturals",
         "home_team_id": 440,
         "home_team": "Springfield Cardinals",
-        "away_win_probability": 0.26682092605685315,
-        "home_win_probability": 0.7331790739431469
+        "away_win_probability": 0.31725175489841584,
+        "home_win_probability": 0.6827482451015842
       },
       {
         "game_pk": 817404,
@@ -1095,8 +1095,8 @@
         "away_team": "San Antonio Missions",
         "home_team_id": 540,
         "home_team": "Frisco RoughRiders",
-        "away_win_probability": 0.4997959789441937,
-        "home_win_probability": 0.5002040210558063
+        "away_win_probability": 0.4746139178195452,
+        "home_win_probability": 0.5253860821804548
       },
       {
         "game_pk": 817061,
@@ -1110,8 +1110,8 @@
         "away_team": "Arkansas Travelers",
         "home_team_id": 260,
         "home_team": "Tulsa Drillers",
-        "away_win_probability": 0.4964620136285739,
-        "home_win_probability": 0.5035379863714261
+        "away_win_probability": 0.49113973257293764,
+        "home_win_probability": 0.5088602674270624
       },
       {
         "game_pk": 817475,
@@ -1125,8 +1125,8 @@
         "away_team": "Midland RockHounds",
         "home_team_id": 482,
         "home_team": "Corpus Christi Hooks",
-        "away_win_probability": 0.3125524924710438,
-        "home_win_probability": 0.6874475075289562
+        "away_win_probability": 0.40933086394690654,
+        "home_win_probability": 0.5906691360530935
       },
       {
         "game_pk": 817544,
@@ -1140,8 +1140,8 @@
         "away_team": "Springfield Cardinals",
         "home_team_id": 574,
         "home_team": "Arkansas Travelers",
-        "away_win_probability": 0.5329592332864614,
-        "home_win_probability": 0.4670407667135386
+        "away_win_probability": 0.5092901268867231,
+        "home_win_probability": 0.4907098731132768
       },
       {
         "game_pk": 817058,
@@ -1155,8 +1155,8 @@
         "away_team": "Amarillo Sod Poodles",
         "home_team_id": 260,
         "home_team": "Tulsa Drillers",
-        "away_win_probability": 0.5089741465585045,
-        "home_win_probability": 0.4910258534414955
+        "away_win_probability": 0.4694438179907118,
+        "home_win_probability": 0.5305561820092882
       },
       {
         "game_pk": 817190,
@@ -1170,8 +1170,8 @@
         "away_team": "Northwest Arkansas Naturals",
         "home_team_id": 510,
         "home_team": "San Antonio Missions",
-        "away_win_probability": 0.40241027505915883,
-        "home_win_probability": 0.5975897249408412
+        "away_win_probability": 0.4167925416191304,
+        "home_win_probability": 0.5832074583808696
       },
       {
         "game_pk": 817399,
@@ -1185,8 +1185,8 @@
         "away_team": "Wichita Wind Surge",
         "home_team_id": 540,
         "home_team": "Frisco RoughRiders",
-        "away_win_probability": 0.525092804190022,
-        "home_win_probability": 0.47490719580997803
+        "away_win_probability": 0.4588189983589748,
+        "home_win_probability": 0.5411810016410252
       },
       {
         "game_pk": 817470,
@@ -1200,8 +1200,8 @@
         "away_team": "Midland RockHounds",
         "home_team_id": 482,
         "home_team": "Corpus Christi Hooks",
-        "away_win_probability": 0.3125524924710438,
-        "home_win_probability": 0.6874475075289562
+        "away_win_probability": 0.40933086394690654,
+        "home_win_probability": 0.5906691360530935
       },
       {
         "game_pk": 817538,
@@ -1215,8 +1215,8 @@
         "away_team": "Springfield Cardinals",
         "home_team_id": 574,
         "home_team": "Arkansas Travelers",
-        "away_win_probability": 0.5329592332864614,
-        "home_win_probability": 0.4670407667135386
+        "away_win_probability": 0.5092901268867231,
+        "home_win_probability": 0.4907098731132768
       },
       {
         "game_pk": 817059,
@@ -1230,8 +1230,8 @@
         "away_team": "Amarillo Sod Poodles",
         "home_team_id": 260,
         "home_team": "Tulsa Drillers",
-        "away_win_probability": 0.5089741465585045,
-        "home_win_probability": 0.4910258534414955
+        "away_win_probability": 0.4694438179907118,
+        "home_win_probability": 0.5305561820092882
       },
       {
         "game_pk": 817197,
@@ -1245,8 +1245,8 @@
         "away_team": "Northwest Arkansas Naturals",
         "home_team_id": 510,
         "home_team": "San Antonio Missions",
-        "away_win_probability": 0.40241027505915883,
-        "home_win_probability": 0.5975897249408412
+        "away_win_probability": 0.4167925416191304,
+        "home_win_probability": 0.5832074583808696
       },
       {
         "game_pk": 817405,
@@ -1260,8 +1260,8 @@
         "away_team": "Wichita Wind Surge",
         "home_team_id": 540,
         "home_team": "Frisco RoughRiders",
-        "away_win_probability": 0.525092804190022,
-        "home_win_probability": 0.47490719580997803
+        "away_win_probability": 0.4588189983589748,
+        "home_win_probability": 0.5411810016410252
       },
       {
         "game_pk": 817472,
@@ -1275,8 +1275,8 @@
         "away_team": "Midland RockHounds",
         "home_team_id": 482,
         "home_team": "Corpus Christi Hooks",
-        "away_win_probability": 0.3125524924710438,
-        "home_win_probability": 0.6874475075289562
+        "away_win_probability": 0.40933086394690654,
+        "home_win_probability": 0.5906691360530935
       },
       {
         "game_pk": 817539,
@@ -1290,8 +1290,8 @@
         "away_team": "Springfield Cardinals",
         "home_team_id": 574,
         "home_team": "Arkansas Travelers",
-        "away_win_probability": 0.5329592332864614,
-        "home_win_probability": 0.4670407667135386
+        "away_win_probability": 0.5092901268867231,
+        "home_win_probability": 0.4907098731132768
       },
       {
         "game_pk": 817055,
@@ -1305,8 +1305,8 @@
         "away_team": "Amarillo Sod Poodles",
         "home_team_id": 260,
         "home_team": "Tulsa Drillers",
-        "away_win_probability": 0.5089741465585045,
-        "home_win_probability": 0.4910258534414955
+        "away_win_probability": 0.4694438179907118,
+        "home_win_probability": 0.5305561820092882
       },
       {
         "game_pk": 817194,
@@ -1320,8 +1320,8 @@
         "away_team": "Northwest Arkansas Naturals",
         "home_team_id": 510,
         "home_team": "San Antonio Missions",
-        "away_win_probability": 0.40241027505915883,
-        "home_win_probability": 0.5975897249408412
+        "away_win_probability": 0.4167925416191304,
+        "home_win_probability": 0.5832074583808696
       },
       {
         "game_pk": 817402,
@@ -1335,8 +1335,8 @@
         "away_team": "Wichita Wind Surge",
         "home_team_id": 540,
         "home_team": "Frisco RoughRiders",
-        "away_win_probability": 0.525092804190022,
-        "home_win_probability": 0.47490719580997803
+        "away_win_probability": 0.4588189983589748,
+        "home_win_probability": 0.5411810016410252
       },
       {
         "game_pk": 817050,
@@ -1350,8 +1350,8 @@
         "away_team": "Amarillo Sod Poodles",
         "home_team_id": 260,
         "home_team": "Tulsa Drillers",
-        "away_win_probability": 0.5089741465585045,
-        "home_win_probability": 0.4910258534414955
+        "away_win_probability": 0.4694438179907118,
+        "home_win_probability": 0.5305561820092882
       },
       {
         "game_pk": 817192,
@@ -1365,8 +1365,8 @@
         "away_team": "Northwest Arkansas Naturals",
         "home_team_id": 510,
         "home_team": "San Antonio Missions",
-        "away_win_probability": 0.40241027505915883,
-        "home_win_probability": 0.5975897249408412
+        "away_win_probability": 0.4167925416191304,
+        "home_win_probability": 0.5832074583808696
       },
       {
         "game_pk": 817403,
@@ -1380,8 +1380,8 @@
         "away_team": "Wichita Wind Surge",
         "home_team_id": 540,
         "home_team": "Frisco RoughRiders",
-        "away_win_probability": 0.525092804190022,
-        "home_win_probability": 0.47490719580997803
+        "away_win_probability": 0.4588189983589748,
+        "home_win_probability": 0.5411810016410252
       },
       {
         "game_pk": 817473,
@@ -1395,8 +1395,8 @@
         "away_team": "Midland RockHounds",
         "home_team_id": 482,
         "home_team": "Corpus Christi Hooks",
-        "away_win_probability": 0.3125524924710438,
-        "home_win_probability": 0.6874475075289562
+        "away_win_probability": 0.40933086394690654,
+        "home_win_probability": 0.5906691360530935
       },
       {
         "game_pk": 817542,
@@ -1410,8 +1410,8 @@
         "away_team": "Springfield Cardinals",
         "home_team_id": 574,
         "home_team": "Arkansas Travelers",
-        "away_win_probability": 0.5329592332864614,
-        "home_win_probability": 0.4670407667135386
+        "away_win_probability": 0.5092901268867231,
+        "home_win_probability": 0.4907098731132768
       },
       {
         "game_pk": 817533,
@@ -1425,8 +1425,8 @@
         "away_team": "Springfield Cardinals",
         "home_team_id": 574,
         "home_team": "Arkansas Travelers",
-        "away_win_probability": 0.5329592332864614,
-        "home_win_probability": 0.4670407667135386
+        "away_win_probability": 0.5092901268867231,
+        "home_win_probability": 0.4907098731132768
       },
       {
         "game_pk": 817052,
@@ -1440,8 +1440,8 @@
         "away_team": "Amarillo Sod Poodles",
         "home_team_id": 260,
         "home_team": "Tulsa Drillers",
-        "away_win_probability": 0.5089741465585045,
-        "home_win_probability": 0.4910258534414955
+        "away_win_probability": 0.4694438179907118,
+        "home_win_probability": 0.5305561820092882
       },
       {
         "game_pk": 817191,
@@ -1455,8 +1455,8 @@
         "away_team": "Northwest Arkansas Naturals",
         "home_team_id": 510,
         "home_team": "San Antonio Missions",
-        "away_win_probability": 0.40241027505915883,
-        "home_win_probability": 0.5975897249408412
+        "away_win_probability": 0.4167925416191304,
+        "home_win_probability": 0.5832074583808696
       },
       {
         "game_pk": 817395,
@@ -1470,8 +1470,8 @@
         "away_team": "Wichita Wind Surge",
         "home_team_id": 540,
         "home_team": "Frisco RoughRiders",
-        "away_win_probability": 0.525092804190022,
-        "home_win_probability": 0.47490719580997803
+        "away_win_probability": 0.4588189983589748,
+        "home_win_probability": 0.5411810016410252
       },
       {
         "game_pk": 817464,
@@ -1485,8 +1485,8 @@
         "away_team": "Midland RockHounds",
         "home_team_id": 482,
         "home_team": "Corpus Christi Hooks",
-        "away_win_probability": 0.3125524924710438,
-        "home_win_probability": 0.6874475075289562
+        "away_win_probability": 0.40933086394690654,
+        "home_win_probability": 0.5906691360530935
       },
       {
         "game_pk": 817054,
@@ -1500,8 +1500,8 @@
         "away_team": "Amarillo Sod Poodles",
         "home_team_id": 260,
         "home_team": "Tulsa Drillers",
-        "away_win_probability": 0.5089741465585045,
-        "home_win_probability": 0.4910258534414955
+        "away_win_probability": 0.4694438179907118,
+        "home_win_probability": 0.5305561820092882
       },
       {
         "game_pk": 817531,
@@ -1515,8 +1515,8 @@
         "away_team": "Springfield Cardinals",
         "home_team_id": 574,
         "home_team": "Arkansas Travelers",
-        "away_win_probability": 0.5329592332864614,
-        "home_win_probability": 0.4670407667135386
+        "away_win_probability": 0.5092901268867231,
+        "home_win_probability": 0.4907098731132768
       },
       {
         "game_pk": 817461,
@@ -1530,8 +1530,8 @@
         "away_team": "Midland RockHounds",
         "home_team_id": 482,
         "home_team": "Corpus Christi Hooks",
-        "away_win_probability": 0.3125524924710438,
-        "home_win_probability": 0.6874475075289562
+        "away_win_probability": 0.40933086394690654,
+        "home_win_probability": 0.5906691360530935
       },
       {
         "game_pk": 817196,
@@ -1545,8 +1545,8 @@
         "away_team": "Northwest Arkansas Naturals",
         "home_team_id": 510,
         "home_team": "San Antonio Missions",
-        "away_win_probability": 0.40241027505915883,
-        "home_win_probability": 0.5975897249408412
+        "away_win_probability": 0.4167925416191304,
+        "home_win_probability": 0.5832074583808696
       },
       {
         "game_pk": 817396,
@@ -1560,8 +1560,8 @@
         "away_team": "Wichita Wind Surge",
         "home_team_id": 540,
         "home_team": "Frisco RoughRiders",
-        "away_win_probability": 0.525092804190022,
-        "home_win_probability": 0.47490719580997803
+        "away_win_probability": 0.4588189983589748,
+        "home_win_probability": 0.5411810016410252
       },
       {
         "game_pk": 817332,
@@ -1575,8 +1575,8 @@
         "away_team": "Tulsa Drillers",
         "home_team_id": 237,
         "home_team": "Midland RockHounds",
-        "away_win_probability": 0.6638544362366863,
-        "home_win_probability": 0.3361455637633138
+        "away_win_probability": 0.5808410573125988,
+        "home_win_probability": 0.4191589426874012
       },
       {
         "game_pk": 816981,
@@ -1590,8 +1590,8 @@
         "away_team": "Arkansas Travelers",
         "home_team_id": 3898,
         "home_team": "Wichita Wind Surge",
-        "away_win_probability": 0.576054949833407,
-        "home_win_probability": 0.423945050166593
+        "away_win_probability": 0.5941858897954152,
+        "home_win_probability": 0.4058141102045848
       },
       {
         "game_pk": 817126,
@@ -1605,8 +1605,8 @@
         "away_team": "San Antonio Missions",
         "home_team_id": 440,
         "home_team": "Springfield Cardinals",
-        "away_win_probability": 0.3422867361668652,
-        "home_win_probability": 0.6577132638331348
+        "away_win_probability": 0.3850384594038788,
+        "home_win_probability": 0.6149615405961212
       },
       {
         "game_pk": 817608,
@@ -1620,8 +1620,8 @@
         "away_team": "Corpus Christi Hooks",
         "home_team_id": 5368,
         "home_team": "Amarillo Sod Poodles",
-        "away_win_probability": 0.4802185001225412,
-        "home_win_probability": 0.5197814998774588
+        "away_win_probability": 0.5029802613096948,
+        "home_win_probability": 0.4970197386903053
       },
       {
         "game_pk": 817263,
@@ -1635,8 +1635,8 @@
         "away_team": "Frisco RoughRiders",
         "home_team_id": 1350,
         "home_team": "Northwest Arkansas Naturals",
-        "away_win_probability": 0.5702882714483739,
-        "home_win_probability": 0.42971172855162615
+        "away_win_probability": 0.5803876923830127,
+        "home_win_probability": 0.41961230761698726
       },
       {
         "game_pk": 817337,
@@ -1650,8 +1650,8 @@
         "away_team": "Tulsa Drillers",
         "home_team_id": 237,
         "home_team": "Midland RockHounds",
-        "away_win_probability": 0.6638544362366863,
-        "home_win_probability": 0.3361455637633138
+        "away_win_probability": 0.5808410573125988,
+        "home_win_probability": 0.4191589426874012
       },
       {
         "game_pk": 816983,
@@ -1665,8 +1665,8 @@
         "away_team": "Arkansas Travelers",
         "home_team_id": 3898,
         "home_team": "Wichita Wind Surge",
-        "away_win_probability": 0.576054949833407,
-        "home_win_probability": 0.423945050166593
+        "away_win_probability": 0.5941858897954152,
+        "home_win_probability": 0.4058141102045848
       },
       {
         "game_pk": 817124,
@@ -1680,8 +1680,8 @@
         "away_team": "San Antonio Missions",
         "home_team_id": 440,
         "home_team": "Springfield Cardinals",
-        "away_win_probability": 0.3422867361668652,
-        "home_win_probability": 0.6577132638331348
+        "away_win_probability": 0.3850384594038788,
+        "home_win_probability": 0.6149615405961212
       },
       {
         "game_pk": 817611,
@@ -1695,8 +1695,8 @@
         "away_team": "Corpus Christi Hooks",
         "home_team_id": 5368,
         "home_team": "Amarillo Sod Poodles",
-        "away_win_probability": 0.4802185001225412,
-        "home_win_probability": 0.5197814998774588
+        "away_win_probability": 0.5029802613096948,
+        "home_win_probability": 0.4970197386903053
       },
       {
         "game_pk": 817264,
@@ -1710,8 +1710,8 @@
         "away_team": "Frisco RoughRiders",
         "home_team_id": 1350,
         "home_team": "Northwest Arkansas Naturals",
-        "away_win_probability": 0.5702882714483739,
-        "home_win_probability": 0.42971172855162615
+        "away_win_probability": 0.5803876923830127,
+        "home_win_probability": 0.41961230761698726
       },
       {
         "game_pk": 816986,
@@ -1725,8 +1725,8 @@
         "away_team": "Arkansas Travelers",
         "home_team_id": 3898,
         "home_team": "Wichita Wind Surge",
-        "away_win_probability": 0.576054949833407,
-        "home_win_probability": 0.423945050166593
+        "away_win_probability": 0.5941858897954152,
+        "home_win_probability": 0.4058141102045848
       },
       {
         "game_pk": 817125,
@@ -1740,8 +1740,8 @@
         "away_team": "San Antonio Missions",
         "home_team_id": 440,
         "home_team": "Springfield Cardinals",
-        "away_win_probability": 0.3422867361668652,
-        "home_win_probability": 0.6577132638331348
+        "away_win_probability": 0.3850384594038788,
+        "home_win_probability": 0.6149615405961212
       },
       {
         "game_pk": 817609,
@@ -1755,8 +1755,8 @@
         "away_team": "Corpus Christi Hooks",
         "home_team_id": 5368,
         "home_team": "Amarillo Sod Poodles",
-        "away_win_probability": 0.4802185001225412,
-        "home_win_probability": 0.5197814998774588
+        "away_win_probability": 0.5029802613096948,
+        "home_win_probability": 0.4970197386903053
       },
       {
         "game_pk": 817334,
@@ -1770,8 +1770,8 @@
         "away_team": "Tulsa Drillers",
         "home_team_id": 237,
         "home_team": "Midland RockHounds",
-        "away_win_probability": 0.6638544362366863,
-        "home_win_probability": 0.3361455637633138
+        "away_win_probability": 0.5808410573125988,
+        "home_win_probability": 0.4191589426874012
       },
       {
         "game_pk": 817258,
@@ -1785,8 +1785,8 @@
         "away_team": "Frisco RoughRiders",
         "home_team_id": 1350,
         "home_team": "Northwest Arkansas Naturals",
-        "away_win_probability": 0.5702882714483739,
-        "home_win_probability": 0.42971172855162615
+        "away_win_probability": 0.5803876923830127,
+        "home_win_probability": 0.41961230761698726
       },
       {
         "game_pk": 816987,
@@ -1800,8 +1800,8 @@
         "away_team": "Arkansas Travelers",
         "home_team_id": 3898,
         "home_team": "Wichita Wind Surge",
-        "away_win_probability": 0.576054949833407,
-        "home_win_probability": 0.423945050166593
+        "away_win_probability": 0.5941858897954152,
+        "home_win_probability": 0.4058141102045848
       },
       {
         "game_pk": 817325,
@@ -1815,8 +1815,8 @@
         "away_team": "Tulsa Drillers",
         "home_team_id": 237,
         "home_team": "Midland RockHounds",
-        "away_win_probability": 0.6638544362366863,
-        "home_win_probability": 0.3361455637633138
+        "away_win_probability": 0.5808410573125988,
+        "home_win_probability": 0.4191589426874012
       },
       {
         "game_pk": 817122,
@@ -1830,8 +1830,8 @@
         "away_team": "San Antonio Missions",
         "home_team_id": 440,
         "home_team": "Springfield Cardinals",
-        "away_win_probability": 0.3422867361668652,
-        "home_win_probability": 0.6577132638331348
+        "away_win_probability": 0.3850384594038788,
+        "home_win_probability": 0.6149615405961212
       },
       {
         "game_pk": 817259,
@@ -1845,8 +1845,8 @@
         "away_team": "Frisco RoughRiders",
         "home_team_id": 1350,
         "home_team": "Northwest Arkansas Naturals",
-        "away_win_probability": 0.5702882714483739,
-        "home_win_probability": 0.42971172855162615
+        "away_win_probability": 0.5803876923830127,
+        "home_win_probability": 0.41961230761698726
       },
       {
         "game_pk": 817610,
@@ -1860,8 +1860,8 @@
         "away_team": "Corpus Christi Hooks",
         "home_team_id": 5368,
         "home_team": "Amarillo Sod Poodles",
-        "away_win_probability": 0.4802185001225412,
-        "home_win_probability": 0.5197814998774588
+        "away_win_probability": 0.5029802613096948,
+        "home_win_probability": 0.4970197386903053
       },
       {
         "game_pk": 816985,
@@ -1875,8 +1875,8 @@
         "away_team": "Arkansas Travelers",
         "home_team_id": 3898,
         "home_team": "Wichita Wind Surge",
-        "away_win_probability": 0.576054949833407,
-        "home_win_probability": 0.423945050166593
+        "away_win_probability": 0.5941858897954152,
+        "home_win_probability": 0.4058141102045848
       },
       {
         "game_pk": 817257,
@@ -1890,8 +1890,8 @@
         "away_team": "Frisco RoughRiders",
         "home_team_id": 1350,
         "home_team": "Northwest Arkansas Naturals",
-        "away_win_probability": 0.5702882714483739,
-        "home_win_probability": 0.42971172855162615
+        "away_win_probability": 0.5803876923830127,
+        "home_win_probability": 0.41961230761698726
       },
       {
         "game_pk": 817123,
@@ -1905,8 +1905,8 @@
         "away_team": "San Antonio Missions",
         "home_team_id": 440,
         "home_team": "Springfield Cardinals",
-        "away_win_probability": 0.3422867361668652,
-        "home_win_probability": 0.6577132638331348
+        "away_win_probability": 0.3850384594038788,
+        "home_win_probability": 0.6149615405961212
       },
       {
         "game_pk": 817323,
@@ -1920,8 +1920,8 @@
         "away_team": "Tulsa Drillers",
         "home_team_id": 237,
         "home_team": "Midland RockHounds",
-        "away_win_probability": 0.6638544362366863,
-        "home_win_probability": 0.3361455637633138
+        "away_win_probability": 0.5808410573125988,
+        "home_win_probability": 0.4191589426874012
       },
       {
         "game_pk": 817605,
@@ -1935,8 +1935,8 @@
         "away_team": "Corpus Christi Hooks",
         "home_team_id": 5368,
         "home_team": "Amarillo Sod Poodles",
-        "away_win_probability": 0.4802185001225412,
-        "home_win_probability": 0.5197814998774588
+        "away_win_probability": 0.5029802613096948,
+        "home_win_probability": 0.4970197386903053
       },
       {
         "game_pk": 817327,
@@ -1950,8 +1950,8 @@
         "away_team": "Tulsa Drillers",
         "home_team_id": 237,
         "home_team": "Midland RockHounds",
-        "away_win_probability": 0.6638544362366863,
-        "home_win_probability": 0.3361455637633138
+        "away_win_probability": 0.5808410573125988,
+        "home_win_probability": 0.4191589426874012
       },
       {
         "game_pk": 816988,
@@ -1965,8 +1965,8 @@
         "away_team": "Arkansas Travelers",
         "home_team_id": 3898,
         "home_team": "Wichita Wind Surge",
-        "away_win_probability": 0.576054949833407,
-        "home_win_probability": 0.423945050166593
+        "away_win_probability": 0.5941858897954152,
+        "home_win_probability": 0.4058141102045848
       },
       {
         "game_pk": 817601,
@@ -1980,8 +1980,8 @@
         "away_team": "Corpus Christi Hooks",
         "home_team_id": 5368,
         "home_team": "Amarillo Sod Poodles",
-        "away_win_probability": 0.4802185001225412,
-        "home_win_probability": 0.5197814998774588
+        "away_win_probability": 0.5029802613096948,
+        "home_win_probability": 0.4970197386903053
       },
       {
         "game_pk": 817121,
@@ -1995,8 +1995,8 @@
         "away_team": "San Antonio Missions",
         "home_team_id": 440,
         "home_team": "Springfield Cardinals",
-        "away_win_probability": 0.3422867361668652,
-        "home_win_probability": 0.6577132638331348
+        "away_win_probability": 0.3850384594038788,
+        "home_win_probability": 0.6149615405961212
       },
       {
         "game_pk": 817262,
@@ -2010,8 +2010,8 @@
         "away_team": "Frisco RoughRiders",
         "home_team_id": 1350,
         "home_team": "Northwest Arkansas Naturals",
-        "away_win_probability": 0.5702882714483739,
-        "home_win_probability": 0.42971172855162615
+        "away_win_probability": 0.5803876923830127,
+        "home_win_probability": 0.41961230761698726
       },
       {
         "game_pk": 817465,
@@ -2025,8 +2025,8 @@
         "away_team": "Springfield Cardinals",
         "home_team_id": 482,
         "home_team": "Corpus Christi Hooks",
-        "away_win_probability": 0.5308115988022647,
-        "home_win_probability": 0.4691884011977353
+        "away_win_probability": 0.518600342213998,
+        "home_win_probability": 0.481399657786002
       },
       {
         "game_pk": 817534,
@@ -2040,8 +2040,8 @@
         "away_team": "Northwest Arkansas Naturals",
         "home_team_id": 574,
         "home_team": "Arkansas Travelers",
-        "away_win_probability": 0.3013150531426655,
-        "home_win_probability": 0.6986849468573345
+        "away_win_probability": 0.3336938176659311,
+        "home_win_probability": 0.6663061823340689
       },
       {
         "game_pk": 817051,
@@ -2055,8 +2055,8 @@
         "away_team": "Wichita Wind Surge",
         "home_team_id": 260,
         "home_team": "Tulsa Drillers",
-        "away_win_probability": 0.4113247277770987,
-        "home_win_probability": 0.5886752722229013
+        "away_win_probability": 0.3882956303777011,
+        "home_win_probability": 0.6117043696222989
       },
       {
         "game_pk": 817188,
@@ -2070,8 +2070,8 @@
         "away_team": "Midland RockHounds",
         "home_team_id": 510,
         "home_team": "San Antonio Missions",
-        "away_win_probability": 0.41727347174873053,
-        "home_win_probability": 0.5827265282512695
+        "away_win_probability": 0.4878943402446102,
+        "home_win_probability": 0.5121056597553898
       },
       {
         "game_pk": 817392,
@@ -2085,8 +2085,8 @@
         "away_team": "Amarillo Sod Poodles",
         "home_team_id": 540,
         "home_team": "Frisco RoughRiders",
-        "away_win_probability": 0.6212477756730266,
-        "home_win_probability": 0.3787522243269735
+        "away_win_probability": 0.5416549522700986,
+        "home_win_probability": 0.4583450477299013
       },
       {
         "game_pk": 817048,
@@ -2100,8 +2100,8 @@
         "away_team": "Wichita Wind Surge",
         "home_team_id": 260,
         "home_team": "Tulsa Drillers",
-        "away_win_probability": 0.4113247277770987,
-        "home_win_probability": 0.5886752722229013
+        "away_win_probability": 0.3882956303777011,
+        "home_win_probability": 0.6117043696222989
       },
       {
         "game_pk": 817463,
@@ -2115,8 +2115,8 @@
         "away_team": "Springfield Cardinals",
         "home_team_id": 482,
         "home_team": "Corpus Christi Hooks",
-        "away_win_probability": 0.5308115988022647,
-        "home_win_probability": 0.4691884011977353
+        "away_win_probability": 0.518600342213998,
+        "home_win_probability": 0.481399657786002
       },
       {
         "game_pk": 817532,
@@ -2130,8 +2130,8 @@
         "away_team": "Northwest Arkansas Naturals",
         "home_team_id": 574,
         "home_team": "Arkansas Travelers",
-        "away_win_probability": 0.3013150531426655,
-        "home_win_probability": 0.6986849468573345
+        "away_win_probability": 0.3336938176659311,
+        "home_win_probability": 0.6663061823340689
       },
       {
         "game_pk": 817185,
@@ -2145,8 +2145,8 @@
         "away_team": "Midland RockHounds",
         "home_team_id": 510,
         "home_team": "San Antonio Missions",
-        "away_win_probability": 0.41727347174873053,
-        "home_win_probability": 0.5827265282512695
+        "away_win_probability": 0.4878943402446102,
+        "home_win_probability": 0.5121056597553898
       },
       {
         "game_pk": 817393,
@@ -2160,8 +2160,8 @@
         "away_team": "Amarillo Sod Poodles",
         "home_team_id": 540,
         "home_team": "Frisco RoughRiders",
-        "away_win_probability": 0.6212477756730266,
-        "home_win_probability": 0.3787522243269735
+        "away_win_probability": 0.5416549522700986,
+        "home_win_probability": 0.4583450477299013
       },
       {
         "game_pk": 817460,
@@ -2175,8 +2175,8 @@
         "away_team": "Springfield Cardinals",
         "home_team_id": 482,
         "home_team": "Corpus Christi Hooks",
-        "away_win_probability": 0.5308115988022647,
-        "home_win_probability": 0.4691884011977353
+        "away_win_probability": 0.518600342213998,
+        "home_win_probability": 0.481399657786002
       },
       {
         "game_pk": 817530,
@@ -2190,8 +2190,8 @@
         "away_team": "Northwest Arkansas Naturals",
         "home_team_id": 574,
         "home_team": "Arkansas Travelers",
-        "away_win_probability": 0.3013150531426655,
-        "home_win_probability": 0.6986849468573345
+        "away_win_probability": 0.3336938176659311,
+        "home_win_probability": 0.6663061823340689
       },
       {
         "game_pk": 817049,
@@ -2205,8 +2205,8 @@
         "away_team": "Wichita Wind Surge",
         "home_team_id": 260,
         "home_team": "Tulsa Drillers",
-        "away_win_probability": 0.4113247277770987,
-        "home_win_probability": 0.5886752722229013
+        "away_win_probability": 0.3882956303777011,
+        "home_win_probability": 0.6117043696222989
       },
       {
         "game_pk": 817183,
@@ -2220,8 +2220,8 @@
         "away_team": "Midland RockHounds",
         "home_team_id": 510,
         "home_team": "San Antonio Missions",
-        "away_win_probability": 0.41727347174873053,
-        "home_win_probability": 0.5827265282512695
+        "away_win_probability": 0.4878943402446102,
+        "home_win_probability": 0.5121056597553898
       },
       {
         "game_pk": 817391,
@@ -2235,8 +2235,8 @@
         "away_team": "Amarillo Sod Poodles",
         "home_team_id": 540,
         "home_team": "Frisco RoughRiders",
-        "away_win_probability": 0.6212477756730266,
-        "home_win_probability": 0.3787522243269735
+        "away_win_probability": 0.5416549522700986,
+        "home_win_probability": 0.4583450477299013
       },
       {
         "game_pk": 817053,
@@ -2250,8 +2250,8 @@
         "away_team": "Wichita Wind Surge",
         "home_team_id": 260,
         "home_team": "Tulsa Drillers",
-        "away_win_probability": 0.4113247277770987,
-        "home_win_probability": 0.5886752722229013
+        "away_win_probability": 0.3882956303777011,
+        "home_win_probability": 0.6117043696222989
       },
       {
         "game_pk": 817184,
@@ -2265,8 +2265,8 @@
         "away_team": "Midland RockHounds",
         "home_team_id": 510,
         "home_team": "San Antonio Missions",
-        "away_win_probability": 0.41727347174873053,
-        "home_win_probability": 0.5827265282512695
+        "away_win_probability": 0.4878943402446102,
+        "home_win_probability": 0.5121056597553898
       },
       {
         "game_pk": 817394,
@@ -2280,8 +2280,8 @@
         "away_team": "Amarillo Sod Poodles",
         "home_team_id": 540,
         "home_team": "Frisco RoughRiders",
-        "away_win_probability": 0.6212477756730266,
-        "home_win_probability": 0.3787522243269735
+        "away_win_probability": 0.5416549522700986,
+        "home_win_probability": 0.4583450477299013
       },
       {
         "game_pk": 817467,
@@ -2295,8 +2295,8 @@
         "away_team": "Springfield Cardinals",
         "home_team_id": 482,
         "home_team": "Corpus Christi Hooks",
-        "away_win_probability": 0.5308115988022647,
-        "home_win_probability": 0.4691884011977353
+        "away_win_probability": 0.518600342213998,
+        "home_win_probability": 0.481399657786002
       },
       {
         "game_pk": 817536,
@@ -2310,8 +2310,8 @@
         "away_team": "Northwest Arkansas Naturals",
         "home_team_id": 574,
         "home_team": "Arkansas Travelers",
-        "away_win_probability": 0.3013150531426655,
-        "home_win_probability": 0.6986849468573345
+        "away_win_probability": 0.3336938176659311,
+        "home_win_probability": 0.6663061823340689
       },
       {
         "game_pk": 817535,
@@ -2325,8 +2325,8 @@
         "away_team": "Northwest Arkansas Naturals",
         "home_team_id": 574,
         "home_team": "Arkansas Travelers",
-        "away_win_probability": 0.3013150531426655,
-        "home_win_probability": 0.6986849468573345
+        "away_win_probability": 0.3336938176659311,
+        "home_win_probability": 0.6663061823340689
       },
       {
         "game_pk": 817045,
@@ -2340,8 +2340,8 @@
         "away_team": "Wichita Wind Surge",
         "home_team_id": 260,
         "home_team": "Tulsa Drillers",
-        "away_win_probability": 0.4113247277770987,
-        "home_win_probability": 0.5886752722229013
+        "away_win_probability": 0.3882956303777011,
+        "home_win_probability": 0.6117043696222989
       },
       {
         "game_pk": 817187,
@@ -2355,8 +2355,8 @@
         "away_team": "Midland RockHounds",
         "home_team_id": 510,
         "home_team": "San Antonio Missions",
-        "away_win_probability": 0.41727347174873053,
-        "home_win_probability": 0.5827265282512695
+        "away_win_probability": 0.4878943402446102,
+        "home_win_probability": 0.5121056597553898
       },
       {
         "game_pk": 817397,
@@ -2370,8 +2370,8 @@
         "away_team": "Amarillo Sod Poodles",
         "home_team_id": 540,
         "home_team": "Frisco RoughRiders",
-        "away_win_probability": 0.6212477756730266,
-        "home_win_probability": 0.3787522243269735
+        "away_win_probability": 0.5416549522700986,
+        "home_win_probability": 0.4583450477299013
       },
       {
         "game_pk": 817466,
@@ -2385,8 +2385,8 @@
         "away_team": "Springfield Cardinals",
         "home_team_id": 482,
         "home_team": "Corpus Christi Hooks",
-        "away_win_probability": 0.5308115988022647,
-        "home_win_probability": 0.4691884011977353
+        "away_win_probability": 0.518600342213998,
+        "home_win_probability": 0.481399657786002
       },
       {
         "game_pk": 817398,
@@ -2400,8 +2400,8 @@
         "away_team": "Amarillo Sod Poodles",
         "home_team_id": 540,
         "home_team": "Frisco RoughRiders",
-        "away_win_probability": 0.6212477756730266,
-        "home_win_probability": 0.3787522243269735
+        "away_win_probability": 0.5416549522700986,
+        "home_win_probability": 0.4583450477299013
       },
       {
         "game_pk": 817462,
@@ -2415,8 +2415,8 @@
         "away_team": "Springfield Cardinals",
         "home_team_id": 482,
         "home_team": "Corpus Christi Hooks",
-        "away_win_probability": 0.5308115988022647,
-        "home_win_probability": 0.4691884011977353
+        "away_win_probability": 0.518600342213998,
+        "home_win_probability": 0.481399657786002
       },
       {
         "game_pk": 817043,
@@ -2430,8 +2430,8 @@
         "away_team": "Wichita Wind Surge",
         "home_team_id": 260,
         "home_team": "Tulsa Drillers",
-        "away_win_probability": 0.4113247277770987,
-        "home_win_probability": 0.5886752722229013
+        "away_win_probability": 0.3882956303777011,
+        "home_win_probability": 0.6117043696222989
       },
       {
         "game_pk": 817189,
@@ -2445,8 +2445,8 @@
         "away_team": "Midland RockHounds",
         "home_team_id": 510,
         "home_team": "San Antonio Missions",
-        "away_win_probability": 0.41727347174873053,
-        "home_win_probability": 0.5827265282512695
+        "away_win_probability": 0.4878943402446102,
+        "home_win_probability": 0.5121056597553898
       },
       {
         "game_pk": 817527,
@@ -2460,8 +2460,8 @@
         "away_team": "Northwest Arkansas Naturals",
         "home_team_id": 574,
         "home_team": "Arkansas Travelers",
-        "away_win_probability": 0.3013150531426655,
-        "home_win_probability": 0.6986849468573345
+        "away_win_probability": 0.3336938176659311,
+        "home_win_probability": 0.6663061823340689
       },
       {
         "game_pk": 817329,
@@ -2475,8 +2475,8 @@
         "away_team": "Corpus Christi Hooks",
         "home_team_id": 237,
         "home_team": "Midland RockHounds",
-        "away_win_probability": 0.6710046360969999,
-        "home_win_probability": 0.32899536390300005
+        "away_win_probability": 0.5723025127611727,
+        "home_win_probability": 0.4276974872388272
       },
       {
         "game_pk": 816982,
@@ -2490,8 +2490,8 @@
         "away_team": "Frisco RoughRiders",
         "home_team_id": 3898,
         "home_team": "Wichita Wind Surge",
-        "away_win_probability": 0.4561290389531302,
-        "home_win_probability": 0.5438709610468698
+        "away_win_probability": 0.5223893530248456,
+        "home_win_probability": 0.4776106469751545
       },
       {
         "game_pk": 817117,
@@ -2505,8 +2505,8 @@
         "away_team": "Arkansas Travelers",
         "home_team_id": 440,
         "home_team": "Springfield Cardinals",
-        "away_win_probability": 0.4483080940532076,
-        "home_win_probability": 0.5516919059467924
+        "away_win_probability": 0.47186838037980694,
+        "home_win_probability": 0.5281316196201931
       },
       {
         "game_pk": 817598,
@@ -2520,8 +2520,8 @@
         "away_team": "San Antonio Missions",
         "home_team_id": 5368,
         "home_team": "Amarillo Sod Poodles",
-        "away_win_probability": 0.3697232677601844,
-        "home_win_probability": 0.6302767322398156
+        "away_win_probability": 0.42399884237264684,
+        "home_win_probability": 0.5760011576273532
       },
       {
         "game_pk": 817261,
@@ -2535,8 +2535,8 @@
         "away_team": "Tulsa Drillers",
         "home_team_id": 1350,
         "home_team": "Northwest Arkansas Naturals",
-        "away_win_probability": 0.677427520593971,
-        "home_win_probability": 0.322572479406029
+        "away_win_probability": 0.6487955782299194,
+        "home_win_probability": 0.3512044217700806
       },
       {
         "game_pk": 817324,
@@ -2550,8 +2550,8 @@
         "away_team": "Corpus Christi Hooks",
         "home_team_id": 237,
         "home_team": "Midland RockHounds",
-        "away_win_probability": 0.6710046360969999,
-        "home_win_probability": 0.32899536390300005
+        "away_win_probability": 0.5723025127611727,
+        "home_win_probability": 0.4276974872388272
       },
       {
         "game_pk": 816984,
@@ -2565,8 +2565,8 @@
         "away_team": "Frisco RoughRiders",
         "home_team_id": 3898,
         "home_team": "Wichita Wind Surge",
-        "away_win_probability": 0.4561290389531302,
-        "home_win_probability": 0.5438709610468698
+        "away_win_probability": 0.5223893530248456,
+        "home_win_probability": 0.4776106469751545
       },
       {
         "game_pk": 817118,
@@ -2580,8 +2580,8 @@
         "away_team": "Arkansas Travelers",
         "home_team_id": 440,
         "home_team": "Springfield Cardinals",
-        "away_win_probability": 0.4483080940532076,
-        "home_win_probability": 0.5516919059467924
+        "away_win_probability": 0.47186838037980694,
+        "home_win_probability": 0.5281316196201931
       },
       {
         "game_pk": 817599,
@@ -2595,8 +2595,8 @@
         "away_team": "San Antonio Missions",
         "home_team_id": 5368,
         "home_team": "Amarillo Sod Poodles",
-        "away_win_probability": 0.3697232677601844,
-        "home_win_probability": 0.6302767322398156
+        "away_win_probability": 0.42399884237264684,
+        "home_win_probability": 0.5760011576273532
       },
       {
         "game_pk": 817260,
@@ -2610,8 +2610,8 @@
         "away_team": "Tulsa Drillers",
         "home_team_id": 1350,
         "home_team": "Northwest Arkansas Naturals",
-        "away_win_probability": 0.677427520593971,
-        "home_win_probability": 0.322572479406029
+        "away_win_probability": 0.6487955782299194,
+        "home_win_probability": 0.3512044217700806
       },
       {
         "game_pk": 816980,
@@ -2625,8 +2625,8 @@
         "away_team": "Frisco RoughRiders",
         "home_team_id": 3898,
         "home_team": "Wichita Wind Surge",
-        "away_win_probability": 0.4561290389531302,
-        "home_win_probability": 0.5438709610468698
+        "away_win_probability": 0.5223893530248456,
+        "home_win_probability": 0.4776106469751545
       },
       {
         "game_pk": 817119,
@@ -2640,8 +2640,8 @@
         "away_team": "Arkansas Travelers",
         "home_team_id": 440,
         "home_team": "Springfield Cardinals",
-        "away_win_probability": 0.4483080940532076,
-        "home_win_probability": 0.5516919059467924
+        "away_win_probability": 0.47186838037980694,
+        "home_win_probability": 0.5281316196201931
       },
       {
         "game_pk": 817603,
@@ -2655,8 +2655,8 @@
         "away_team": "San Antonio Missions",
         "home_team_id": 5368,
         "home_team": "Amarillo Sod Poodles",
-        "away_win_probability": 0.3697232677601844,
-        "home_win_probability": 0.6302767322398156
+        "away_win_probability": 0.42399884237264684,
+        "home_win_probability": 0.5760011576273532
       },
       {
         "game_pk": 817328,
@@ -2670,8 +2670,8 @@
         "away_team": "Corpus Christi Hooks",
         "home_team_id": 237,
         "home_team": "Midland RockHounds",
-        "away_win_probability": 0.6710046360969999,
-        "home_win_probability": 0.32899536390300005
+        "away_win_probability": 0.5723025127611727,
+        "home_win_probability": 0.4276974872388272
       },
       {
         "game_pk": 817253,
@@ -2685,8 +2685,8 @@
         "away_team": "Tulsa Drillers",
         "home_team_id": 1350,
         "home_team": "Northwest Arkansas Naturals",
-        "away_win_probability": 0.677427520593971,
-        "home_win_probability": 0.322572479406029
+        "away_win_probability": 0.6487955782299194,
+        "home_win_probability": 0.3512044217700806
       },
       {
         "game_pk": 816977,
@@ -2700,8 +2700,8 @@
         "away_team": "Frisco RoughRiders",
         "home_team_id": 3898,
         "home_team": "Wichita Wind Surge",
-        "away_win_probability": 0.4561290389531302,
-        "home_win_probability": 0.5438709610468698
+        "away_win_probability": 0.5223893530248456,
+        "home_win_probability": 0.4776106469751545
       },
       {
         "game_pk": 817330,
@@ -2715,8 +2715,8 @@
         "away_team": "Corpus Christi Hooks",
         "home_team_id": 237,
         "home_team": "Midland RockHounds",
-        "away_win_probability": 0.6710046360969999,
-        "home_win_probability": 0.32899536390300005
+        "away_win_probability": 0.5723025127611727,
+        "home_win_probability": 0.4276974872388272
       },
       {
         "game_pk": 817115,
@@ -2730,8 +2730,8 @@
         "away_team": "Arkansas Travelers",
         "home_team_id": 440,
         "home_team": "Springfield Cardinals",
-        "away_win_probability": 0.4483080940532076,
-        "home_win_probability": 0.5516919059467924
+        "away_win_probability": 0.47186838037980694,
+        "home_win_probability": 0.5281316196201931
       },
       {
         "game_pk": 817252,
@@ -2745,8 +2745,8 @@
         "away_team": "Tulsa Drillers",
         "home_team_id": 1350,
         "home_team": "Northwest Arkansas Naturals",
-        "away_win_probability": 0.677427520593971,
-        "home_win_probability": 0.322572479406029
+        "away_win_probability": 0.6487955782299194,
+        "home_win_probability": 0.3512044217700806
       },
       {
         "game_pk": 817600,
@@ -2760,8 +2760,8 @@
         "away_team": "San Antonio Missions",
         "home_team_id": 5368,
         "home_team": "Amarillo Sod Poodles",
-        "away_win_probability": 0.3697232677601844,
-        "home_win_probability": 0.6302767322398156
+        "away_win_probability": 0.42399884237264684,
+        "home_win_probability": 0.5760011576273532
       },
       {
         "game_pk": 816979,
@@ -2775,8 +2775,8 @@
         "away_team": "Frisco RoughRiders",
         "home_team_id": 3898,
         "home_team": "Wichita Wind Surge",
-        "away_win_probability": 0.4561290389531302,
-        "home_win_probability": 0.5438709610468698
+        "away_win_probability": 0.5223893530248456,
+        "home_win_probability": 0.4776106469751545
       },
       {
         "game_pk": 817250,
@@ -2790,8 +2790,8 @@
         "away_team": "Tulsa Drillers",
         "home_team_id": 1350,
         "home_team": "Northwest Arkansas Naturals",
-        "away_win_probability": 0.677427520593971,
-        "home_win_probability": 0.322572479406029
+        "away_win_probability": 0.6487955782299194,
+        "home_win_probability": 0.3512044217700806
       },
       {
         "game_pk": 817116,
@@ -2805,8 +2805,8 @@
         "away_team": "Arkansas Travelers",
         "home_team_id": 440,
         "home_team": "Springfield Cardinals",
-        "away_win_probability": 0.4483080940532076,
-        "home_win_probability": 0.5516919059467924
+        "away_win_probability": 0.47186838037980694,
+        "home_win_probability": 0.5281316196201931
       },
       {
         "game_pk": 817326,
@@ -2820,8 +2820,8 @@
         "away_team": "Corpus Christi Hooks",
         "home_team_id": 237,
         "home_team": "Midland RockHounds",
-        "away_win_probability": 0.6710046360969999,
-        "home_win_probability": 0.32899536390300005
+        "away_win_probability": 0.5723025127611727,
+        "home_win_probability": 0.4276974872388272
       },
       {
         "game_pk": 817604,
@@ -2835,8 +2835,8 @@
         "away_team": "San Antonio Missions",
         "home_team_id": 5368,
         "home_team": "Amarillo Sod Poodles",
-        "away_win_probability": 0.3697232677601844,
-        "home_win_probability": 0.6302767322398156
+        "away_win_probability": 0.42399884237264684,
+        "home_win_probability": 0.5760011576273532
       },
       {
         "game_pk": 817316,
@@ -2850,8 +2850,8 @@
         "away_team": "Corpus Christi Hooks",
         "home_team_id": 237,
         "home_team": "Midland RockHounds",
-        "away_win_probability": 0.6710046360969999,
-        "home_win_probability": 0.32899536390300005
+        "away_win_probability": 0.5723025127611727,
+        "home_win_probability": 0.4276974872388272
       },
       {
         "game_pk": 816978,
@@ -2865,8 +2865,8 @@
         "away_team": "Frisco RoughRiders",
         "home_team_id": 3898,
         "home_team": "Wichita Wind Surge",
-        "away_win_probability": 0.4561290389531302,
-        "home_win_probability": 0.5438709610468698
+        "away_win_probability": 0.5223893530248456,
+        "home_win_probability": 0.4776106469751545
       },
       {
         "game_pk": 817602,
@@ -2880,8 +2880,8 @@
         "away_team": "San Antonio Missions",
         "home_team_id": 5368,
         "home_team": "Amarillo Sod Poodles",
-        "away_win_probability": 0.3697232677601844,
-        "home_win_probability": 0.6302767322398156
+        "away_win_probability": 0.42399884237264684,
+        "home_win_probability": 0.5760011576273532
       },
       {
         "game_pk": 817120,
@@ -2895,8 +2895,8 @@
         "away_team": "Arkansas Travelers",
         "home_team_id": 440,
         "home_team": "Springfield Cardinals",
-        "away_win_probability": 0.4483080940532076,
-        "home_win_probability": 0.5516919059467924
+        "away_win_probability": 0.47186838037980694,
+        "home_win_probability": 0.5281316196201931
       },
       {
         "game_pk": 817255,
@@ -2910,8 +2910,8 @@
         "away_team": "Tulsa Drillers",
         "home_team_id": 1350,
         "home_team": "Northwest Arkansas Naturals",
-        "away_win_probability": 0.677427520593971,
-        "home_win_probability": 0.322572479406029
+        "away_win_probability": 0.6487955782299194,
+        "home_win_probability": 0.3512044217700806
       }
     ],
     "note": "These are model estimates, not official probabilities. The matchup conversion is intentionally conservative and should be recalibrated after out-of-sample backtesting."
@@ -3111,13 +3111,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 1,
           "trend": "\u2192",
-          "forecast_strength": 58.9,
+          "forecast_strength": 62.7,
           "remaining_games": 30,
           "open_berth_probability": 0.0,
           "open_berth_probability_display": "0.0%",
           "playoff_berth_probability": 1.0,
           "playoff_berth_probability_display": "100.0%",
-          "expected_final_second_half_record": "39.5-29.5"
+          "expected_final_second_half_record": "39.3-29.7"
         },
         {
           "team_id": 574,
@@ -3195,13 +3195,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 2,
           "trend": "\u2192",
-          "forecast_strength": 59.8,
+          "forecast_strength": 62.8,
           "remaining_games": 30,
-          "open_berth_probability": 0.07189,
-          "open_berth_probability_display": "7.2%",
-          "playoff_berth_probability": 0.07189,
-          "playoff_berth_probability_display": "7.2%",
-          "expected_final_second_half_record": "35.1-33.9"
+          "open_berth_probability": 0.11363,
+          "open_berth_probability_display": "11.4%",
+          "playoff_berth_probability": 0.11363,
+          "playoff_berth_probability_display": "11.4%",
+          "expected_final_second_half_record": "35.3-33.7"
         },
         {
           "team_id": 540,
@@ -3279,13 +3279,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 3,
           "trend": "\u2192",
-          "forecast_strength": 41.7,
+          "forecast_strength": 45.3,
           "remaining_games": 30,
           "open_berth_probability": 0.0,
           "open_berth_probability_display": "0.0%",
           "playoff_berth_probability": 1.0,
           "playoff_berth_probability_display": "100.0%",
-          "expected_final_second_half_record": "34.3-34.7"
+          "expected_final_second_half_record": "35.8-33.2"
         },
         {
           "team_id": 482,
@@ -3363,13 +3363,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 4,
           "trend": "\u2192",
-          "forecast_strength": 60.1,
+          "forecast_strength": 60.6,
           "remaining_games": 30,
-          "open_berth_probability": 0.35761,
-          "open_berth_probability_display": "35.8%",
-          "playoff_berth_probability": 0.35761,
-          "playoff_berth_probability_display": "35.8%",
-          "expected_final_second_half_record": "37.3-31.7"
+          "open_berth_probability": 0.41412,
+          "open_berth_probability_display": "41.4%",
+          "playoff_berth_probability": 0.41412,
+          "playoff_berth_probability_display": "41.4%",
+          "expected_final_second_half_record": "36.4-32.6"
         },
         {
           "team_id": 5368,
@@ -3447,13 +3447,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 5,
           "trend": "\u2192",
-          "forecast_strength": 61.7,
+          "forecast_strength": 57.6,
           "remaining_games": 30,
-          "open_berth_probability": 0.62301,
-          "open_berth_probability_display": "62.3%",
-          "playoff_berth_probability": 0.62301,
-          "playoff_berth_probability_display": "62.3%",
-          "expected_final_second_half_record": "38.9-30.1"
+          "open_berth_probability": 0.49427,
+          "open_berth_probability_display": "49.4%",
+          "playoff_berth_probability": 0.49427,
+          "playoff_berth_probability_display": "49.4%",
+          "expected_final_second_half_record": "37.0-32.0"
         },
         {
           "team_id": 440,
@@ -3531,13 +3531,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 6,
           "trend": "\u2192",
-          "forecast_strength": 66.2,
+          "forecast_strength": 67.3,
           "remaining_games": 30,
-          "open_berth_probability": 0.92723,
-          "open_berth_probability_display": "92.7%",
-          "playoff_berth_probability": 0.92723,
-          "playoff_berth_probability_display": "92.7%",
-          "expected_final_second_half_record": "42.0-27.0"
+          "open_berth_probability": 0.88573,
+          "open_berth_probability_display": "88.6%",
+          "playoff_berth_probability": 0.88573,
+          "playoff_berth_probability_display": "88.6%",
+          "expected_final_second_half_record": "41.1-27.9"
         },
         {
           "team_id": 237,
@@ -3615,13 +3615,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 7,
           "trend": "\u2192",
-          "forecast_strength": 32.0,
+          "forecast_strength": 40.9,
           "remaining_games": 30,
-          "open_berth_probability": 0.00325,
-          "open_berth_probability_display": "0.3%",
-          "playoff_berth_probability": 0.00325,
-          "playoff_berth_probability_display": "0.3%",
-          "expected_final_second_half_record": "29.2-39.8"
+          "open_berth_probability": 0.05579,
+          "open_berth_probability_display": "5.6%",
+          "playoff_berth_probability": 0.05579,
+          "playoff_berth_probability_display": "5.6%",
+          "expected_final_second_half_record": "32.0-37.0"
         },
         {
           "team_id": 3898,
@@ -3699,13 +3699,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 8,
           "trend": "\u2192",
-          "forecast_strength": 46.9,
+          "forecast_strength": 37.7,
           "remaining_games": 30,
-          "open_berth_probability": 0.00088,
+          "open_berth_probability": 0.00061,
           "open_berth_probability_display": "0.1%",
-          "playoff_berth_probability": 0.00088,
+          "playoff_berth_probability": 0.00061,
           "playoff_berth_probability_display": "0.1%",
-          "expected_final_second_half_record": "31.0-38.0"
+          "expected_final_second_half_record": "29.9-39.1"
         },
         {
           "team_id": 510,
@@ -3783,13 +3783,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 9,
           "trend": "\u2192",
-          "forecast_strength": 43.1,
+          "forecast_strength": 41.5,
           "remaining_games": 30,
-          "open_berth_probability": 0.01613,
-          "open_berth_probability_display": "1.6%",
-          "playoff_berth_probability": 0.01613,
-          "playoff_berth_probability_display": "1.6%",
-          "expected_final_second_half_record": "32.4-36.6"
+          "open_berth_probability": 0.03582,
+          "open_berth_probability_display": "3.6%",
+          "playoff_berth_probability": 0.03582,
+          "playoff_berth_probability_display": "3.6%",
+          "expected_final_second_half_record": "32.3-36.7"
         },
         {
           "team_id": 1350,
@@ -3867,13 +3867,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 10,
           "trend": "\u2192",
-          "forecast_strength": 29.7,
+          "forecast_strength": 23.6,
           "remaining_games": 30,
-          "open_berth_probability": 0.0,
+          "open_berth_probability": 3e-05,
           "open_berth_probability_display": "0.0%",
-          "playoff_berth_probability": 0.0,
+          "playoff_berth_probability": 3e-05,
           "playoff_berth_probability_display": "0.0%",
-          "expected_final_second_half_record": "25.3-43.7"
+          "expected_final_second_half_record": "26.0-43.0"
         }
       ]
     },
@@ -3960,13 +3960,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 1,
           "trend": "\u2192",
-          "forecast_strength": 58.9,
+          "forecast_strength": 62.7,
           "remaining_games": 30,
           "open_berth_probability": 0.0,
           "open_berth_probability_display": "0.0%",
           "playoff_berth_probability": 1.0,
           "playoff_berth_probability_display": "100.0%",
-          "expected_final_second_half_record": "39.5-29.5"
+          "expected_final_second_half_record": "39.3-29.7"
         },
         {
           "team_id": 574,
@@ -4020,13 +4020,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 2,
           "trend": "\u2192",
-          "forecast_strength": 59.8,
+          "forecast_strength": 62.8,
           "remaining_games": 30,
-          "open_berth_probability": 0.07189,
-          "open_berth_probability_display": "7.2%",
-          "playoff_berth_probability": 0.07189,
-          "playoff_berth_probability_display": "7.2%",
-          "expected_final_second_half_record": "35.1-33.9"
+          "open_berth_probability": 0.11363,
+          "open_berth_probability_display": "11.4%",
+          "playoff_berth_probability": 0.11363,
+          "playoff_berth_probability_display": "11.4%",
+          "expected_final_second_half_record": "35.3-33.7"
         },
         {
           "team_id": 540,
@@ -4080,13 +4080,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 3,
           "trend": "\u2192",
-          "forecast_strength": 41.7,
+          "forecast_strength": 45.3,
           "remaining_games": 30,
           "open_berth_probability": 0.0,
           "open_berth_probability_display": "0.0%",
           "playoff_berth_probability": 1.0,
           "playoff_berth_probability_display": "100.0%",
-          "expected_final_second_half_record": "34.3-34.7"
+          "expected_final_second_half_record": "35.8-33.2"
         },
         {
           "team_id": 5368,
@@ -4140,13 +4140,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 4,
           "trend": "\u2192",
-          "forecast_strength": 61.7,
+          "forecast_strength": 57.6,
           "remaining_games": 30,
-          "open_berth_probability": 0.62301,
-          "open_berth_probability_display": "62.3%",
-          "playoff_berth_probability": 0.62301,
-          "playoff_berth_probability_display": "62.3%",
-          "expected_final_second_half_record": "38.9-30.1"
+          "open_berth_probability": 0.49427,
+          "open_berth_probability_display": "49.4%",
+          "playoff_berth_probability": 0.49427,
+          "playoff_berth_probability_display": "49.4%",
+          "expected_final_second_half_record": "37.0-32.0"
         },
         {
           "team_id": 482,
@@ -4200,13 +4200,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 5,
           "trend": "\u2192",
-          "forecast_strength": 60.1,
+          "forecast_strength": 60.6,
           "remaining_games": 30,
-          "open_berth_probability": 0.35761,
-          "open_berth_probability_display": "35.8%",
-          "playoff_berth_probability": 0.35761,
-          "playoff_berth_probability_display": "35.8%",
-          "expected_final_second_half_record": "37.3-31.7"
+          "open_berth_probability": 0.41412,
+          "open_berth_probability_display": "41.4%",
+          "playoff_berth_probability": 0.41412,
+          "playoff_berth_probability_display": "41.4%",
+          "expected_final_second_half_record": "36.4-32.6"
         },
         {
           "team_id": 440,
@@ -4260,13 +4260,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 6,
           "trend": "\u2192",
-          "forecast_strength": 66.2,
+          "forecast_strength": 67.3,
           "remaining_games": 30,
-          "open_berth_probability": 0.92723,
-          "open_berth_probability_display": "92.7%",
-          "playoff_berth_probability": 0.92723,
-          "playoff_berth_probability_display": "92.7%",
-          "expected_final_second_half_record": "42.0-27.0"
+          "open_berth_probability": 0.88573,
+          "open_berth_probability_display": "88.6%",
+          "playoff_berth_probability": 0.88573,
+          "playoff_berth_probability_display": "88.6%",
+          "expected_final_second_half_record": "41.1-27.9"
         },
         {
           "team_id": 237,
@@ -4320,13 +4320,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 7,
           "trend": "\u2192",
-          "forecast_strength": 32.0,
+          "forecast_strength": 40.9,
           "remaining_games": 30,
-          "open_berth_probability": 0.00325,
-          "open_berth_probability_display": "0.3%",
-          "playoff_berth_probability": 0.00325,
-          "playoff_berth_probability_display": "0.3%",
-          "expected_final_second_half_record": "29.2-39.8"
+          "open_berth_probability": 0.05579,
+          "open_berth_probability_display": "5.6%",
+          "playoff_berth_probability": 0.05579,
+          "playoff_berth_probability_display": "5.6%",
+          "expected_final_second_half_record": "32.0-37.0"
         },
         {
           "team_id": 1350,
@@ -4380,13 +4380,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 8,
           "trend": "\u2192",
-          "forecast_strength": 29.7,
+          "forecast_strength": 23.6,
           "remaining_games": 30,
-          "open_berth_probability": 0.0,
+          "open_berth_probability": 3e-05,
           "open_berth_probability_display": "0.0%",
-          "playoff_berth_probability": 0.0,
+          "playoff_berth_probability": 3e-05,
           "playoff_berth_probability_display": "0.0%",
-          "expected_final_second_half_record": "25.3-43.7"
+          "expected_final_second_half_record": "26.0-43.0"
         },
         {
           "team_id": 3898,
@@ -4440,13 +4440,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 9,
           "trend": "\u2192",
-          "forecast_strength": 46.9,
+          "forecast_strength": 37.7,
           "remaining_games": 30,
-          "open_berth_probability": 0.00088,
+          "open_berth_probability": 0.00061,
           "open_berth_probability_display": "0.1%",
-          "playoff_berth_probability": 0.00088,
+          "playoff_berth_probability": 0.00061,
           "playoff_berth_probability_display": "0.1%",
-          "expected_final_second_half_record": "31.0-38.0"
+          "expected_final_second_half_record": "29.9-39.1"
         },
         {
           "team_id": 510,
@@ -4500,13 +4500,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 10,
           "trend": "\u2192",
-          "forecast_strength": 43.1,
+          "forecast_strength": 41.5,
           "remaining_games": 30,
-          "open_berth_probability": 0.01613,
-          "open_berth_probability_display": "1.6%",
-          "playoff_berth_probability": 0.01613,
-          "playoff_berth_probability_display": "1.6%",
-          "expected_final_second_half_record": "32.4-36.6"
+          "open_berth_probability": 0.03582,
+          "open_berth_probability_display": "3.6%",
+          "playoff_berth_probability": 0.03582,
+          "playoff_berth_probability_display": "3.6%",
+          "expected_final_second_half_record": "32.3-36.7"
         }
       ]
     },
@@ -4593,13 +4593,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 1,
           "trend": "\u2192",
-          "forecast_strength": 66.2,
+          "forecast_strength": 67.3,
           "remaining_games": 30,
-          "open_berth_probability": 0.92723,
-          "open_berth_probability_display": "92.7%",
-          "playoff_berth_probability": 0.92723,
-          "playoff_berth_probability_display": "92.7%",
-          "expected_final_second_half_record": "42.0-27.0"
+          "open_berth_probability": 0.88573,
+          "open_berth_probability_display": "88.6%",
+          "playoff_berth_probability": 0.88573,
+          "playoff_berth_probability_display": "88.6%",
+          "expected_final_second_half_record": "41.1-27.9"
         },
         {
           "team_id": 482,
@@ -4653,13 +4653,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 2,
           "trend": "\u2192",
-          "forecast_strength": 60.1,
+          "forecast_strength": 60.6,
           "remaining_games": 30,
-          "open_berth_probability": 0.35761,
-          "open_berth_probability_display": "35.8%",
-          "playoff_berth_probability": 0.35761,
-          "playoff_berth_probability_display": "35.8%",
-          "expected_final_second_half_record": "37.3-31.7"
+          "open_berth_probability": 0.41412,
+          "open_berth_probability_display": "41.4%",
+          "playoff_berth_probability": 0.41412,
+          "playoff_berth_probability_display": "41.4%",
+          "expected_final_second_half_record": "36.4-32.6"
         },
         {
           "team_id": 260,
@@ -4713,13 +4713,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 3,
           "trend": "\u2192",
-          "forecast_strength": 58.9,
+          "forecast_strength": 62.7,
           "remaining_games": 30,
           "open_berth_probability": 0.0,
           "open_berth_probability_display": "0.0%",
           "playoff_berth_probability": 1.0,
           "playoff_berth_probability_display": "100.0%",
-          "expected_final_second_half_record": "39.5-29.5"
+          "expected_final_second_half_record": "39.3-29.7"
         },
         {
           "team_id": 574,
@@ -4773,13 +4773,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 4,
           "trend": "\u2192",
-          "forecast_strength": 59.8,
+          "forecast_strength": 62.8,
           "remaining_games": 30,
-          "open_berth_probability": 0.07189,
-          "open_berth_probability_display": "7.2%",
-          "playoff_berth_probability": 0.07189,
-          "playoff_berth_probability_display": "7.2%",
-          "expected_final_second_half_record": "35.1-33.9"
+          "open_berth_probability": 0.11363,
+          "open_berth_probability_display": "11.4%",
+          "playoff_berth_probability": 0.11363,
+          "playoff_berth_probability_display": "11.4%",
+          "expected_final_second_half_record": "35.3-33.7"
         },
         {
           "team_id": 5368,
@@ -4833,13 +4833,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 5,
           "trend": "\u2192",
-          "forecast_strength": 61.7,
+          "forecast_strength": 57.6,
           "remaining_games": 30,
-          "open_berth_probability": 0.62301,
-          "open_berth_probability_display": "62.3%",
-          "playoff_berth_probability": 0.62301,
-          "playoff_berth_probability_display": "62.3%",
-          "expected_final_second_half_record": "38.9-30.1"
+          "open_berth_probability": 0.49427,
+          "open_berth_probability_display": "49.4%",
+          "playoff_berth_probability": 0.49427,
+          "playoff_berth_probability_display": "49.4%",
+          "expected_final_second_half_record": "37.0-32.0"
         },
         {
           "team_id": 540,
@@ -4893,13 +4893,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 6,
           "trend": "\u2192",
-          "forecast_strength": 41.7,
+          "forecast_strength": 45.3,
           "remaining_games": 30,
           "open_berth_probability": 0.0,
           "open_berth_probability_display": "0.0%",
           "playoff_berth_probability": 1.0,
           "playoff_berth_probability_display": "100.0%",
-          "expected_final_second_half_record": "34.3-34.7"
+          "expected_final_second_half_record": "35.8-33.2"
         },
         {
           "team_id": 237,
@@ -4953,13 +4953,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 7,
           "trend": "\u2192",
-          "forecast_strength": 32.0,
+          "forecast_strength": 40.9,
           "remaining_games": 30,
-          "open_berth_probability": 0.00325,
-          "open_berth_probability_display": "0.3%",
-          "playoff_berth_probability": 0.00325,
-          "playoff_berth_probability_display": "0.3%",
-          "expected_final_second_half_record": "29.2-39.8"
+          "open_berth_probability": 0.05579,
+          "open_berth_probability_display": "5.6%",
+          "playoff_berth_probability": 0.05579,
+          "playoff_berth_probability_display": "5.6%",
+          "expected_final_second_half_record": "32.0-37.0"
         },
         {
           "team_id": 510,
@@ -5013,13 +5013,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 8,
           "trend": "\u2192",
-          "forecast_strength": 43.1,
+          "forecast_strength": 41.5,
           "remaining_games": 30,
-          "open_berth_probability": 0.01613,
-          "open_berth_probability_display": "1.6%",
-          "playoff_berth_probability": 0.01613,
-          "playoff_berth_probability_display": "1.6%",
-          "expected_final_second_half_record": "32.4-36.6"
+          "open_berth_probability": 0.03582,
+          "open_berth_probability_display": "3.6%",
+          "playoff_berth_probability": 0.03582,
+          "playoff_berth_probability_display": "3.6%",
+          "expected_final_second_half_record": "32.3-36.7"
         },
         {
           "team_id": 3898,
@@ -5073,13 +5073,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 9,
           "trend": "\u2192",
-          "forecast_strength": 46.9,
+          "forecast_strength": 37.7,
           "remaining_games": 30,
-          "open_berth_probability": 0.00088,
+          "open_berth_probability": 0.00061,
           "open_berth_probability_display": "0.1%",
-          "playoff_berth_probability": 0.00088,
+          "playoff_berth_probability": 0.00061,
           "playoff_berth_probability_display": "0.1%",
-          "expected_final_second_half_record": "31.0-38.0"
+          "expected_final_second_half_record": "29.9-39.1"
         },
         {
           "team_id": 1350,
@@ -5133,13 +5133,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 10,
           "trend": "\u2192",
-          "forecast_strength": 29.7,
+          "forecast_strength": 23.6,
           "remaining_games": 30,
-          "open_berth_probability": 0.0,
+          "open_berth_probability": 3e-05,
           "open_berth_probability_display": "0.0%",
-          "playoff_berth_probability": 0.0,
+          "playoff_berth_probability": 3e-05,
           "playoff_berth_probability_display": "0.0%",
-          "expected_final_second_half_record": "25.3-43.7"
+          "expected_final_second_half_record": "26.0-43.0"
         }
       ]
     },
@@ -5226,13 +5226,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 1,
           "trend": "\u2192",
-          "forecast_strength": 61.7,
+          "forecast_strength": 57.6,
           "remaining_games": 30,
-          "open_berth_probability": 0.62301,
-          "open_berth_probability_display": "62.3%",
-          "playoff_berth_probability": 0.62301,
-          "playoff_berth_probability_display": "62.3%",
-          "expected_final_second_half_record": "38.9-30.1"
+          "open_berth_probability": 0.49427,
+          "open_berth_probability_display": "49.4%",
+          "playoff_berth_probability": 0.49427,
+          "playoff_berth_probability_display": "49.4%",
+          "expected_final_second_half_record": "37.0-32.0"
         },
         {
           "team_id": 440,
@@ -5286,13 +5286,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 2,
           "trend": "\u2192",
-          "forecast_strength": 66.2,
+          "forecast_strength": 67.3,
           "remaining_games": 30,
-          "open_berth_probability": 0.92723,
-          "open_berth_probability_display": "92.7%",
-          "playoff_berth_probability": 0.92723,
-          "playoff_berth_probability_display": "92.7%",
-          "expected_final_second_half_record": "42.0-27.0"
+          "open_berth_probability": 0.88573,
+          "open_berth_probability_display": "88.6%",
+          "playoff_berth_probability": 0.88573,
+          "playoff_berth_probability_display": "88.6%",
+          "expected_final_second_half_record": "41.1-27.9"
         },
         {
           "team_id": 482,
@@ -5346,13 +5346,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 3,
           "trend": "\u2192",
-          "forecast_strength": 60.1,
+          "forecast_strength": 60.6,
           "remaining_games": 30,
-          "open_berth_probability": 0.35761,
-          "open_berth_probability_display": "35.8%",
-          "playoff_berth_probability": 0.35761,
-          "playoff_berth_probability_display": "35.8%",
-          "expected_final_second_half_record": "37.3-31.7"
+          "open_berth_probability": 0.41412,
+          "open_berth_probability_display": "41.4%",
+          "playoff_berth_probability": 0.41412,
+          "playoff_berth_probability_display": "41.4%",
+          "expected_final_second_half_record": "36.4-32.6"
         },
         {
           "team_id": 3898,
@@ -5406,13 +5406,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 4,
           "trend": "\u2192",
-          "forecast_strength": 46.9,
+          "forecast_strength": 37.7,
           "remaining_games": 30,
-          "open_berth_probability": 0.00088,
+          "open_berth_probability": 0.00061,
           "open_berth_probability_display": "0.1%",
-          "playoff_berth_probability": 0.00088,
+          "playoff_berth_probability": 0.00061,
           "playoff_berth_probability_display": "0.1%",
-          "expected_final_second_half_record": "31.0-38.0"
+          "expected_final_second_half_record": "29.9-39.1"
         },
         {
           "team_id": 574,
@@ -5466,13 +5466,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 5,
           "trend": "\u2192",
-          "forecast_strength": 59.8,
+          "forecast_strength": 62.8,
           "remaining_games": 30,
-          "open_berth_probability": 0.07189,
-          "open_berth_probability_display": "7.2%",
-          "playoff_berth_probability": 0.07189,
-          "playoff_berth_probability_display": "7.2%",
-          "expected_final_second_half_record": "35.1-33.9"
+          "open_berth_probability": 0.11363,
+          "open_berth_probability_display": "11.4%",
+          "playoff_berth_probability": 0.11363,
+          "playoff_berth_probability_display": "11.4%",
+          "expected_final_second_half_record": "35.3-33.7"
         },
         {
           "team_id": 260,
@@ -5526,13 +5526,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 6,
           "trend": "\u2192",
-          "forecast_strength": 58.9,
+          "forecast_strength": 62.7,
           "remaining_games": 30,
           "open_berth_probability": 0.0,
           "open_berth_probability_display": "0.0%",
           "playoff_berth_probability": 1.0,
           "playoff_berth_probability_display": "100.0%",
-          "expected_final_second_half_record": "39.5-29.5"
+          "expected_final_second_half_record": "39.3-29.7"
         },
         {
           "team_id": 510,
@@ -5586,13 +5586,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 7,
           "trend": "\u2192",
-          "forecast_strength": 43.1,
+          "forecast_strength": 41.5,
           "remaining_games": 30,
-          "open_berth_probability": 0.01613,
-          "open_berth_probability_display": "1.6%",
-          "playoff_berth_probability": 0.01613,
-          "playoff_berth_probability_display": "1.6%",
-          "expected_final_second_half_record": "32.4-36.6"
+          "open_berth_probability": 0.03582,
+          "open_berth_probability_display": "3.6%",
+          "playoff_berth_probability": 0.03582,
+          "playoff_berth_probability_display": "3.6%",
+          "expected_final_second_half_record": "32.3-36.7"
         },
         {
           "team_id": 1350,
@@ -5646,13 +5646,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 8,
           "trend": "\u2192",
-          "forecast_strength": 29.7,
+          "forecast_strength": 23.6,
           "remaining_games": 30,
-          "open_berth_probability": 0.0,
+          "open_berth_probability": 3e-05,
           "open_berth_probability_display": "0.0%",
-          "playoff_berth_probability": 0.0,
+          "playoff_berth_probability": 3e-05,
           "playoff_berth_probability_display": "0.0%",
-          "expected_final_second_half_record": "25.3-43.7"
+          "expected_final_second_half_record": "26.0-43.0"
         },
         {
           "team_id": 540,
@@ -5706,13 +5706,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 9,
           "trend": "\u2192",
-          "forecast_strength": 41.7,
+          "forecast_strength": 45.3,
           "remaining_games": 30,
           "open_berth_probability": 0.0,
           "open_berth_probability_display": "0.0%",
           "playoff_berth_probability": 1.0,
           "playoff_berth_probability_display": "100.0%",
-          "expected_final_second_half_record": "34.3-34.7"
+          "expected_final_second_half_record": "35.8-33.2"
         },
         {
           "team_id": 237,
@@ -5766,13 +5766,13 @@
           "power_delta_class": "delta-neutral",
           "rank": 10,
           "trend": "\u2192",
-          "forecast_strength": 32.0,
+          "forecast_strength": 40.9,
           "remaining_games": 30,
-          "open_berth_probability": 0.00325,
-          "open_berth_probability_display": "0.3%",
-          "playoff_berth_probability": 0.00325,
-          "playoff_berth_probability_display": "0.3%",
-          "expected_final_second_half_record": "29.2-39.8"
+          "open_berth_probability": 0.05579,
+          "open_berth_probability_display": "5.6%",
+          "playoff_berth_probability": 0.05579,
+          "playoff_berth_probability_display": "5.6%",
+          "expected_final_second_half_record": "32.0-37.0"
         }
       ]
     }
@@ -5854,13 +5854,13 @@
       "power_delta_class": "delta-neutral",
       "rank": 1,
       "trend": "\u2192",
-      "forecast_strength": 58.9,
+      "forecast_strength": 62.7,
       "remaining_games": 30,
       "open_berth_probability": 0.0,
       "open_berth_probability_display": "0.0%",
       "playoff_berth_probability": 1.0,
       "playoff_berth_probability_display": "100.0%",
-      "expected_final_second_half_record": "39.5-29.5"
+      "expected_final_second_half_record": "39.3-29.7"
     },
     {
       "team_id": 574,
@@ -5938,13 +5938,13 @@
       "power_delta_class": "delta-neutral",
       "rank": 2,
       "trend": "\u2192",
-      "forecast_strength": 59.8,
+      "forecast_strength": 62.8,
       "remaining_games": 30,
-      "open_berth_probability": 0.07189,
-      "open_berth_probability_display": "7.2%",
-      "playoff_berth_probability": 0.07189,
-      "playoff_berth_probability_display": "7.2%",
-      "expected_final_second_half_record": "35.1-33.9"
+      "open_berth_probability": 0.11363,
+      "open_berth_probability_display": "11.4%",
+      "playoff_berth_probability": 0.11363,
+      "playoff_berth_probability_display": "11.4%",
+      "expected_final_second_half_record": "35.3-33.7"
     },
     {
       "team_id": 540,
@@ -6022,13 +6022,13 @@
       "power_delta_class": "delta-neutral",
       "rank": 3,
       "trend": "\u2192",
-      "forecast_strength": 41.7,
+      "forecast_strength": 45.3,
       "remaining_games": 30,
       "open_berth_probability": 0.0,
       "open_berth_probability_display": "0.0%",
       "playoff_berth_probability": 1.0,
       "playoff_berth_probability_display": "100.0%",
-      "expected_final_second_half_record": "34.3-34.7"
+      "expected_final_second_half_record": "35.8-33.2"
     },
     {
       "team_id": 482,
@@ -6106,13 +6106,13 @@
       "power_delta_class": "delta-neutral",
       "rank": 4,
       "trend": "\u2192",
-      "forecast_strength": 60.1,
+      "forecast_strength": 60.6,
       "remaining_games": 30,
-      "open_berth_probability": 0.35761,
-      "open_berth_probability_display": "35.8%",
-      "playoff_berth_probability": 0.35761,
-      "playoff_berth_probability_display": "35.8%",
-      "expected_final_second_half_record": "37.3-31.7"
+      "open_berth_probability": 0.41412,
+      "open_berth_probability_display": "41.4%",
+      "playoff_berth_probability": 0.41412,
+      "playoff_berth_probability_display": "41.4%",
+      "expected_final_second_half_record": "36.4-32.6"
     },
     {
       "team_id": 5368,
@@ -6190,13 +6190,13 @@
       "power_delta_class": "delta-neutral",
       "rank": 5,
       "trend": "\u2192",
-      "forecast_strength": 61.7,
+      "forecast_strength": 57.6,
       "remaining_games": 30,
-      "open_berth_probability": 0.62301,
-      "open_berth_probability_display": "62.3%",
-      "playoff_berth_probability": 0.62301,
-      "playoff_berth_probability_display": "62.3%",
-      "expected_final_second_half_record": "38.9-30.1"
+      "open_berth_probability": 0.49427,
+      "open_berth_probability_display": "49.4%",
+      "playoff_berth_probability": 0.49427,
+      "playoff_berth_probability_display": "49.4%",
+      "expected_final_second_half_record": "37.0-32.0"
     },
     {
       "team_id": 440,
@@ -6274,13 +6274,13 @@
       "power_delta_class": "delta-neutral",
       "rank": 6,
       "trend": "\u2192",
-      "forecast_strength": 66.2,
+      "forecast_strength": 67.3,
       "remaining_games": 30,
-      "open_berth_probability": 0.92723,
-      "open_berth_probability_display": "92.7%",
-      "playoff_berth_probability": 0.92723,
-      "playoff_berth_probability_display": "92.7%",
-      "expected_final_second_half_record": "42.0-27.0"
+      "open_berth_probability": 0.88573,
+      "open_berth_probability_display": "88.6%",
+      "playoff_berth_probability": 0.88573,
+      "playoff_berth_probability_display": "88.6%",
+      "expected_final_second_half_record": "41.1-27.9"
     },
     {
       "team_id": 237,
@@ -6358,13 +6358,13 @@
       "power_delta_class": "delta-neutral",
       "rank": 7,
       "trend": "\u2192",
-      "forecast_strength": 32.0,
+      "forecast_strength": 40.9,
       "remaining_games": 30,
-      "open_berth_probability": 0.00325,
-      "open_berth_probability_display": "0.3%",
-      "playoff_berth_probability": 0.00325,
-      "playoff_berth_probability_display": "0.3%",
-      "expected_final_second_half_record": "29.2-39.8"
+      "open_berth_probability": 0.05579,
+      "open_berth_probability_display": "5.6%",
+      "playoff_berth_probability": 0.05579,
+      "playoff_berth_probability_display": "5.6%",
+      "expected_final_second_half_record": "32.0-37.0"
     },
     {
       "team_id": 3898,
@@ -6442,13 +6442,13 @@
       "power_delta_class": "delta-neutral",
       "rank": 8,
       "trend": "\u2192",
-      "forecast_strength": 46.9,
+      "forecast_strength": 37.7,
       "remaining_games": 30,
-      "open_berth_probability": 0.00088,
+      "open_berth_probability": 0.00061,
       "open_berth_probability_display": "0.1%",
-      "playoff_berth_probability": 0.00088,
+      "playoff_berth_probability": 0.00061,
       "playoff_berth_probability_display": "0.1%",
-      "expected_final_second_half_record": "31.0-38.0"
+      "expected_final_second_half_record": "29.9-39.1"
     },
     {
       "team_id": 510,
@@ -6526,13 +6526,13 @@
       "power_delta_class": "delta-neutral",
       "rank": 9,
       "trend": "\u2192",
-      "forecast_strength": 43.1,
+      "forecast_strength": 41.5,
       "remaining_games": 30,
-      "open_berth_probability": 0.01613,
-      "open_berth_probability_display": "1.6%",
-      "playoff_berth_probability": 0.01613,
-      "playoff_berth_probability_display": "1.6%",
-      "expected_final_second_half_record": "32.4-36.6"
+      "open_berth_probability": 0.03582,
+      "open_berth_probability_display": "3.6%",
+      "playoff_berth_probability": 0.03582,
+      "playoff_berth_probability_display": "3.6%",
+      "expected_final_second_half_record": "32.3-36.7"
     },
     {
       "team_id": 1350,
@@ -6610,13 +6610,13 @@
       "power_delta_class": "delta-neutral",
       "rank": 10,
       "trend": "\u2192",
-      "forecast_strength": 29.7,
+      "forecast_strength": 23.6,
       "remaining_games": 30,
-      "open_berth_probability": 0.0,
+      "open_berth_probability": 3e-05,
       "open_berth_probability_display": "0.0%",
-      "playoff_berth_probability": 0.0,
+      "playoff_berth_probability": 3e-05,
       "playoff_berth_probability_display": "0.0%",
-      "expected_final_second_half_record": "25.3-43.7"
+      "expected_final_second_half_record": "26.0-43.0"
     }
   ]
 }
