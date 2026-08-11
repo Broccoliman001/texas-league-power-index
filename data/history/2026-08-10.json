@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-08-10T22:50:20.431488+00:00",
+  "last_updated": "2026-08-11T01:15:19.473448+00:00",
   "season": 2026,
   "model_version": "2026-08-multiview-v2",
   "previous_games": [
@@ -494,7 +494,7 @@
     "remaining_schedule_fingerprint": "26fc0382c98ef9db8a0500fd0337d9a4cc61b3c3d3c384f8c74ac95886d8d1cd",
     "completed_game_fingerprint": "7e94fc5a73bc9191c9e23fff7f6d696fb8cda89a1dc7e654ed7ac860354ec165",
     "second_half_game_fingerprint": "64dd79a4fbf25cf27544a5e56c781d559e90484d32a67259c5975a111097ffe9",
-    "reused_previous_result": false,
+    "reused_previous_result": true,
     "strength_model": {
       "source_score": "raw_power_state",
       "standardization": "Each selected Power view is z-standardized across the 10-team league before weighting.",
