@@ -63,12 +63,12 @@ RECENT_POWER_SMOOTHING_ENABLED = False
 # signals from three views, translates comparative strength into game-level
 # win probabilities, then simulates the remaining regular-season schedule.
 PLAYOFF_FORECAST_ENABLED = True
-PLAYOFF_FORECAST_MODEL_VERSION = "2026-08-playoff-v1"
+PLAYOFF_FORECAST_MODEL_VERSION = "2026-08-playoff-v2"
 PLAYOFF_FORECAST_SIMULATIONS = 100_000
 
 PLAYOFF_FORECAST_VIEW_WEIGHTS = {
-    "recent": 0.50,
-    "second_half": 0.35,
+    "recent": 0.15,
+    "second_half": 0.70,
     "overall": 0.15,
 }
 
@@ -80,7 +80,7 @@ PLAYOFF_FORECAST_POINTS_PER_Z = 15.0
 # Bradley-Terry/logistic matchup log-odds. This is deliberately conservative
 # and is marked as provisional in the output until historical backtesting can
 # calibrate it from out-of-sample Texas League results.
-PLAYOFF_FORECAST_LOGIT_PER_Z = 0.40
+PLAYOFF_FORECAST_LOGIT_PER_Z = 0.25
 
 # Prevent a current-form rating from producing implausibly certain single-game
 # probabilities in a developmental league with substantial roster movement.
