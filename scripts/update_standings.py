@@ -1754,6 +1754,8 @@ def build_base_view_teams(
             team_row["weighted_win_pct"] = format_pct(
                 weighted_stats["pct_num"]
             )
+            team_row["weighted_rs"] = weighted_stats["weighted_rs"]
+            team_row["weighted_ra"] = weighted_stats["weighted_ra"]
             team_row["weighted_diff_per_game"] = weighted_stats[
                 "diff_per_game"
             ]
@@ -4024,6 +4026,11 @@ output = {
         ),
         "minimum_games_required": 0,
         "rolling": True,
+        "display_fields": (
+            "Recent rows expose weighted_win_pct, weighted_rs, weighted_ra, "
+            "weighted_run_differential, and weighted OWP so the table can "
+            "display the same recency-weighted inputs used by Recent Power."
+        ),
     },
 
     # New multi-view structure for the future tabbed interface.
