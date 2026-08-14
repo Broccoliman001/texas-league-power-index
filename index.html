@@ -1146,7 +1146,10 @@
             Overall: all completed regular-season games.
           </p>
 
-          <p class="table-note">
+          <p
+            id="power-table-note"
+            class="table-note"
+          >
             Supporting statistics use the same game window as the selected
             Power view. Hover over abbreviated column names for definitions.
           </p>
@@ -1186,31 +1189,31 @@
                   </th>
 
                   <th scope="col">
-                    <abbr title="Winning percentage">
+                    <abbr title="Winning percentage; Recent displays the recency-weighted value used by Power">
                       PCT
                     </abbr>
                   </th>
 
                   <th scope="col">
-                    <abbr title="Runs scored">
+                    <abbr title="Runs scored; Recent displays recency-weighted runs scored">
                       RS
                     </abbr>
                   </th>
 
                   <th scope="col">
-                    <abbr title="Runs allowed">
+                    <abbr title="Runs allowed; Recent displays recency-weighted runs allowed">
                       RA
                     </abbr>
                   </th>
 
                   <th scope="col">
-                    <abbr title="Run differential: runs scored minus runs allowed">
+                    <abbr title="Run differential: runs scored minus runs allowed; Recent displays the recency-weighted value used by Power">
                       DIFF
                     </abbr>
                   </th>
 
                   <th scope="col">
-                    <abbr title="Average opponent winning percentage within the selected view">
+                    <abbr title="Average opponent winning percentage within the selected view; Recent uses the same recency weighting as Power">
                       OWP
                     </abbr>
                   </th>
@@ -1500,9 +1503,12 @@
           <strong>Overall</strong> uses every completed regular-season game.
           <strong>First Half</strong> and <strong>Second Half</strong> use the
           official split-season game sets. <strong>Recent</strong> uses each
-          team's most recent 24 completed games (or all available games before
-          24 have been played), so teams' Recent windows can begin on different
-          dates. The same Power formula is applied separately inside each view.
+          team's most recent up to 30 completed games. The newest 18 games count
+          at full weight, while games 19–30 fade linearly until the oldest
+          included game carries only 1/13 weight. The weighting is applied
+          consistently to winning percentage, runs scored, runs allowed, run
+          differential, and opponent winning percentage. The same Power formula
+          is then applied separately inside each view.
         </p>
 
       </article>
@@ -1525,15 +1531,17 @@
 
           <li>
             Overall and Second Half expand as games are completed; First Half
-            freezes when that official half is complete; Recent rolls forward
-            one game at a time once a team has 24 completed games.
+            freezes when that official half is complete; Recent uses up to 30
+            games, with the newest 18 at full weight and games 19–30 fading
+            linearly as they age.
           </li>
 
           <li>
             Overall, First Half, and Second Half are smoothed using previously
             published ratings to reduce excessive movement from a single new
-            result. Recent is not additionally smoothed because its rolling
-            24-game window already provides temporal smoothing.
+            result. Recent is not additionally smoothed because its 18-game
+            full-weight core plus 12-game linear fade already provides temporal
+            smoothing.
           </li>
 
           <li>
@@ -2183,7 +2191,8 @@
       },
       recent: {
         label: "Recent",
-        description: "Each team's most recent up to 24 completed games."
+        description:
+          "Each team's most recent up to 30 completed games: the newest 18 count at full weight and games 19–30 fade linearly."
       }
     };
 
@@ -2277,6 +2286,9 @@
       const context =
         document.getElementById("power-view-context");
 
+      const tableNote =
+        document.getElementById("power-table-note");
+
       const view =
         getAvailableView(data, viewKey) ||
         getAvailableView(data, "overall");
@@ -2319,6 +2331,13 @@
       context.textContent =
         `${label}: ${description}${recentQualifier}`;
 
+      if (tableNote) {
+        tableNote.textContent =
+          activeViewKey === "recent"
+            ? "Recent displays the same recency-weighted PCT, RS, RA, DIFF, and OWP inputs used by Recent Power. Record and L10 remain literal win-loss records. Hover over abbreviated column names for definitions."
+            : "Supporting statistics use the same game window as the selected Power view. Hover over abbreviated column names for definitions.";
+      }
+
       const teams = Array.isArray(view.teams)
         ? view.teams
         : [];
@@ -2352,17 +2371,59 @@
               ? "trend-down"
               : "trend-flat";
 
+        const isRecent = activeViewKey === "recent";
+
+        const displayPct =
+          isRecent
+            ? team.weighted_win_pct ?? team.pct ?? "—"
+            : team.pct ?? "—";
+
+        const displayRsValue =
+          isRecent
+            ? team.weighted_rs ?? team.rs
+            : team.rs;
+
+        const displayRaValue =
+          isRecent
+            ? team.weighted_ra ?? team.ra
+            : team.ra;
+
+        const displayDiffValue =
+          isRecent
+            ? team.weighted_run_differential ?? team.diff
+            : team.diff;
+
+        const formatRunValue = value => {
+          const numericValue = Number(value);
+
+          if (!Number.isFinite(numericValue)) {
+            return "—";
+          }
+
+          return isRecent
+            ? numericValue.toFixed(1)
+            : String(value);
+        };
+
+        const numericDiff = Number(displayDiffValue);
+
         const diffClass =
-          team.diff > 0
+          Number.isFinite(numericDiff) && numericDiff > 0
             ? "positive"
-            : team.diff < 0
+            : Number.isFinite(numericDiff) && numericDiff < 0
               ? "negative"
               : "neutral";
 
         const formattedDiff =
-          team.diff > 0
-            ? `+${team.diff}`
-            : team.diff ?? "—";
+          Number.isFinite(numericDiff)
+            ? `${
+                numericDiff > 0 ? "+" : ""
+              }${
+                isRecent
+                  ? numericDiff.toFixed(1)
+                  : displayDiffValue
+              }`
+            : "—";
 
         row.innerHTML = `
           <td>
@@ -2418,15 +2479,15 @@
           </td>
 
           <td>
-            ${escapeHtml(team.pct || "—")}
+            ${escapeHtml(displayPct)}
           </td>
 
           <td>
-            ${escapeHtml(team.rs ?? "—")}
+            ${escapeHtml(formatRunValue(displayRsValue))}
           </td>
 
           <td>
-            ${escapeHtml(team.ra ?? "—")}
+            ${escapeHtml(formatRunValue(displayRaValue))}
           </td>
 
           <td class="${escapeHtml(diffClass)}">
