@@ -53,7 +53,9 @@ POWER_DIFF_WEIGHT = 0.50
 POWER_WIN_PCT_WEIGHT = 0.25
 POWER_OWP_WEIGHT = 0.25
 
-RECENT_MAX_GAMES = 24
+RECENT_FULL_WEIGHT_GAMES = 18
+RECENT_MAX_GAMES = 30
+RECENT_WEIGHTING_VERSION = "2026-08-recent-linear-fade-v1"
 POWER_MODEL_VERSION = "2026-08-multiview-v2"
 OWP_EXCLUDE_HEAD_TO_HEAD = True
 RECENT_POWER_SMOOTHING_ENABLED = False
@@ -63,7 +65,7 @@ RECENT_POWER_SMOOTHING_ENABLED = False
 # signals from three views, translates comparative strength into game-level
 # win probabilities, then simulates the remaining regular-season schedule.
 PLAYOFF_FORECAST_ENABLED = True
-PLAYOFF_FORECAST_MODEL_VERSION = "2026-08-playoff-v2"
+PLAYOFF_FORECAST_MODEL_VERSION = "2026-08-playoff-v3"
 PLAYOFF_FORECAST_SIMULATIONS = 100_000
 
 PLAYOFF_FORECAST_VIEW_WEIGHTS = {
@@ -117,7 +119,8 @@ VIEW_CONFIG = {
     "recent": {
         "label": "Recent",
         "description": (
-            "Each team\'s most recent up to 24 completed games."
+            "Each team's most recent up to 30 completed games: the newest "
+            "18 count at full weight and games 19-30 fade linearly."
         ),
         "standings_type": None,
     },
@@ -962,10 +965,26 @@ def get_view_smoothing_config(view_key):
     }
 
 
+def recent_weighting_config():
+    fade_games = RECENT_MAX_GAMES - RECENT_FULL_WEIGHT_GAMES
+
+    return {
+        "version": RECENT_WEIGHTING_VERSION,
+        "method": "linear_fade",
+        "full_weight_games": RECENT_FULL_WEIGHT_GAMES,
+        "max_games": RECENT_MAX_GAMES,
+        "fade_games": fade_games,
+        "formula": (
+            "rank newest-to-oldest as r=1,2,...; weight=1 for r<=18; "
+            "weight=(31-r)/13 for 19<=r<=30; weight=0 for r>=31"
+        ),
+    }
+
+
 def power_model_signature(view_key):
     smoothing = get_view_smoothing_config(view_key)
 
-    return {
+    signature = {
         "model_version": POWER_MODEL_VERSION,
         "weights": {
             "diff": POWER_DIFF_WEIGHT,
@@ -984,6 +1003,40 @@ def power_model_signature(view_key):
             "factor": POWER_COMPRESSION_FACTOR,
         },
     }
+
+    if view_key == "recent":
+        signature["recent_weighting"] = recent_weighting_config()
+
+    return signature
+
+
+def power_model_signature_hash(view_key):
+    serialized = json.dumps(
+        power_model_signature(view_key),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
+
+def snapshot_view_model_compatible(snapshot, view_key):
+    if not snapshot:
+        return False
+
+    view = get_snapshot_view(snapshot, view_key)
+    stored_signature_hash = view.get("model_signature_hash")
+
+    if stored_signature_hash is not None:
+        return stored_signature_hash == power_model_signature_hash(view_key)
+
+    # Snapshots created before per-view signatures can still be reused for the
+    # unchanged views. Old Recent snapshots used the hard 24-game cutoff, so
+    # they are intentionally incompatible with the new weighted Recent model.
+    if view_key == "recent":
+        return False
+
+    return snapshot.get("model_version") == POWER_MODEL_VERSION
 
 
 # ---------------------------------------------------------------------------
@@ -1169,6 +1222,113 @@ def calculate_team_game_stats(team_id, games):
     }
 
 
+def recent_game_weight(game_rank_newest_first):
+    if game_rank_newest_first <= 0:
+        return 0.0
+
+    if game_rank_newest_first <= RECENT_FULL_WEIGHT_GAMES:
+        return 1.0
+
+    if game_rank_newest_first <= RECENT_MAX_GAMES:
+        return (
+            (RECENT_MAX_GAMES + 1 - game_rank_newest_first)
+            / (RECENT_MAX_GAMES + 1 - RECENT_FULL_WEIGHT_GAMES)
+        )
+
+    return 0.0
+
+
+def build_recent_game_weight_map(games):
+    game_count = len(games)
+    weights = {}
+
+    for index, game in enumerate(games):
+        game_pk = game.get("game_pk")
+
+        if game_pk is None:
+            continue
+
+        rank_newest_first = game_count - index
+        weights[game_pk] = recent_game_weight(rank_newest_first)
+
+    return weights
+
+
+def build_recent_game_weight_maps(games_by_team):
+    return {
+        team_id: build_recent_game_weight_map(games)
+        for team_id, games in games_by_team.items()
+    }
+
+
+def game_weight(game, game_weights=None):
+    if game_weights is None:
+        return 1.0
+
+    game_pk = game.get("game_pk")
+
+    if game_pk is None:
+        return 1.0
+
+    return game_weights.get(game_pk, 0.0)
+
+
+def calculate_weighted_team_game_stats(
+    team_id,
+    games,
+    game_weights=None,
+):
+    weighted_wins = 0.0
+    weighted_losses = 0.0
+    weighted_rs = 0.0
+    weighted_ra = 0.0
+
+    for game in games:
+        weight = game_weight(game, game_weights)
+
+        if weight <= 0:
+            continue
+
+        if game["away_team_id"] == team_id:
+            team_score = game["away_score"]
+            opponent_score = game["home_score"]
+        elif game["home_team_id"] == team_id:
+            team_score = game["home_score"]
+            opponent_score = game["away_score"]
+        else:
+            continue
+
+        weighted_rs += weight * team_score
+        weighted_ra += weight * opponent_score
+
+        if team_score > opponent_score:
+            weighted_wins += weight
+        elif team_score < opponent_score:
+            weighted_losses += weight
+
+    effective_games = weighted_wins + weighted_losses
+    pct_num = (
+        weighted_wins / effective_games
+        if effective_games else 0.0
+    )
+    weighted_diff = weighted_rs - weighted_ra
+    diff_per_game = (
+        weighted_diff / effective_games
+        if effective_games else 0.0
+    )
+
+    return {
+        "weighted_wins": weighted_wins,
+        "weighted_losses": weighted_losses,
+        "effective_games": effective_games,
+        "pct_num": pct_num,
+        "weighted_rs": weighted_rs,
+        "weighted_ra": weighted_ra,
+        "weighted_diff": weighted_diff,
+        "diff_per_game": diff_per_game,
+    }
+
+
 def calculate_last_n_record(team_id, games, max_games=10):
     selected_games = games[-max_games:]
     stats = calculate_team_game_stats(team_id, selected_games)
@@ -1263,6 +1423,7 @@ def calculate_head_to_head_excluded_win_pct(
     team_id,
     excluded_opponent_id,
     games,
+    game_weights=None,
 ):
     independent_games = [
         game
@@ -1276,18 +1437,39 @@ def calculate_head_to_head_excluded_win_pct(
         # the evaluated team to create its own OWP signal.
         return 0.500
 
-    stats = calculate_team_game_stats(team_id, independent_games)
-    return stats["pct_num"]
+    stats = calculate_weighted_team_game_stats(
+        team_id,
+        independent_games,
+        game_weights,
+    )
+
+    return stats["pct_num"] if stats["effective_games"] else 0.500
 
 
-def calculate_opponent_win_percentages_for_view(games_by_team):
+def calculate_opponent_win_percentages_for_view(
+    games_by_team,
+    game_weights_by_team=None,
+):
     average_opponent_win_pct = {}
     adjusted_pct_cache = {}
 
     for team_id, games in games_by_team.items():
         opponent_values = []
+        evaluated_game_weights = (
+            game_weights_by_team.get(team_id, {})
+            if game_weights_by_team is not None
+            else None
+        )
 
         for game in games:
+            evaluated_game_weight = game_weight(
+                game,
+                evaluated_game_weights,
+            )
+
+            if evaluated_game_weight <= 0:
+                continue
+
             opponent_id = opponent_id_for_game(team_id, game)
 
             if opponent_id is None:
@@ -1297,6 +1479,11 @@ def calculate_opponent_win_percentages_for_view(games_by_team):
 
             if cache_key not in adjusted_pct_cache:
                 opponent_games = games_by_team.get(opponent_id, [])
+                opponent_game_weights = (
+                    game_weights_by_team.get(opponent_id, {})
+                    if game_weights_by_team is not None
+                    else None
+                )
 
                 if OWP_EXCLUDE_HEAD_TO_HEAD:
                     adjusted_pct_cache[cache_key] = (
@@ -1304,24 +1491,37 @@ def calculate_opponent_win_percentages_for_view(games_by_team):
                             opponent_id,
                             team_id,
                             opponent_games,
+                            opponent_game_weights,
                         )
                     )
                 else:
-                    stats = calculate_team_game_stats(
+                    stats = calculate_weighted_team_game_stats(
                         opponent_id,
                         opponent_games,
+                        opponent_game_weights,
                     )
                     adjusted_pct_cache[cache_key] = (
-                        stats["pct_num"] if stats["games"] else 0.500
+                        stats["pct_num"]
+                        if stats["effective_games"] else 0.500
                     )
 
-            # Append once per game in the evaluated team's view so opponents
-            # remain weighted by the number of times they were actually faced.
-            opponent_values.append(adjusted_pct_cache[cache_key])
+            # Weight the opponent contribution by the age of the evaluated
+            # team's game. Recent therefore fades old schedule-strength
+            # evidence in the same way it fades old wins and run differential.
+            opponent_values.append((
+                adjusted_pct_cache[cache_key],
+                evaluated_game_weight,
+            ))
 
-        if opponent_values:
+        total_weight = sum(weight for _, weight in opponent_values)
+
+        if total_weight > 0:
             average_opponent_win_pct[team_id] = (
-                sum(opponent_values) / len(opponent_values)
+                sum(
+                    value * weight
+                    for value, weight in opponent_values
+                )
+                / total_weight
             )
         else:
             average_opponent_win_pct[team_id] = 0.500
@@ -1388,6 +1588,20 @@ def build_game_fingerprint(view_key, games_by_team):
     return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
 
 
+def get_power_diff_per_game(team):
+    return team.get(
+        "weighted_diff_per_game",
+        team.get("diff_per_game", 0.0),
+    )
+
+
+def get_power_win_pct_num(team):
+    return team.get(
+        "weighted_win_pct_num",
+        team.get("win_pct_num", 0.0),
+    )
+
+
 def build_input_fingerprint(view_key, teams, game_fingerprint):
     payload = {
         "view": view_key,
@@ -1400,8 +1614,14 @@ def build_input_fingerprint(view_key, teams, game_fingerprint):
                 "losses": team["losses"],
                 "rs": team["rs"],
                 "ra": team["ra"],
-                "diff_per_game": round(team["diff_per_game"], 8),
-                "win_pct_num": round(team["win_pct_num"], 8),
+                "diff_per_game": round(
+                    get_power_diff_per_game(team),
+                    8,
+                ),
+                "win_pct_num": round(
+                    get_power_win_pct_num(team),
+                    8,
+                ),
                 "owp_num": round(team["owp_num"], 8),
             }
             for team in sorted(teams, key=lambda row: row["team_id"])
@@ -1467,10 +1687,16 @@ def build_base_view_teams(
     games_by_team,
 ):
     teams = []
+    recent_game_weights_by_team = (
+        build_recent_game_weight_maps(games_by_team)
+        if view_key == "recent"
+        else None
+    )
 
     for team_id in sorted(regular_season_lookup):
         regular_record = regular_season_lookup[team_id]
         games = games_by_team.get(team_id, [])
+        weighted_stats = None
 
         if view_key == "recent":
             stats = calculate_team_game_stats(team_id, games)
@@ -1478,7 +1704,12 @@ def build_base_view_teams(
                 team_id,
                 games,
             )
-            stats["source"] = "schedule_recent_window"
+            stats["source"] = "schedule_recent_weighted_window"
+            weighted_stats = calculate_weighted_team_game_stats(
+                team_id,
+                games,
+                recent_game_weights_by_team.get(team_id, {}),
+            )
         else:
             stats = official_stats_for_team(
                 team_id,
@@ -1488,8 +1719,16 @@ def build_base_view_teams(
 
         games_count = stats["wins"] + stats["losses"]
         diff = stats["rs"] - stats["ra"]
+        raw_win_pct_num = (
+            stats["wins"] / games_count
+            if games_count else 0.0
+        )
+        raw_diff_per_game = (
+            diff / games_count
+            if games_count else 0.0
+        )
 
-        teams.append({
+        team_row = {
             "team_id": team_id,
             "team": regular_record["team"],
             "division": regular_record.get("division", "Unknown"),
@@ -1506,19 +1745,31 @@ def build_base_view_teams(
             "games": games_count,
             "games_in_view": len(games),
             "diff": diff,
-            "win_pct_num": (
-                stats["wins"] / games_count
-                if games_count else 0.0
-            ),
-            "diff_per_game": (
-                diff / games_count
-                if games_count else 0.0
-            ),
-        })
+            "win_pct_num": raw_win_pct_num,
+            "diff_per_game": raw_diff_per_game,
+        }
+
+        if weighted_stats is not None:
+            team_row["weighted_win_pct_num"] = weighted_stats["pct_num"]
+            team_row["weighted_win_pct"] = format_pct(
+                weighted_stats["pct_num"]
+            )
+            team_row["weighted_diff_per_game"] = weighted_stats[
+                "diff_per_game"
+            ]
+            team_row["weighted_run_differential"] = weighted_stats[
+                "weighted_diff"
+            ]
+            team_row["effective_games"] = weighted_stats[
+                "effective_games"
+            ]
+
+        teams.append(team_row)
 
     average_opponent_win_pct_by_id = (
         calculate_opponent_win_percentages_for_view(
             games_by_team,
+            recent_game_weights_by_team,
         )
     )
 
@@ -1721,11 +1972,13 @@ def apply_power_index(
         view_key,
     )
 
-    previous_model_compatible = (
-        previous_snapshot.get("model_version") == POWER_MODEL_VERSION
+    previous_model_compatible = snapshot_view_model_compatible(
+        previous_snapshot,
+        view_key,
     )
-    comparison_model_compatible = (
-        comparison_snapshot.get("model_version") == POWER_MODEL_VERSION
+    comparison_model_compatible = snapshot_view_model_compatible(
+        comparison_snapshot,
+        view_key,
     )
 
     # Weekly movement must compare like with like. A model-version change can
@@ -1744,17 +1997,20 @@ def apply_power_index(
 
     data_changed = previous_fingerprint != input_fingerprint
 
-    diff_values = [team["diff_per_game"] for team in teams]
-    actual_win_values = [team["win_pct_num"] for team in teams]
+    diff_values = [get_power_diff_per_game(team) for team in teams]
+    actual_win_values = [get_power_win_pct_num(team) for team in teams]
 
     for team in teams:
+        power_diff_per_game = get_power_diff_per_game(team)
+        power_win_pct_num = get_power_win_pct_num(team)
+
         diff_score = normalize(
-            team["diff_per_game"],
+            power_diff_per_game,
             diff_values,
         )
 
         actual_win_score = normalize(
-            team["win_pct_num"],
+            power_win_pct_num,
             actual_win_values,
         )
 
@@ -1778,10 +2034,10 @@ def apply_power_index(
         smoothing = get_view_smoothing_config(view_key)
 
         if not smoothing["enabled"]:
-            # Recent is already stabilized by its rolling 24-game sample.
-            # Publishing the current raw score directly ensures that games
-            # leaving that window no longer influence Recent Power indirectly
-            # through an older smoothing state.
+            # Recent is already stabilized by its 18-game full-weight core
+            # plus a 12-game linear fade. Publishing the current raw score
+            # directly avoids layering historical smoothing on top of the
+            # explicit recency weighting.
             smoothed_power_score = raw_power_score
             compressed_power_score = compress_power_score(
                 smoothed_power_score
@@ -1841,6 +2097,8 @@ def apply_power_index(
 
         power_delta_direction = get_power_delta_direction(power_delta)
 
+        team["power_diff_per_game"] = power_diff_per_game
+        team["power_win_pct_num"] = power_win_pct_num
         team["diff_score"] = round(diff_score, 1)
         team["run_profile_score"] = round(diff_score, 1)
         team["actual_win_score"] = round(actual_win_score, 1)
@@ -3302,12 +3560,15 @@ for view_key, config in VIEW_CONFIG.items():
         "team_game_counts": team_game_counts,
         "game_fingerprint": game_fingerprint,
         "input_fingerprint": input_fingerprint,
+        "model_signature_hash": power_model_signature_hash(view_key),
         "data_changed_since_previous_run": data_changed,
-        "previous_model_compatible": (
-            previous_snapshot.get("model_version") == POWER_MODEL_VERSION
+        "previous_model_compatible": snapshot_view_model_compatible(
+            previous_snapshot,
+            view_key,
         ),
-        "comparison_model_compatible": (
-            comparison_snapshot.get("model_version") == POWER_MODEL_VERSION
+        "comparison_model_compatible": snapshot_view_model_compatible(
+            comparison_snapshot,
+            view_key,
         ),
         "smoothing": get_view_smoothing_config(view_key),
         "teams": ranked_teams,
@@ -3543,7 +3804,7 @@ output = {
         "overall": "regularSeason",
         "first_half": "firstHalf",
         "second_half": "secondHalf",
-        "recent": "schedule_last_24",
+        "recent": "schedule_last_30_weighted",
         "active_half": "currentHalf",
         "remaining_schedule": "schedule_future_regular_season",
     },
@@ -3620,10 +3881,10 @@ output = {
             "official second-half game count for schedule-based OWP."
         ),
         "recent": (
-            "Each team's most recent up to 24 completed regular-season "
-            "games. Before 24 games have been played, all available games "
-            "are used. Once 24 are available, older games roll out as new "
-            "games are completed."
+            "Each team's most recent up to 30 completed regular-season "
+            "games. The newest 18 games count at full weight. Games 19-30 "
+            "fade linearly from 12/13 weight down to 1/13, and game 31 and "
+            "older contribute zero to Recent Power."
         ),
     },
 
@@ -3651,11 +3912,13 @@ output = {
         ),
         "diff": (
             "Run Differential Per Game = normalized run differential "
-            "per game within the selected view"
+            "per game within the selected view. Recent uses the 18-full + "
+            "12-game linear-fade weights."
         ),
         "actual_winning_percentage": (
             "Actual Winning Percentage = normalized winning percentage "
-            "within the selected view"
+            "within the selected view. Recent uses the same linear-fade "
+            "game weights for the Power input."
         ),
         "opponent_strength": (
             "Average Opponent Winning Percentage = opponents' winning "
@@ -3678,8 +3941,9 @@ output = {
         "formula": (
             "Overall, First Half, and Second Half smooth changed inputs as "
             "previous_smoothed_power_score * 0.75 + raw_power_score * 0.25. "
-            "Recent uses no additional smoothing because the rolling 24-game "
-            "window already provides temporal smoothing."
+            "Recent uses no additional smoothing because its 18-game "
+            "full-weight core plus 12-game linear fade already provides "
+            "temporal smoothing."
         ),
         "state_note": (
             "The internal smoothed_power_state is stored without display "
@@ -3723,7 +3987,9 @@ output = {
             "For each selected team game, use that opponent's winning "
             "percentage from the same view after excluding all games against "
             "the team being evaluated, then average those opponent values. "
-            "Opponents remain weighted by games played. If an opponent has no "
+            "Opponents remain weighted by games played. In Recent, opponent "
+            "records and each faced-opponent contribution use the same "
+            "18-full + 12-game linear-fade weights. If an opponent has no "
             "independent games after the exclusion, use neutral .500. OWP "
             "score is bounded-normalized so .450 = 0, .500 = 50, and "
             ".550 = 100."
@@ -3734,7 +4000,28 @@ output = {
     },
 
     "recent_window": {
+        "version": RECENT_WEIGHTING_VERSION,
         "max_games_per_team": RECENT_MAX_GAMES,
+        "full_weight_games": RECENT_FULL_WEIGHT_GAMES,
+        "fade_games": (
+            RECENT_MAX_GAMES - RECENT_FULL_WEIGHT_GAMES
+        ),
+        "weighting": "linear_fade",
+        "weight_formula": (
+            "rank newest-to-oldest as r=1,2,...; weight=1 for r<=18; "
+            "weight=(31-r)/13 for 19<=r<=30; weight=0 for r>=31"
+        ),
+        "effective_full_game_weight_at_max_window": round(
+            sum(
+                recent_game_weight(rank)
+                for rank in range(1, RECENT_MAX_GAMES + 1)
+            ),
+            6,
+        ),
+        "oldest_included_game_weight": round(
+            recent_game_weight(RECENT_MAX_GAMES),
+            6,
+        ),
         "minimum_games_required": 0,
         "rolling": True,
     },
