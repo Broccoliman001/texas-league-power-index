@@ -166,15 +166,82 @@
 
     .project-overview {
       margin-bottom: 24px;
+      padding: 0;
+      overflow: hidden;
       border-left: 4px solid var(--accent);
     }
 
-    .project-overview h2 {
-      margin-top: 0;
-      margin-bottom: 10px;
+    .project-overview > summary {
+      list-style: none;
     }
 
-    .project-overview p:last-child {
+    .project-overview > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .project-overview-summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+
+      padding: 16px 20px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .project-overview-summary:hover {
+      background: var(--card-background-hover);
+    }
+
+    .project-overview-summary:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: -2px;
+    }
+
+    .project-overview-summary h2 {
+      margin: 0;
+    }
+
+    .project-overview-toggle {
+      position: relative;
+      flex: 0 0 28px;
+      width: 28px;
+      height: 28px;
+
+      border: 1px solid var(--border-color);
+      border-radius: 999px;
+    }
+
+    .project-overview-toggle::before,
+    .project-overview-toggle::after {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+
+      width: 12px;
+      height: 2px;
+
+      background: var(--text-muted);
+      content: "";
+      transform: translate(-50%, -50%);
+      transition: transform 150ms ease;
+    }
+
+    .project-overview-toggle::after {
+      transform: translate(-50%, -50%) rotate(90deg);
+    }
+
+    .project-overview[open] .project-overview-toggle::after {
+      transform: translate(-50%, -50%) rotate(0deg);
+    }
+
+    .project-overview-content {
+      padding: 0 20px 20px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .project-overview-content p:last-child {
       margin-bottom: 0;
     }
 
@@ -953,8 +1020,17 @@
         padding: 16px;
       }
 
+      .project-overview,
       .playoff-card {
         padding: 0;
+      }
+
+      .project-overview-summary {
+        padding: 16px;
+      }
+
+      .project-overview-content {
+        padding: 0 16px 16px;
       }
 
       .playoff-summary {
@@ -1033,34 +1109,49 @@
 
     </header>
 
-    <section
+    <details
       class="card project-overview"
-      aria-labelledby="project-overview-heading"
     >
 
-      <h2 id="project-overview-heading">
-        About This Project
-      </h2>
+      <summary
+        class="project-overview-summary"
+        aria-labelledby="project-overview-heading"
+      >
 
-      <p>
-        The Texas League Power Index is an independent sports analytics project
-        covering the league's 10 Double-A baseball clubs. It processes current
-        standings and game results into a comparative team-strength rating and
-        publishes the results through an interactive web dashboard.
-      </p>
+        <h2 id="project-overview-heading">
+          About This Project
+        </h2>
 
-      <p>
-        Unlike traditional standings, the index considers not only whether a team
-        wins, but also how strongly it performs and the quality of the opponents
-        it has faced. The Power Index can be viewed across the full season, either
-        official half, or each team's rolling recent window. The playoff section
-        remains separate from the descriptive Power rankings: it follows the
-        official split-season standings and uses current team-strength signals,
-        the remaining schedule, home field, and official tiebreak procedures to
-        estimate each eligible team's chance of earning the open berth.
-      </p>
+        <span
+          class="project-overview-toggle"
+          aria-hidden="true"
+        ></span>
 
-    </section>
+      </summary>
+
+      <div class="project-overview-content">
+
+        <p>
+          The Texas League Power Index is an independent sports analytics project
+          covering the league's 10 Double-A baseball clubs. It processes current
+          standings and game results into a comparative team-strength rating and
+          publishes the results through an interactive web dashboard.
+        </p>
+
+        <p>
+          Unlike traditional standings, the index considers not only whether a team
+          wins, but also how strongly it performs and the quality of the opponents
+          it has faced. The Power Index can be viewed across the full season, either
+          official half, or each team's rolling recent window. The playoff section
+          remains separate from the descriptive Power rankings: it follows the
+          official split-season standings and uses current team-strength signals,
+          the remaining schedule, home field, and official tiebreak procedures to
+          estimate each eligible team's chance of earning the open berth.
+        </p>
+
+      </div>
+
+    </details>
 
     <section class="dashboard-layout">
 
