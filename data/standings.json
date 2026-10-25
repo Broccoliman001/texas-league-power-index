@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-10-24T09:43:44.379700+00:00",
+  "last_updated": "2026-10-25T10:01:57.332167+00:00",
   "season": 2026,
   "model_version": "2026-08-multiview-v2",
   "previous_games": [
@@ -62,7 +62,7 @@
     "first_half_complete": true,
     "second_half_started": true,
     "league_timezone": "America/Chicago",
-    "local_date": "2026-10-24"
+    "local_date": "2026-10-25"
   },
   "playoff_format": {
     "berths_per_division": 2,
